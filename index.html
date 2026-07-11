@@ -1474,18 +1474,14 @@
 
         // ---------- 计算初始伪装值（进入第二章时调用） ----------
         function calculateInitialDisguise() {
-            // 基础值：2（勉强混入）
             let base = 2;
-
-            // 第一章加成条件（每个+1，最高5）
-            if (state.flags.hidden_hasBrand) base += 1;        // 灰线烙印
-            if (state.flags.hidden_answeredCode) base += 1;    // 暗语应答
-            if (state.flags.awakening.visited) base += 1;      // 见过阿芹
-            if (state.flags.folkloreWarned) base += 1;         // 见过民俗部
-            if (state.flags.hasPeachWood) base += 1;           // 桃木吊坠
-
-            // 限制范围 2~5
-            return clamp(base, 2, 5);
+            if (state.flags.hidden_hasBrand) base += 1;
+            if (state.flags.hidden_answeredCode) base += 1;
+            if (state.flags.awakening.visited) base += 1;
+            if (state.flags.folkloreWarned) base += 1;
+            if (state.flags.hasPeachWood) base += 1;
+            // 上限改为4，让玩家始终有紧张感
+            return clamp(base, 2, 4);
         }
 
         // ---------- 伪装值调整 ----------
@@ -5841,25 +5837,49 @@
             // ---- 根据伪装值显示不同文本 ----
             if (d >= 4) {
                 storyText = `
-            <span class="title-line">🌫️ 阴影遭遇 · 高伪装</span>
-            <span class="divider">—— —— ——</span>
-            社戏的烟雾在你面前翻涌，你看到前方有「带菌柄的鳞片状阴影」在移动。
-            你认得这是什么——规则上说过，念「龙佑平安」就可以安全通过。
-            <span class="divider">· · ·</span>
-            你自然地低头念咒，嘴唇微动，声音淹没在锣鼓声中。
-            阴影在你面前晃了晃，然后缓缓散开。你听到阴影中传来一声若有若无的叹息：
-            <span class="rule-text" style="color:#d4b87a;">「又一年了……救救我们……」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#6ab06a;">✅ 你完美地处理了阴影遭遇！（伪装+0，已完美）</span>
-            <span style="color:#6a8aaa;">📌 你听到了阴影中的低语——那些是被献祭的孩子灵魂。</span>
-        `;
-                // 高伪装：获得额外情报
-                if (!state.rules.includes('shadow_secret')) {
-                    // 用标记记录这个情报
+        <span class="title-line">🌫️ 阴影遭遇 · 高伪装</span>
+        <span class="divider">—— —— ——</span>
+        社戏的烟雾在你面前翻涌，你看到前方有「带菌柄的鳞片状阴影」在移动。
+        你认得这是什么——规则上说过，念「龙佑平安」就可以安全通过。
+        <span class="divider">· · ·</span>
+        你自然地低头念咒，嘴唇微动，声音淹没在锣鼓声中。
+        阴影在你面前晃了晃，然后缓缓散开。你听到阴影中传来一声若有若无的叹息：
+        <span class="rule-text" style="color:#d4b87a;">「又一年了……救救我们……」</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">📌 你听到了阴影中的低语——那些是被献祭的孩子灵魂。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你自然地通过了阴影，几乎没有引起任何注意。</span>
+    `;
+
+                // 标记已获得情报
+                if (!state.flags.hasShadowSecret) {
                     state.flags.hasShadowSecret = true;
                 }
-                // 理智提升（龙化-5）
-                changeDragonization(-5);
+
+                // ---- 效果移到按钮的 action 中 ----
+                renderOptions([{
+                    label: '🚶 继续前进',
+                    hint: '阴影已经散去',
+                    tag: '✅ 自动通过',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        // 在点击后才应用效果
+                        changeDragonization(-5);  // 理智提升
+                        advanceRitual(3);
+                        state.ch2.hasEncounteredShadow = true;
+                        state.ch2.dramaPhase = 1;
+                        // 伪装自然衰退：保持伪装需要持续消耗精力
+                        changeDisguise(-1);
+                        updateUI();
+                        setTimeout(function () {
+                            if (!state.gameOver && !state._waitingConfirm) {
+                                renderRitualEvents();
+                            }
+                        }, 300);
+                    }
+                }]);
+                setStory(storyText);
+                return;
+
             } else if (d >= 2) {
                 storyText = `
             <span class="title-line">🌫️ 阴影遭遇 · 中等伪装</span>
@@ -6021,20 +6041,42 @@
             // ---- 根据伪装值显示不同文本 ----
             if (d >= 4) {
                 storyText = `
-            <span class="title-line">🧙 道士盘查 · 高伪装</span>
-            <span class="divider">—— —— ——</span>
-            一个道士拦住你的去路，目光锐利地打量着你。
-            但你身上散发出的气息——那是一种被龙气「接纳」的感觉——让道士放松了警惕。
-            <span class="rule-text" style="color:#d4b87a;">「辛苦了，进去吧。先生今晚心情不好，别惹事。」</span>
-            他侧身让开了路。
-            <span class="divider">· · ·</span>
-            <span style="color:#6ab06a;">✅ 道士主动放行！（伪装+0，已完美）</span>
-            <span style="color:#6a8aaa;">📌 你获得了额外信息：「先生今晚心情不好」——这意味着玄清可能处于不稳定状态。</span>
-        `;
-                // 高伪装自动通过，获得额外情报
+        <span class="title-line">🧙 道士盘查 · 高伪装</span>
+        <span class="divider">—— —— ——</span>
+        一个道士拦住你的去路，目光锐利地打量着你。
+        但你身上散发出的气息——那是一种被龙气「接纳」的感觉——让道士放松了警惕。
+        <span class="rule-text" style="color:#d4b87a;">「辛苦了，进去吧。先生今晚心情不好，别惹事。」</span>
+        他侧身让开了路。
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">📌 你获得了额外信息：「先生今晚心情不好」——这意味着玄清可能处于不稳定状态。</span>
+    `;
+
                 if (!state.flags.hasTaoistInfo) {
                     state.flags.hasTaoistInfo = true;
                 }
+
+                renderOptions([{
+                    label: '🚶 继续前进',
+                    hint: '道士已经放行',
+                    tag: '✅ 自动通过',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        // 点击后才应用效果
+                        state.ch2.hasEncounteredTaoist = true;
+                        state.ch2.dramaPhase = 2;
+                        advanceRitual(5);
+                        // 伪装自然衰退：保持伪装需要持续消耗精力
+                        changeDisguise(-1);
+                        updateUI();
+                        setTimeout(function () {
+                            if (!state.gameOver && !state._waitingConfirm) {
+                                renderRitualEvents();
+                            }
+                        }, 300);
+                    }
+                }]);
+                setStory(storyText);
+                return;
             } else if (d >= 2) {
                 storyText = `
             <span class="title-line">🧙 道士盘查 · 中等伪装</span>
@@ -6068,6 +6110,7 @@
                         state.ch2.hasEncounteredTaoist = true;
                         state.ch2.dramaPhase = 2;
                         advanceRitual(5);
+
                         updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
@@ -6188,37 +6231,37 @@
             // ---- 根据伪装值显示不同文本 ----
             if (d >= 4) {
                 storyText = `
-            <span class="title-line">🗣️ 路人搭话 · 高伪装</span>
-            <span class="divider">—— —— ——</span>
-            你走在队伍中，一个挑柴的老汉主动凑了过来，压低声音说：
-            <span class="rule-text" style="color:#d4b87a;">「你是新来的吧？我看你面生，但身上有股……特别的气息。你听好了——」</span>
-            他看了看四周，继续说道：
-            <span class="rule-text" style="color:#d4b87a;">「前头道观里的先生，每年重阳都要收几个徒弟。那些徒弟进去后，就再也没出来过。你要是聪明，就别走太近。」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#6a8aaa;">你获得了一条重要信息！</span>
-            ${availableRules.length > 0 ? '<span style="color:var(--text-gold);">📜 你获得了一条新规则！</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">（你已经收集了所有路人信息）</span>'}
-            <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+0（已完美），⏳ 社戏进度+5%</span>
-        `;
-                // 高伪装自动获得一条规则
-                if (availableRules.length > 0) {
-                    var picked = pick(availableRules);
-                    addRule(picked);
-                    // 记录到规则列表后，再显示提示
-                    setTimeout(function () {
-                        showStory(`<span style="color:var(--text-gold);">📜 获得新规则：「${RULES_DB[picked].text}」</span>`);
-                    }, 100);
-                }
-                // 推进进度
-                advanceRitual(5);
-                // 标记事件完成，进入下一事件
-                state.ch2.dramaPhase = 3;
-                updateUI();
+        <span class="title-line">🗣️ 路人搭话 · 高伪装</span>
+        <span class="divider">—— —— ——</span>
+        你走在队伍中，一个挑柴的老汉主动凑了过来，压低声音说：
+        <span class="rule-text" style="color:#d4b87a;">「你是新来的吧？我看你面生，但身上有股……特别的气息。你听好了——」</span>
+        他看了看四周，继续说道：
+        <span class="rule-text" style="color:#d4b87a;">「前头道观里的先生，每年重阳都要收几个徒弟。那些徒弟进去后，就再也没出来过。你要是聪明，就别走太近。」</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">你获得了一条重要信息！</span>
+        ${availableRules.length > 0 ? '<span style="color:var(--text-gold);">📜 你将获得一条新规则！</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">（你已经收集了所有路人信息）</span>'}
+    `;
+
+                // 准备好要添加的规则（但还不添加）
+                var pickedRule = availableRules.length > 0 ? pick(availableRules) : null;
+
                 renderOptions([{
-                    label: '🚶 继续前进',
-                    hint: '进入下一事件',
-                    tag: '→ 继续',
+                    label: '📖 记下老汉的话',
+                    hint: '获得一条路人信息',
+                    tag: '✅ 获得规则',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
+                        // 点击后才添加规则
+                        if (pickedRule) {
+                            addRule(pickedRule).then(function () {
+                                showStory(`<span style="color:var(--text-gold);">📜 获得新规则：「${RULES_DB[pickedRule].text}」</span>`);
+                            });
+                        }
+                        advanceRitual(3);
+                        state.ch2.dramaPhase = 3;
+                        // 伪装自然衰退：保持伪装需要持续消耗精力
+                        changeDisguise(-1);
+                        updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
                                 renderRitualEvents();
@@ -6351,22 +6394,44 @@
             // ---- 根据伪装值显示不同文本 ----
             if (d >= 4) {
                 storyText = `
-            <span class="title-line">👥 龙化者同行 · 高伪装</span>
-            <span class="divider">—— —— ——</span>
-            你自然地走入了队伍中，身边的龙化者转头看了你一眼——然后移开了目光。
-            你注意到他们的细节：眼神空洞，额头上像银杏果一样的突起，皮肤下隐约有菌丝在游走。
-            <span class="divider">· · ·</span>
-            你看到两个龙化者用菌丝一样的触须互相触碰——他们在「交流」。
-            <span class="rule-text" style="color:#d4b87a;">「……今晚……先生要的是……那个男孩的阳原……」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#6ab06a;">✅ 你完美地融入了龙化者队伍！（伪装+0，已完美）</span>
-            <span style="color:#6a8aaa;">📌 你获得了关键情报：龙化者已经完全失去自我意识，被龙气操控。</span>
-        `;
-                // 高伪装获得额外情报
+        <span class="title-line">👥 龙化者同行 · 高伪装</span>
+        <span class="divider">—— —— ——</span>
+        你自然地走入了队伍中，身边的龙化者转头看了你一眼——然后移开了目光。
+        你注意到他们的细节：眼神空洞，额头上像银杏果一样的突起，皮肤下隐约有菌丝在游走。
+        <span class="divider">· · ·</span>
+        你看到两个龙化者用菌丝一样的触须互相触碰——他们在「交流」。
+        <span class="rule-text" style="color:#d4b87a;">「……今晚……先生要的是……那个男孩的阳原……」</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">📌 你获得了关键情报：龙化者已经完全失去自我意识，被龙气操控。</span>
+    `;
+
                 if (!state.flags.hasDragonFollowerInfo) {
                     state.flags.hasDragonFollowerInfo = true;
                 }
-                changeDragonization(-3);  // 理智提升
+
+                renderOptions([{
+                    label: '🚶 继续前进',
+                    hint: '龙化者视你为同类',
+                    tag: '✅ 自动通过',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        // 点击后才应用效果
+                        changeDragonization(-3);
+                        state.ch2.hasEncounteredDragonFollower = true;
+                        state.ch2.dramaPhase = 4;
+                        advanceRitual(3);
+                        // 伪装自然衰退：保持伪装需要持续消耗精力
+                        changeDisguise(-1);
+                        updateUI();
+                        setTimeout(function () {
+                            if (!state.gameOver && !state._waitingConfirm) {
+                                renderRitualEvents();
+                            }
+                        }, 300);
+                    }
+                }]);
+                setStory(storyText);
+                return;
             } else if (d >= 2) {
                 storyText = `
             <span class="title-line">👥 龙化者同行 · 中等伪装</span>
@@ -6398,7 +6463,7 @@
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 3;
+                        state.ch2.dramaPhase = 4;
                         advanceRitual(5);
                         updateUI();
                         setTimeout(function () {
@@ -6434,7 +6499,7 @@
                         }
                         advanceRitual(5);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 3;
+                        state.ch2.dramaPhase = 4;
                         updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
@@ -6458,7 +6523,7 @@
                 `);
                         advanceRitual(5);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 3;
+                        state.ch2.dramaPhase = 4;
                         updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
@@ -6510,7 +6575,7 @@
                             }
                         }
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 3;
+                        state.ch2.dramaPhase = 4;
                         updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
@@ -6535,7 +6600,7 @@
                 `);
                         advanceRitual(10);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 3;
+                        state.ch2.dramaPhase = 4;
                         updateUI();
                         setTimeout(function () {
                             if (!state.gameOver && !state._waitingConfirm) {
