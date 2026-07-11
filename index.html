@@ -959,6 +959,24 @@
                 },
                 grayLine_choseComply: false,
                 hasYinBloodPotion: false,
+                nightEvents: {
+                    dream: false,   // 梦呓低语是否已触发
+                    knock: false,   // 敲门事件是否已触发
+                    window: false,  // 窗外人影是否已触发
+                },
+                // 觉醒者支线状态
+                awakening: {
+                    unlocked: false,        // 是否已解锁村西探索选项
+                    visited: false,         // 是否已访问过村西
+                    trustLevel: 0,          // 觉醒者信任度（0-5），影响奖励
+                    hasCharm: false,        // 是否获得阴血符咒
+                    greeted: false,         // 是否已与觉醒者对话
+                },
+                found: false,          // 是否已找到石碑
+                decoded: false,        // 是否已解读石碑全文
+                piecesFound: 0,        // 已获得的石碑片段数量（最多6片）
+                hasClue: false,
+                _revealTriggered: false,   // 防止重复触发石碑揭示动画       // 是否从觉醒者处获得了石碑线索
             },
             actionsToday: 0,
             weekCount: 0,
@@ -982,6 +1000,9 @@
                 comedyReady: false,
                 comedyShown: false,
                 lastMessage: null,
+                hasAwakeningVisited: false,
+                hasAwakeningCharm: false,
+                awakeningTrust: 0,
             },
             _confirmResolve: null,
             _waitingConfirm: false,
@@ -1030,6 +1051,15 @@
             'ch2_incense': { id: 'ch2_incense', text: '【第二章】你购买了香。香火是沟通龙神的媒介，也是游神仪式中不可或缺的供奉。' },
             'ch2_water': { id: 'ch2_water', text: '【第二章】你购买了水。山泉水蕴含龙脉之气，饮用后可以暂时压制体内的龙化。' },
             'ch2_amulet': { id: 'ch2_amulet', text: '【第二章】你购买了护身符。桃木雕刻的符牌可以抵御龙气的侵蚀，减少每步的龙化值。' },
+            'night_knock': { id: 'night_knock', text: '【夜间敲门】你听到门外有脚步声，打开门却空无一人，地上留着一片银杏叶，背面刻着："村西三棵老槐树下，埋着真相。"' },
+            'night_dream': { id: 'night_dream', text: '【梦呓低语】嫂嫂在梦中喃喃自语："玄清先生要的纯阳体……今年又该选谁呢……"你惊醒，记下了这句话。' },
+            'night_window': { id: 'night_window', text: '【窗外人影】你看到村西方向有火光一闪而过，像是有人在传递信号。也许那里有人在反抗。' },
+            'stele_1': { id: 'stele_1', text: '【暗碑·柱底碑（工匠藏真篇）】余承命修观，亲见羽士施术，龙啸震野，山崩地裂。然观成之后，每夜闻观内有异响，似孩童啜泣，又似鳞甲摩擦。' },
+            'stele_2': { id: 'stele_2', text: '【暗碑·柱底碑（工匠藏真篇）】羽士令献童入观，余见新童入观半载，指尖泛青，眼神呆滞；旧童离观，从不回望，言及观中事，皆茫然无措。' },
+            'stele_3': { id: 'stele_3', text: '【暗碑·柱底碑（工匠藏真篇）】更有甚者，身生热症癞斑，斑痕渐成龙鳞，鳞上竟生菌柄，状若灵芝；受羽士影响深者，额间长出雷击木似的突起，色如银杏，宛然龙角。' },
+            'stele_4': { id: 'stele_4', text: '【暗碑·柱底碑（工匠藏真篇）】或终日笑脸，或持续暴怒，此等异状者，终会被羽士寻回观中，恐遭阳原被夺之祸。余窃以为，羽士擒龙非为救民，实觊龙气求长生。' },
+            'stele_5': { id: 'stele_5', text: '【暗碑·柱底碑（工匠藏真篇）】献童非为侍观，乃以童阳养龙，再取龙气炼身。龙困于下，必怀怨怼，借观中人气夺舍；羽士倚龙气长生，必遭龙蚀。二者相缠，互为桎梏，恐成千年之祸。' },
+            'stele_6': { id: 'stele_6', text: '【暗碑·柱底碑（工匠藏真篇）】民愚钝，不知其险，反颂其德。余不敢明言，藏此碑于柱底，愿后世有缘者见之，早避此劫。观中香火愈盛，阴邪愈重；社戏愈闹，牺牲愈多。慎之！慎之！' },
         };
 
         // ---------- 工具函数 ----------
@@ -1280,6 +1310,27 @@
                     return; // 等待解锁，暂时不渲染主菜单
                 }
             }
+            // ---- 新增：检查村西觉醒者支线是否解锁 ----
+            if (!state.flags.awakening.unlocked && !state.flags.awakening.visited && !state.flags.chapter2 && !state.gameOver) {
+                const unlocked = checkAwakeningUnlock();
+                if (unlocked) {
+                    // 显示解锁提示，但不打断当前流程
+                    setStory(`
+                <span class="title-line">🌾 新的探索地点已解锁</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">💡 你隐约感到，村西那个被村民禁止靠近的地方，似乎藏着什么重要的秘密……</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 「前往村西聚居区」已添加到探索选项中（消耗2体力）。</span>
+            `);
+                    // 显示一个继续按钮
+                    renderOptions([{
+                        label: '📌 我知道了',
+                        action: () => {
+                            renderMainOptions();
+                        }
+                    }]);
+                    return;
+                }
+            }
             if (state.gameOver) return;
             if (state.stamina === 0) {
                 enterNight();
@@ -1315,9 +1366,52 @@
                 cost: '⚡1',
                 action: () => { goToScene('climb_mountain'); }
             }];
+
+            // ---- 新增：如果已解锁村西探索，添加该选项 ----
+            if (state.flags.awakening.unlocked && !state.flags.awakening.visited && !state.flags.chapter2) {
+                opts.push({
+                    label: '🌾 1.3 前往村西聚居区',
+                    hint: '寻找觉醒者',
+                    cost: '⚡2',  // 消耗2体力，去村西路途遥远且风险高
+                    tag: '⚠️ 危险',
+                    action: () => { goToScene('explore_awakening'); }
+                });
+            }
             renderOptions(opts);
         }
+        // ================================================================
+        //  检查村西觉醒者支线是否解锁
+        // ================================================================
+        function checkAwakeningUnlock() {
+            // 如果已经解锁或已经访问过，不再重复检查
+            if (state.flags.awakening.unlocked || state.flags.awakening.visited) return false;
+            if (state.flags.chapter2) return false;
+            if (state.gameOver) return false;
 
+            // 条件1：已访问民俗部至少1次
+            const hasFolklore = state.flags.folkloreWarned === true;
+
+            // 条件2：龙化值在 15~60 之间
+            const dragonOk = state.dragonization >= 15 && state.dragonization <= 60;
+
+            // 条件3：已留宿至少2次
+            const sleepOk = state.flags.hidden_sleepCount >= 2;
+
+            // 条件4：已获得银杏叶书签
+            const bookmarkOk = state.flags.hidden_hasBookmark === true;
+
+            // 条件5：至少第3天（不能第一天就去）
+            const dayOk = state.day >= 3;
+
+            const allMet = hasFolklore && dragonOk && sleepOk && bookmarkOk && dayOk;
+
+            if (allMet) {
+                state.flags.awakening.unlocked = true;
+                // 显示解锁提示（在下次进入主菜单时显示）
+                return true;
+            }
+            return false;
+        }
         function goToScene(sceneId, extraData) {
             if (state._waitingConfirm) return;
             currentScene = sceneId;
@@ -1415,10 +1509,209 @@
             if (!state.gameOver) {
                 eventText += ` 你感到神清气爽，龙气似乎被驱散了一些（龙化 -${reduceDragon}）。`;
             }
+
+            // ---- 新增：夜间随机事件触发 ----
+            const eventResult = await triggerNightEventIfAny();
+            if (eventResult) {
+                eventText += eventResult.extraText;
+                // 如果事件中已经改变了龙化值，不再重复修改
+            }
+
             // 茶饮和休息的总效果会在 finishRest 后显示
             finishRest('村民家', eventText);
         }
+        // ================================================================
+        //  夜间随机事件系统（仅第一章留宿时触发）
+        // ================================================================
+        function triggerNightEventIfAny() {
+            return new Promise((resolve) => {
+                // 只在第一章且未进入第二章时触发
+                if (state.flags.chapter2 || state.gameOver) {
+                    resolve(null);
+                    return;
+                }
 
+                // 各事件概率（百分比）
+                const events = [
+                    { id: 'knock', prob: 15, flag: 'knock', name: '半夜敲门声' },
+                    { id: 'dream', prob: 20, flag: 'dream', name: '梦呓低语' },
+                    { id: 'window', prob: 10, flag: 'window', name: '窗外人影' },
+                ];
+
+                // 计算总概率（已触发的事件不再参与）
+                const available = events.filter(e => !state.flags.nightEvents[e.flag]);
+                if (available.length === 0) {
+                    resolve(null);
+                    return;
+                }
+
+                // 随机决定是否触发（先决定是否触发事件，概率为45%，即15+20+10）
+                const totalProb = available.reduce((sum, e) => sum + e.prob, 0);
+                // 但我们希望总触发概率为45%左右，但每个事件概率固定，所以直接按权重随机选择事件
+                // 生成0~100随机数，落在哪个事件区间就触发哪个
+                let randVal = rand(0, 100);
+                let cumulative = 0;
+                let chosen = null;
+                for (const e of available) {
+                    cumulative += e.prob;
+                    if (randVal <= cumulative) {
+                        chosen = e;
+                        break;
+                    }
+                }
+                // 如果没有选到（可能randVal > 总概率），则不触发
+                if (!chosen) {
+                    resolve(null);
+                    return;
+                }
+
+                // 标记该事件已触发（防止重复）
+                state.flags.nightEvents[chosen.flag] = true;
+
+                // 根据事件类型显示不同内容
+                switch (chosen.id) {
+                    case 'knock':
+                        renderKnockEvent(resolve);
+                        break;
+                    case 'dream':
+                        renderDreamEvent(resolve);
+                        break;
+                    case 'window':
+                        renderWindowEvent(resolve);
+                        break;
+                    default:
+                        resolve(null);
+                }
+            });
+        }
+
+        // ---- 各事件具体渲染函数 ----
+
+        function renderKnockEvent(resolve) {
+            setStory(`
+        <span class="title-line">🚪 半夜敲门声</span>
+        <span class="divider">· · ·</span>
+        夜深人静，你正要入睡，突然听到门外传来一阵轻柔的脚步声，然后是几下敲门声。
+        声音很轻，像是怕惊醒别人。
+        你屏住呼吸，犹豫着是否要去开门……
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你要怎么做？</span>
+    `);
+            renderOptions([
+                {
+                    label: '🚪 开门看看',
+                    hint: '可能获得线索，也可能有风险',
+                    tag: '冒险',
+                    action: async () => {
+                        // 开门：获得规则 night_knock，龙化+3
+                        changeDragonization(3);
+                        if (!state.rules.includes('night_knock')) {
+                            await addRule('night_knock');
+                        }
+                        setStory(`
+                    <span class="title-line">🚪 你打开了门</span>
+                    门外的夜色中空无一人，只有一片银杏叶飘落在地面上。
+                    你捡起来一看，背面刻着一行小字：
+                    <span class="rule-text" style="color:#d4b87a;">「村西三棵老槐树下，埋着真相。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">（龙化 +3）</span>
+                `);
+                        renderOptions([{
+                            label: '🔙 回到房间',
+                            action: () => {
+                                resolve({ extraText: ' 半夜你听到了敲门声，开门后捡到了一片刻字的银杏叶。' });
+                            }
+                        }]);
+                    }
+                },
+                {
+                    label: '🔇 不开门，假装睡着了',
+                    hint: '安全，但错过线索',
+                    tag: '安全',
+                    action: () => {
+                        setStory(`
+                    <span class="title-line">🔇 你选择了沉默</span>
+                    你躺在床上，一动不动，假装已经熟睡。
+                    敲门声又响了几下，然后脚步声渐渐远去。
+                    你松了一口气，但心中隐隐有些后悔——也许那是一个重要的机会。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">你错过了可能的线索。</span>
+                `);
+                        renderOptions([{
+                            label: '🔙 继续睡觉',
+                            action: () => {
+                                resolve({ extraText: ' 半夜你听到敲门声，但你没有开门。' });
+                            }
+                        }]);
+                    }
+                }
+            ]);
+        }
+
+        function renderDreamEvent(resolve) {
+            setStory(`
+        <span class="title-line">💤 梦呓低语</span>
+        <span class="divider">· · ·</span>
+        你睡得迷迷糊糊，突然听到隔壁传来嫂嫂的梦话，声音断断续续：
+        <span class="rule-text" style="color:#d4b87a;">「玄清先生……今年的纯阳体……又该选谁呢……别怪我……都是龙王爷的意思……」</span>
+        你猛地惊醒，冷汗涔涔。嫂嫂的梦话里藏着惊人的秘密！
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">📌 你听到了关键信息！</span>
+    `);
+            // 直接获得规则，无需选项
+            (async () => {
+                if (!state.rules.includes('night_dream')) {
+                    await addRule('night_dream');
+                }
+                changeDragonization(2);
+                setStory(`
+            <span class="title-line">💤 梦呓低语</span>
+            你记下了嫂嫂梦话中的每一个字。原来所谓的"纯阳体"就是被选中的祭品……
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">（龙化 +2）</span>
+        `);
+                renderOptions([{
+                    label: '🔙 继续睡觉',
+                    action: () => {
+                        resolve({ extraText: ' 半夜你听到嫂嫂的梦呓，听到了关于"纯阳体"的秘密。' });
+                    }
+                }]);
+            })();
+        }
+
+        function renderWindowEvent(resolve) {
+            setStory(`
+        <span class="title-line">🔥 窗外人影</span>
+        <span class="divider">· · ·</span>
+        你半夜醒来，无意中向窗外望去——村西方向的山脚下，有一点火光在闪烁。
+        火光忽明忽暗，像是在传递某种信号。
+        你想起民俗部工作人员的话："村西的婆娘比村东的嫂嫂知道得多。"
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">📌 你看到了村西的异常火光！</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">也许那里有人在用火光传递信息……</span>
+    `);
+            // 直接获得规则
+            (async () => {
+                if (!state.rules.includes('night_window')) {
+                    await addRule('night_window');
+                }
+                changeDragonization(0); // 无龙化变化
+                setStory(`
+            <span class="title-line">🔥 窗外人影</span>
+            你盯着那道火光，直到它完全熄灭。你默默记下了那个方向——村西，那里一定有秘密。
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
+        `);
+                renderOptions([{
+                    label: '🔙 继续睡觉',
+                    action: () => {
+                        resolve({ extraText: ' 半夜你看到村西方向有火光闪烁，似乎有人在传递信号。' });
+                    }
+                }]);
+            })();
+        }
         async function restInCar() {
             if (state.gameOver || state._waitingConfirm) return;
             setStory(`
@@ -2456,6 +2749,155 @@
                 }
             }
         };
+        // ================================================================
+        //  村西觉醒者支线场景
+        // ================================================================
+        SCENES['explore_awakening'] = {
+            render: () => {
+                if (state._waitingConfirm) return;
+                if (state.flags.awakening.visited) {
+                    setStory(`
+                <span class="title-line">🌾 村西聚居区</span>
+                你再次来到村西，但觉醒者告诉你这里已经没有什么新消息了。
+                <span class="rule-text" style="color:#d4b87a;">「你该知道的都知道了。剩下的路，得靠你自己走。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">这里已经没有更多秘密了。</span>
+            `);
+                    renderOptions([{
+                        label: '🚶 离开村西',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你离开了村西，回到村中。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // 正式进入村西
+                state.flags.awakening.visited = true;
+
+                // 消耗2体力（已在进入场景时扣除，但在这里再次确认）
+                // 由于体力在 finishSceneAndReturn 中扣除，这里只是显示场景
+
+                setStory(`
+            <span class="title-line">🌾 村西聚居区 · 第一次拜访</span>
+            <span class="divider">—— —— ——</span>
+            你趁夜色偷偷摸向村西。这里的房屋比村东破败许多，空气中弥漫着一股草药和泥土混合的气味。
+            你注意到一户人家的窗缝里透出微弱的灯光。
+            你正要走近，门突然开了——一个穿着灰布衣裳的女人站在门口，她的额头上长着一小簇像银杏芽一样的突起。
+            她似乎并不惊讶你的到来，只是平静地说了一句：
+            <span class="rule-text" style="color:#d4b87a;">「你终于来了。我等你好久了。」</span>
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">你跟着她走进了屋里……</span>
+        `);
+
+                renderOptions([{
+                    label: '📖 听她讲述真相',
+                    hint: '获得重要信息',
+                    tag: '关键',
+                    action: async () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+
+                        // 第一阶段对话
+                        setStory(`
+                    <span class="title-line">🌾 觉醒者的讲述 · 第一段</span>
+                    女人示意你坐下，给你倒了一碗气味古怪的药茶。
+                    <span class="rule-text" style="color:#d4b87a;">「我叫阿芹，是十几年前被选中的"纯阳体"。我逃了出来，但这代价你也看到了——」</span>
+                    她指了指自己额头上的树芽状突起。
+                    <span class="rule-text" style="color:#d4b87a;">「村东那些嫂嫂，已经被龙王爷吃掉了心。她们笑着，热情着，但她们的眼睛在看你的阳原——那是龙王爷最爱吃的东西。」</span>
+                    <span class="rule-text" style="color:#d4b87a;">「玄清……不，那个东西，已经活了五百年。他早就不再是人了。他靠龙气续命，靠纯阳体的血肉维持那层人皮。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#aa4a4a;">⚠️ 你的世界观被颠覆了。这才是真相。</span>
+                `);
+
+                        // 给予第一条规则
+                        if (!state.rules.includes('awakening_1')) {
+                            await addRule('awakening_1');
+                        }
+                        state.flags.awakening.trustLevel = 1;
+
+                        renderOptions([{
+                            label: '📖 继续追问',
+                            hint: '了解更多',
+                            tag: '关键',
+                            action: async () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+
+                                // 第二阶段对话
+                                setStory(`
+    <span class="title-line">🌾 觉醒者的讲述 · 第二段</span>
+    <span class="rule-text" style="color:#d4b87a;">「你问我们为什么不离开这里？因为龙王爷已经锁定了我们。离开这阴血覆盖的地方，我们体内的龙气就会发作，变成和村东那些人一样的东西。」</span>
+    <span class="rule-text" style="color:#d4b87a;">「但我们不是没有反抗。我们喝阴血，练阴气，就是为了有朝一日能斩断龙王爷的锁链。」</span>
+    阿芹顿了顿，压低声音说：
+    <span class="rule-text" style="color:#d4b87a;">「我告诉你一个秘密——当年修建道观的工匠里，有一个人察觉了真相。他在道观大殿左立柱的底座里藏了一块青石碑，上面刻着玄清真正的面目。如果你能登上道观，找到那块碑，你就能看清一切。」</span>
+    <span class="rule-text" style="color:#d4b87a;">「记住——左立柱，底座下。别让人看见。」</span>
+    <span class="divider">· · ·</span>
+    <span style="color:#d4b87a;">📌 你获得了关键线索：「道观大殿左立柱底座下藏有工匠暗碑」</span>
+    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你需要在第二章登山后，在道观大殿中寻找这块石碑。</span>
+`);
+
+                                // 给予线索（不是直接给规则，而是给一个任务标记）
+                                state.flags.stele.hasClue = true;  // 需要先在 flags.stele 中添加
+                                state.flags.awakening.trustLevel = 2;
+
+                                // 仍然给予阴血符咒
+                                state.flags.awakening.hasCharm = true;
+
+                                changeDragonization(-5);
+                                if (!state.gameOver) showStory('你服下了阿芹给的药茶，龙气稍微被压制了一些（龙化 -5）。');
+
+                                renderOptions([{
+                                    label: '🙏 道谢，告辞',
+                                    action: () => {
+                                        if (state.gameOver || state._waitingConfirm) return;
+                                        setStory(`
+            <span class="title-line">🌾 告别觉醒者</span>
+            你郑重地收好阴血符咒，向阿芹深深一躬。
+            <span class="rule-text" style="color:#d4b87a;">「记住——嫂嫂们都是龙神的眼睛。如果你在山上见到任何笑得太久的人，不要相信她。去道观后面的碑林，那里有玄清的真身。」</span>
+            你走出了村西，夜色中，那盏灯光在你身后缓缓熄灭。
+            <span class="divider">· · ·</span>
+            <span style="color:#6a8aaa;">你获得了觉醒者的信任。她告诉你道观大殿里藏着一块刻有真相的石碑。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 「阴血符咒」已存入背包。请在第二章中寻找暗碑。</span>
+        `);
+                                        renderOptions([{
+                                            label: '🚶 回到村中',
+                                            action: () => {
+                                                if (state.gameOver || state._waitingConfirm) return;
+                                                setStory('你带着沉重的心情回到了村中。你知道得越多，就越无法回头了。');
+                                                finishSceneAndReturn();
+                                            }
+                                        }]);
+                                    }
+                                }]);
+                            }
+                        }]);
+                    }
+                }, {
+                    label: '🔙 保持警惕，离开这里',
+                    hint: '错过关键信息',
+                    tag: '安全',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory(`
+                    <span class="title-line">🌾 保持警惕</span>
+                    你感到不安，没有进屋，只是转身离开了村西。
+                    你听到身后传来一声若有若无的叹息，但你没有回头。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">你错过了觉醒者的真相，但至少你安全地离开了。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 回到村中',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你快步回到村中，心跳如雷。');
+                                finishSceneAndReturn();
+                            }
+                        }]);
+                    }
+                }]);
+            }
+        };
 
         // ================================================================
         //  第二章（修复“买个屁”刷新问题）
@@ -2479,6 +2921,9 @@
             state.ch2.comedyReady = false;
             state.ch2.comedyShown = false;
             state.ch2.lastMessage = null;
+            state.ch2.hasAwakeningVisited = state.flags.awakening.visited;
+            state.ch2.hasAwakeningCharm = state.flags.awakening.hasCharm;
+            state.ch2.awakeningTrust = state.flags.awakening.trustLevel;
             state.stamina = state.maxStamina;
             state.actionsToday = 0;
 
@@ -3087,23 +3532,93 @@
                 }
             }]);
         }
+        // ---- 在第二章进入第三章之前，添加石碑检查 ----
+        // 这个逻辑应该在玩家进入道观大殿时触发
+        async function checkAndRevealStele() {
+            // 如果已经找到石碑或没有线索，直接返回
+            if (state.flags.stele.found || !state.flags.stele.hasClue) return false;
 
+            // 玩家在道观大殿中寻找石碑
+            state.flags.stele.found = true;
+
+            // 显示石碑发现剧情
+            setStory(`
+        <span class="title-line">📜 道观大殿 · 暗碑发现</span>
+        <span class="divider">—— —— ——</span>
+        你按照阿芹的指引，趁道士不注意，悄悄摸到大殿左立柱旁。
+        你蹲下身，手指摸索着柱基的缝隙——果然，有一块松动的青石。
+        你小心地撬开青石，里面露出一个尺余见方的暗格，藏着一块斑驳的青石碑。
+        碑面布满灰尘，字迹浅淡，但依稀可辨。
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">📜 你发现了「工匠暗碑」！</span>
+        这是一位参与道观修建的工匠留下的血泪控诉，记录了玄清养龙的真相。
+    `);
+
+            // 逐步展示石碑全文
+            const steleIds = ['stele_1', 'stele_2', 'stele_3', 'stele_4', 'stele_5', 'stele_6'];
+            const available = steleIds.filter(id => !state.rules.includes(id));
+
+            if (available.length > 0) {
+                // 显示第一段（文言文原文）
+                const fullText = `余承命修观，亲见羽士施术，龙啸震野，山崩地裂。然观成之后，每夜闻观内有异响，似孩童啜泣，又似鳞甲摩擦。\n\n羽士令献童入观，余见新童入观半载，指尖泛青，眼神呆滞；旧童离观，从不回望，言及观中事，皆茫然无措。更有甚者，身生热症癞斑，斑痕渐成龙鳞，鳞上竟生菌柄，状若灵芝；受羽士影响深者，额间长出雷击木似的突起，色如银杏，宛然龙角，或终日笑脸，或持续暴怒，此等异状者，终会被羽士寻回观中，恐遭阳原被夺之祸。\n\n余窃以为，羽士擒龙非为救民，实觊龙气求长生；献童非为侍观，乃以童阳养龙，再取龙气炼身。龙困于下，必怀怨怼，借观中人气夺舍；羽士倚龙气长生，必遭龙蚀。二者相缠，互为桎梏，恐成千年之祸。\n\n民愚钝，不知其险，反颂其德。余不敢明言，藏此碑于柱底，愿后世有缘者见之，早避此劫。观中香火愈盛，阴邪愈重；社戏愈闹，牺牲愈多。慎之！慎之！`;
+
+                showStory(`
+            <span class="rule-text" style="color:#d4b87a;white-space:pre-line;font-size:0.9rem;line-height:2;">${fullText}</span>
+            <span class="divider">· · ·</span>
+            <span style="color:#aa4a4a;">⚠️ 你终于明白了全部真相！</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📌 石碑文已全部记录到规则笔记中。</span>
+        `);
+
+                // 将所有石碑片段加入规则
+                for (const id of available) {
+                    await addRule(id);
+                }
+
+                state.flags.stele.piecesFound = 6;
+                state.flags.stele.decoded = true;
+
+                // 石碑揭示后，理智大幅提升，龙化略微下降（真相让你清醒）
+                changeDragonization(-5);
+                if (!state.gameOver) showStory('真相让你清醒了一些（龙化 -5）。');
+            }
+
+            return true;
+        }
         // ---- 第三章 ----
         function renderCh2_chapter3() {
             if (state._waitingConfirm) return;
+
+            // ---- 新增：在进入第三章前，检查石碑 ----
+            if (state.flags.stele.hasClue && !state.flags.stele.found) {
+                // 如果玩家有线索但还没找到石碑，在这里触发发现剧情
+                // 但注意：需要确保玩家确实在道观大殿中，而不仅仅是进入了第三章
+                // 由于 renderCh2_chapter3 本身就是在道观中触发的，所以可以在这里调用
+                // 但为了避免重复，使用一个标记控制只触发一次
+                if (!state.flags.stele._revealTriggered) {
+                    state.flags.stele._revealTriggered = true;
+                    // 延迟执行，让场景先渲染
+                    setTimeout(() => {
+                        if (!state.gameOver && !state._waitingConfirm) {
+                            checkAndRevealStele();
+                        }
+                    }, 500);
+                }
+            }
+
             setStory(`
-                <span class="title-line">📖 第三章 · 道观之秘</span>
-                <span class="divider">—— —— ——</span>
-                <span style="color:var(--text-gold);">🎉 你成功完成了第二章的挑战！</span>
-                你穿过林间小路，终于来到了道观前。大门敞开，里面传来阵阵诵经声。
-                你握紧了手中的桃木吊坠，深吸一口气，迈步走了进去……
-                <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;font-weight:700;">第二章 · 完</span>
-                <span style="color:var(--text-muted);">你已成功完成第二章，后续故事将在第三章展开。</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">感谢游玩《龙岭观前坑》第一二章。</span>
-                <span class="divider">· · ·</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%，度过了 ${state.day} 天。</span>
-            `, 'ending-chapter3');
+        <span class="title-line">📖 第三章 · 道观之秘</span>
+        <span class="divider">—— —— ——</span>
+        <span style="color:var(--text-gold);">🎉 你成功完成了第二章的挑战！</span>
+        你穿过林间小路，终于来到了道观前。大门敞开，里面传来阵阵诵经声。
+        你握紧了手中的桃木吊坠，深吸一口气，迈步走了进去……
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;font-weight:700;">第二章 · 完</span>
+        <span style="color:var(--text-muted);">你已成功完成第二章，后续故事将在第三章展开。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">感谢游玩《龙岭观前坑》第一二章。</span>
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%，度过了 ${state.day} 天。</span>
+        ${state.flags.stele.found ? '<span style="color:#d4b87a;font-weight:700;">📜 你已发现工匠暗碑，了解了全部真相！</span>' : ''}
+    `, 'ending-chapter3');
             renderOptions([{
                 label: '🔄 重新开始游戏',
                 action: () => { resetGame(); }
@@ -3326,12 +3841,36 @@
                 hidden_teaCount: 0,
                 hidden_answeredCode: false,
                 hidden_unlocked: false,
-                morningEvents: { ... },
+                morningEvents: {
+                    day2_grayLine_triggered: false,
+                    day3_code_triggered: false,
+                    day4_code_triggered: false,
+                    day5_code_triggered: false,
+                },
                 grayLine_choseComply: false,
                 folkloreVisitCount: 0,
                 shopVisitCount: 0,
                 cardVisitCount: 0,
                 hasYinBloodPotion: false,
+                nightEvents: {
+                    dream: false,
+                    knock: false,
+                    window: false,
+                },
+                awakening: {
+                    unlocked: false,
+                    visited: false,
+                    trustLevel: 0,
+                    hasCharm: false,
+                    greeted: false,
+                },
+                stele: {
+                    found: false,
+                    decoded: false,
+                    piecesFound: 0,
+                    hasClue: false,
+                    _revealTriggered: false,
+                },
             };
             state.ch2 = {
                 phase: '0km',
@@ -3351,6 +3890,9 @@
                 comedyReady: false,
                 comedyShown: false,
                 lastMessage: null,
+                hasAwakeningVisited: false,
+                hasAwakeningCharm: false,
+                awakeningTrust: 0,
             };
             state._waitingConfirm = false;
             state._confirmResolve = null;
@@ -3388,12 +3930,36 @@
                 hidden_teaCount: 0,
                 hidden_answeredCode: false,
                 hidden_unlocked: false,
-                morningEvents: { ... },
+                morningEvents: {
+                    day2_grayLine_triggered: false,
+                    day3_code_triggered: false,
+                    day4_code_triggered: false,
+                    day5_code_triggered: false,
+                },
                 grayLine_choseComply: false,
                 folkloreVisitCount: 0,
                 shopVisitCount: 0,
                 cardVisitCount: 0,
                 hasYinBloodPotion: false,
+                nightEvents: {
+                    dream: false,
+                    knock: false,
+                    window: false,
+                },
+                awakening: {
+                    unlocked: false,
+                    visited: false,
+                    trustLevel: 0,
+                    hasCharm: false,
+                    greeted: false,
+                },
+                stele: {
+                    found: false,
+                    decoded: false,
+                    piecesFound: 0,
+                    hasClue: false,
+                    _revealTriggered: false,
+                },
             };
             state.actionsToday = 0;
             state.weekCount = 0;
@@ -3417,6 +3983,9 @@
                 comedyReady: false,
                 comedyShown: false,
                 lastMessage: null,
+                hasAwakeningVisited: false,
+                hasAwakeningCharm: false,
+                awakeningTrust: 0,
             };
             state._waitingConfirm = false;
             state._confirmResolve = null;
