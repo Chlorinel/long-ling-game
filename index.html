@@ -2455,6 +2455,14 @@
                 disabled: state.ch2.comedyReady,
                 action: () => {
                     if (state.gameOver || state._waitingConfirm) return;
+                    // ----- 修复：重置所有购买状态，确保最终什么都没买到 -----
+                    state.ch2.boughtItems = [];
+                    state.ch2.boughtIncense = false;
+                    state.ch2.boughtWater = false;
+                    state.ch2.boughtAmulet = false;
+                    state.ch2.boughtCompass = false;
+                    state.ch2.boughtSausage = false;
+                    state.ch2.boughtFridge = false;
                     state.ch2.boughtNothing = true;
                     state.ch2.phase = 'shopping_done';
                     renderChapter2();
