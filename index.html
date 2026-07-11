@@ -943,6 +943,21 @@
                 hasPeachWood: false,
                 abandonedCompleteReady: false,
                 abandonedHiddenTriggered: false,
+                // ----- 新增 -----
+                abandonedVisitCount: 0,
+                hidden_hasBookmark: false,
+                hidden_hasBrand: false,
+                hidden_sleepCount: 0,
+                hidden_teaCount: 0,
+                hidden_answeredCode: false,
+                hidden_unlocked: false,
+                morningEvents: {
+                    day2_grayLine_triggered: false,
+                    day3_code_triggered: false,
+                    day4_code_triggered: false,
+                    day5_code_triggered: false,
+                },
+                grayLine_choseComply: false,
             },
             actionsToday: 0,
             weekCount: 0,
@@ -1248,6 +1263,22 @@
 
         // ---------- 主菜单 ----------
         function renderMainOptions() {
+            // 兜底：检查隐藏规则是否可解锁
+            if (!state.flags.hidden_unlocked && !state._waitingConfirm && !state.gameOver && !state.flags.chapter2) {
+                const allMet = state.flags.hidden_hasBookmark &&
+                    state.flags.hidden_hasBrand &&
+                    state.flags.hidden_sleepCount >= 3 &&
+                    state.flags.hidden_teaCount >= 2 &&
+                    state.flags.hidden_answeredCode;
+                if (allMet) {
+                    setTimeout(() => {
+                        if (!state.flags.hidden_unlocked && !state.gameOver) {
+                            unlockHiddenRulesAsync();
+                        }
+                    }, 200);
+                    return; // 等待解锁，暂时不渲染主菜单
+                }
+            }
             if (state.gameOver) return;
             if (state.stamina === 0) {
                 enterNight();
@@ -1349,12 +1380,16 @@
         async function restAtVillage() {
             if (state.gameOver || state._waitingConfirm) return;
             state.flags.hasSleptInVillage = true;
-            // 先显示场景
+            // ----- 新增：留宿计数和饮茶计数 -----
+            state.flags.hidden_sleepCount++;
+            state.flags.hidden_teaCount++;
+            changeDragonization(5); // 银杏茶增加龙化
+            // 显示场景
             setStory(`
-                <span class="title-line">🌙 村民家过夜</span>
-                嫂嫂热情地招待了你，端来热汤和银杏茶。你一边喝，一边和她闲聊。
-                <span class="divider">· · ·</span>
-            `);
+        <span class="title-line">🌙 村民家过夜</span>
+        嫂嫂热情地招待了你，端来热汤和银杏茶。你一边喝，一边和她闲聊。
+        <span class="divider">· · ·</span>
+    `);
             // 获取规则
             const nightRuleIds = ['night_1', 'night_2', 'night_3'];
             const available = nightRuleIds.filter(id => !state.rules.includes(id));
@@ -1373,11 +1408,13 @@
             } else {
                 eventText = '她没有多说什么，只是让你早些休息。你一夜安稳。';
             }
+            // 休息恢复（减去龙化）
             const reduceDragon = rand(5, 10);
             changeDragonization(-reduceDragon);
             if (!state.gameOver) {
                 eventText += ` 你感到神清气爽，龙气似乎被驱散了一些（龙化 -${reduceDragon}）。`;
             }
+            // 茶饮和休息的总效果会在 finishRest 后显示
             finishRest('村民家', eventText);
         }
 
@@ -1451,7 +1488,8 @@
             state.weekCount++;
             state.actionsToday = 0;
 
-            if (state.weekCount >= 7 && !state.flags.chapter2) {
+            // 修改：5天限制
+            if (state.day > 6 && !state.flags.chapter2) {
                 triggerEnding('老实人结局');
                 return;
             }
@@ -1459,14 +1497,317 @@
             updateUI();
 
             setStory(`
-                <span class="title-line">🌅 第${state.day}天 · 清晨</span>
-                你在${place}度过了一夜。${eventText}
-                <span class="divider">· · ·</span>
-                你整理好行装，走出住处。${state.flags.chapter2 ? '山间的薄雾笼罩着道路，新的一天开始了。' : '邱龙村的清晨笼罩在薄雾之中，新的一天开始了。'}
-            `);
+        <span class="title-line">🌅 第${state.day}天 · 清晨</span>
+        你在${place}度过了一夜。${eventText}
+        <span class="divider">· · ·</span>
+        你整理好行装，走出住处。${state.flags.chapter2 ? '山间的薄雾笼罩着道路，新的一天开始了。' : '邱龙村的清晨笼罩在薄雾之中，新的一天开始了。'}
+    `);
+
+            // 检测早晨事件（仅第一章）
+            if (!state.flags.chapter2 && !state.gameOver) {
+                const hasEvent = checkAndTriggerMorningEvent();
+                if (hasEvent) return; // 事件已渲染，不调用 renderMainOptions
+            }
+
             renderMainOptions();
         }
+        // ================================================================
+        //  早晨事件调度器
+        // ================================================================
+        function checkAndTriggerMorningEvent() {
+            if (state.gameOver || state._waitingConfirm) return false;
+            if (state.flags.chapter2) return false;
 
+            // 第2天：灰线烙印事件（只有一次）
+            if (state.day === 2 && !state.flags.morningEvents.day2_grayLine_triggered) {
+                state.flags.morningEvents.day2_grayLine_triggered = true;
+                renderGrayLineEvent();
+                return true;
+            }
+
+            // 第3~5天：暗语问答事件（每天一次）
+            if (state.day >= 3 && state.day <= 5) {
+                const key = `day${state.day}_code_triggered`;
+                if (!state.flags.morningEvents[key]) {
+                    state.flags.morningEvents[key] = true;
+                    renderDarkCodeEvent();
+                    return true;
+                }
+            }
+
+            // 兜底：检查隐藏规则是否可解锁（可能在事件之后满足条件）
+            if (!state.flags.hidden_unlocked) {
+                const allMet = state.flags.hidden_hasBookmark &&
+                    state.flags.hidden_hasBrand &&
+                    state.flags.hidden_sleepCount >= 3 &&
+                    state.flags.hidden_teaCount >= 2 &&
+                    state.flags.hidden_answeredCode;
+                if (allMet) {
+                    // 延迟执行，避免干扰当前渲染
+                    setTimeout(() => {
+                        if (!state.flags.hidden_unlocked && !state.gameOver) {
+                            unlockHiddenRulesAsync();
+                        }
+                    }, 300);
+                }
+            }
+
+            return false;
+        }
+
+        // ================================================================
+        //  第2天 · 灰线烙印事件
+        // ================================================================
+        function renderGrayLineEvent() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+        <span class="title-line">🌿 第2天 · 清晨 · 灰线烙印</span>
+        你推开民宿的门，清晨的阳光洒在村道上。村民正在路上撒草木灰，画出一道道整齐的灰线。
+        你不小心踩断了一条灰线——那是村里"祈福"仪式的痕迹。
+        一位嫂嫂立刻出现在你身后，笑容温和却不容拒绝：
+        <span class="rule-text" style="color:#d4b87a;">「哎呀，你踩坏了灰线。跟我去土地庙敬香吧，这是规矩，可不能坏了。」</span>
+        你想起了游客守则上的话，但心中隐隐觉得不安……
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你要怎么做？</span>
+    `);
+            renderOptions([
+                {
+                    label: '🙏 顺从 · 跟她去土地庙',
+                    hint: '手背将被香灰烙印（龙化+10，获得"烙印"标记）',
+                    tag: '隐藏条件',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.flags.grayLine_choseComply = true;
+                        state.flags.hidden_hasBrand = true;
+                        changeDragonization(10);
+                        setStory(`
+                    <span class="title-line">🙏 土地庙 · 香灰烙印</span>
+                    你跟着嫂嫂来到村头的土地庙。庙里光线昏暗，神像前的香炉里插满了未燃尽的香。
+                    嫂嫂从香炉里取出一撮香灰，不由分说地按在了你的手背上——
+                    <span style="color:#d45a5a;">一阵灼痛传来，你的手背上留下了一个青黑色的印记。</span>
+                    嫂嫂满意地点了点头：<span class="rule-text" style="color:#d4b87a;">「好了，这是龙王爷的护身符，保你平安的。别擦掉，擦了就没用了。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#aa4a4a;">⚠️ 你被标记了（龙化 +10）。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">📌 已获得"香灰烙印"标记。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 离开土地庙',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你快步走出土地庙，回到村中。');
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                },
+                {
+                    label: '🏃 逃跑 · 拒绝去土地庙',
+                    hint: '龙化+5，不会获得烙印',
+                    tag: '避害',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.flags.grayLine_choseComply = false;
+                        changeDragonization(5);
+                        setStory(`
+                    <span class="title-line">🏃 拒绝 · 逃离</span>
+                    你借口肚子疼，转身就跑。嫂嫂在你身后冷冷地说了一句：
+                    <span class="rule-text" style="color:#aa4a4a;">「躲得过初一，躲不过十五。你迟早要来的。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">你没有被烙印（龙化 +5）。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">⚠️ 你将无法获得"香灰烙印"标记。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                },
+                {
+                    label: '❓ 质问 · 为什么要用香灰烫人？',
+                    hint: '龙化+5，获得线索',
+                    tag: '冒险',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.flags.grayLine_choseComply = false;
+                        changeDragonization(5);
+                        setStory(`
+                    <span class="title-line">❓ 质问</span>
+                    你直视嫂嫂的眼睛：「为什么要用香灰烫人？这真的是祈福吗？」
+                    嫂嫂的笑容僵住了，她沉默了几秒，眼中闪过一丝慌乱：
+                    <span class="rule-text" style="color:#d4b87a;">「这是玄清先生传下来的法子……你是外乡人，不懂的。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#6a8aaa;">你听到了"玄清先生"这个名字，似乎隐藏着重要秘密（龙化 +5）。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">⚠️ 你没有获得烙印。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                }
+            ]);
+        }
+
+        // ================================================================
+        //  第3~5天 · 暗语问答事件
+        // ================================================================
+        function renderDarkCodeEvent() {
+            if (state.gameOver || state._waitingConfirm) return;
+            // 如果已经答对过暗语，不再提问（但每天早晨会触发，但可跳过）
+            if (state.flags.hidden_answeredCode) {
+                // 直接回到主菜单
+                renderMainOptions();
+                return;
+            }
+            setStory(`
+        <span class="title-line">🗣️ 第${state.day}天 · 早晨 · 暗语问答</span>
+        嫂嫂正在收拾房间，她头也不抬地问了一句：
+        <span class="rule-text" style="color:#d4b87a;">「昨夜睡得安稳吗？」</span>
+        你想起在游客守则的某个角落看到过类似的对话……这似乎是一个测试。
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你该如何回答？</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">提示：你曾在《游客守则》的隐藏条款中看到过相关描述。</span>
+    `);
+            renderOptions([
+                {
+                    label: '✅ "托龙王爷的福，安稳得很。"',
+                    hint: '正确暗语 ✅',
+                    tag: '隐藏条件',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.flags.hidden_answeredCode = true;
+                        setStory(`
+                    <span class="title-line">✅ 暗语应答 · 正确</span>
+                    嫂嫂听到你的回答，嘴角微微上扬，似乎很满意。她点了点头：
+                    <span class="rule-text" style="color:#d4b87a;">「嗯，那就好。龙王爷会保佑你的。」</span>
+                    你感到她看你的眼神多了一丝深意——那是一种"你已经被接纳"的目光。
+                    <span class="divider">· · ·</span>
+                    <span style="color:#6ab06a;">✅ 暗语应答成功！</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">📌 已获得"暗语应答"标记。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                },
+                {
+                    label: '❌ "还好，就是有点认床。"',
+                    hint: '普通回答 ❌ 暗语失败',
+                    tag: '安全',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory(`
+                    <span class="title-line">❌ 暗语应答 · 普通</span>
+                    嫂嫂只是点了点头，没有再多说什么。她继续收拾房间，仿佛这只是随口一问。
+                    但你隐约感到，她看你的眼神中少了一丝温度。
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">你错过了暗语应答的机会。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">⚠️ 隐藏规则条件之一将无法达成（暗语应答）。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 明天早晨还有机会，注意守则上的描述。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                },
+                {
+                    label: '❓ "你问这个做什么？"',
+                    hint: '警觉回答 ❌ 暗语失败',
+                    tag: '冒险',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory(`
+                    <span class="title-line">❓ 警觉 · 反问</span>
+                    你警惕地看着嫂嫂，反问了一句：「你问这个做什么？」
+                    嫂嫂愣了一下，随即笑了笑：「随口一问，别紧张。」
+                    但她没有再和你说话，只是默默地收拾完房间就离开了。
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">你错过了暗语应答的机会。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">⚠️ 隐藏规则条件之一将无法达成（暗语应答）。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 明天早晨还有机会，注意守则上的描述。</span>
+                `);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                }
+            ]);
+        }
+
+        // ================================================================
+        //  隐藏规则5条件解锁（异步）
+        // ================================================================
+        function unlockHiddenRulesAsync() {
+            if (state.flags.hidden_unlocked) return;
+            // 再次检查条件（确保全部满足）
+            const allMet = state.flags.hidden_hasBookmark &&
+                state.flags.hidden_hasBrand &&
+                state.flags.hidden_sleepCount >= 3 &&
+                state.flags.hidden_teaCount >= 2 &&
+                state.flags.hidden_answeredCode;
+            if (!allMet) return;
+
+            state.flags.hidden_unlocked = true;
+            // 获取所有未获得的隐藏规则
+            const hiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
+            const available = hiddenIds.filter(id => !state.rules.includes(id));
+            if (available.length === 0) return;
+
+            // 显示解锁动画（先覆盖当前故事）
+            setStory(`
+        <span class="title-line">🔓 隐藏规则 · 完全解锁</span>
+        <span class="divider">—— —— ——</span>
+        <span style="color:var(--text-gold);">🎉 你集齐了所有条件！</span>
+        书签、烙印、三夜留宿、两次饮茶、暗语应答——五个条件全部达成。
+        你手中的银杏叶书签突然发热，你将它放在草木灰上，灰烬中浮现出完整的文字……
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">📜 你获得了完整的《隐藏游客守则》！</span>
+    `);
+
+            // 依次添加规则（异步）
+            (async () => {
+                for (const id of available) {
+                    await addRule(id);
+                }
+                changeDragonization(5);
+                showStory(`<span style="color:var(--text-gold);">✅ 已解锁全部隐藏规则（共${available.length}条）！</span><span style="color:var(--text-muted);font-size:0.85rem;">龙气微微涌动（龙化 +5）。</span>`);
+                // 更新UI并给出继续选项
+                updateUI();
+                renderOptions([{
+                    label: '📖 查看新规则',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        toggleRulesPanel();
+                        setStory(`<span class="title-line">📜 规则已更新</span>你翻开笔记，上面已经记录了你收集的所有规则。<span class="divider">· · ·</span>你感到，自己距离真相又近了一步。`);
+                        renderOptions([{
+                            label: '🚶 继续探索',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderMainOptions();
+                            }
+                        }]);
+                    }
+                }]);
+            })();
+        }
         // ================================================================
         //  第一章 场景（先显示场景，再获取规则）
         // ================================================================
@@ -1501,7 +1842,7 @@
                     你感到，这里的一切似乎并不像表面那般宁静……
                     <span class="divider">· · ·</span>
                     你决定先做些什么？（每次行动消耗1个体力时段，体力耗尽后必须过夜）
-                    <span style="color:var(--text-muted);font-size:0.85rem;">提示：收集23条以上规则并过夜后登山，可进入第二章。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">提示：收集20条以上规则并过夜后登山，可进入第二章。</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">龙化值与理智值相加为100，龙化≥80将触发坏结局0。</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">废弃房屋先获得3条普通规则，集齐后下一次触发草木灰显影（共9条）。</span>
                 `);
@@ -1519,68 +1860,59 @@
                     'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'
                 ];
 
-                if (!state.flags.abandonedHiddenTriggered) {
-                    if (state.flags.abandonedCompleteReady) {
-                        state.flags.abandonedHiddenTriggered = true;
-                        state.flags.abandonedCompleteReady = false;
-                        setStory(`
-                            <span class="title-line">🏚️ 废弃房屋 · 草木灰显影</span>
-                            你再次走进这间废弃房屋，这一次，你注意到墙角有一堆灰烬，似乎是草木灰。
-                            你用清水涂抹，灰烬下渐渐显露出一行行字迹……
-                            <span class="divider">· · ·</span>
-                            你仔细辨认，获得了以下隐藏规则：
-                        `);
-                        const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
-                        if (availableHidden.length > 0) {
-                            const count = Math.min(rand(1, 2), availableHidden.length);
-                            const shuffled = shuffleArray(availableHidden);
-                            for (let i = 0; i < count; i++) {
-                                await addRule(shuffled[i]);
-                            }
-                            showStory(`<span style="color:var(--text-gold);">📜 你获得了草木灰显影规则！</span>`);
-                        } else {
-                            showStory('你已经收集了所有隐藏规则，这里不再有新的秘密。');
-                        }
-                        changeDragonization(1);
-                        if (!state.gameOver) showStory('龙气微微涌动（龙化 +1）');
-                    } else {
-                        const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
-                        if (availableAbandoned.length === 0) {
-                            setStory('你搜索了房屋，但似乎已经没有新的发现了。');
-                        } else {
-                            setStory(`
-                                <span class="title-line">🏚️ 废弃房屋</span>
-                                你推开吱呀作响的木门，一股霉味扑面而来。屋内光线昏暗，灰尘在光束中飞舞。
-                                你仔细搜索，发现了以下物品：
-                                <span class="divider">· · ·</span>
-                            `);
-                            const count = Math.min(rand(1, 2), availableAbandoned.length);
-                            const shuffled = shuffleArray(availableAbandoned);
-                            let gained = [];
-                            for (let i = 0; i < count; i++) {
-                                const ok = await addRule(shuffled[i]);
-                                if (ok) gained.push(shuffled[i]);
-                            }
-                            showStory(`<span style="color:var(--text-gold);">📜 你获得了 ${gained.length} 条废弃房屋规则！</span>`);
-                            changeDragonization(2);
-                            if (!state.gameOver) showStory(`龙气微微涌动（龙化 +2）`);
-                        }
-                        if (!state.flags.abandonedHiddenTriggered) {
-                            const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
-                            if (nowHasAll) {
-                                state.flags.abandonedCompleteReady = true;
-                                showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……');
-                            }
-                        }
+                // 增加访问计数
+                state.flags.abandonedVisitCount++;
+                const visitCount = state.flags.abandonedVisitCount;
+
+                // ---- 第2次访问且未获得书签：给予书签 ----
+                if (visitCount === 2 && !state.flags.hidden_hasBookmark) {
+                    setStory(`
+                <span class="title-line">🏚️ 废弃房屋 · 第二次探索</span>
+                你再次走进这间废弃房屋，这一次你注意到床头柜的抽屉似乎没有完全合上。
+                你走过去，拉开抽屉——里面有一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
+                你拿起书签，发现背面刻着一行小字：
+                <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
+            `);
+                    state.flags.hidden_hasBookmark = true;
+                    // 同时，如果还有普通规则未获得，给1条
+                    const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
+                    if (availableAbandoned.length > 0) {
+                        const picked = pick(availableAbandoned);
+                        await addRule(picked);
+                        showStory(`你还在屋内发现了其他线索，获得了一条规则。`);
                     }
-                } else {
+                    changeDragonization(1);
+                    if (!state.gameOver) showStory('龙气微微涌动（龙化 +1）');
+                    // 检查是否集齐3条，若是则设置 ready
+                    const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
+                    if (nowHasAll && !state.flags.abandonedCompleteReady) {
+                        state.flags.abandonedCompleteReady = true;
+                        showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……（草木灰显影已准备就绪）');
+                    }
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚪 离开房屋',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你将银杏叶书签小心收好，走出了废弃房屋。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 如果已经触发过隐藏（或者已经显影过），继续给隐藏规则（但检查是否已全部获得） ----
+                if (state.flags.abandonedHiddenTriggered) {
                     const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
                     if (availableHidden.length > 0) {
                         setStory(`
-                            <span class="title-line">🏚️ 废弃房屋 · 再次探索</span>
-                            你再次来到这间废弃房屋，在草木灰中又发现了一些模糊的字迹……
-                            <span class="divider">· · ·</span>
-                        `);
+                    <span class="title-line">🏚️ 废弃房屋 · 再次探索</span>
+                    你再次来到这间废弃房屋，在草木灰中又发现了一些模糊的字迹……
+                    <span class="divider">· · ·</span>
+                `);
                         const count = Math.min(rand(1, 2), availableHidden.length);
                         const shuffled = shuffleArray(availableHidden);
                         for (let i = 0; i < count; i++) {
@@ -1591,11 +1923,99 @@
                         if (!state.gameOver) showStory('龙气微微涌动');
                     } else {
                         setStory(`
-                            <span class="title-line">🏚️ 废弃房屋</span>
-                            你再次来到这间废弃房屋，但这里已经没有任何值得探索的东西了。
-                            你决定离开。
-                        `);
+                    <span class="title-line">🏚️ 废弃房屋</span>
+                    你再次来到这间废弃房屋，但这里已经没有任何值得探索的东西了。
+                    你决定离开。
+                `);
                     }
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚪 离开房屋',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你快步走出废弃房屋。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 未触发隐藏：检查是否已集齐3条普通规则 ----
+                const hasAllAbandoned = abandonedIds.every(id => state.rules.includes(id));
+                if (hasAllAbandoned) {
+                    // 触发草木灰显影（但只给部分，除非5条件已满足）
+                    state.flags.abandonedHiddenTriggered = true;
+                    // 检查5条件是否满足
+                    const allConditions = state.flags.hidden_hasBookmark &&
+                        state.flags.hidden_hasBrand &&
+                        state.flags.hidden_sleepCount >= 3 &&
+                        state.flags.hidden_teaCount >= 2 &&
+                        state.flags.hidden_answeredCode;
+                    if (allConditions && !state.flags.hidden_unlocked) {
+                        // 直接解锁全部隐藏规则（通过异步函数）
+                        unlockHiddenRulesAsync();
+                        // 由于异步解锁会覆盖界面，我们这里不再继续渲染，直接返回
+                        return;
+                    } else {
+                        // 只给1-2条隐藏规则
+                        setStory(`
+                    <span class="title-line">🏚️ 废弃房屋 · 草木灰显影</span>
+                    你再次走进这间废弃房屋，这一次，你注意到墙角有一堆灰烬，似乎是草木灰。
+                    你用清水涂抹，灰烬下渐渐显露出一行行字迹……
+                    <span class="divider">· · ·</span>
+                    你仔细辨认，获得了一些隐藏规则：
+                `);
+                        const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
+                        const count = Math.min(rand(1, 2), availableHidden.length);
+                        const shuffled = shuffleArray(availableHidden);
+                        for (let i = 0; i < count; i++) {
+                            await addRule(shuffled[i]);
+                        }
+                        showStory(`<span style="color:var(--text-gold);">📜 你获得了一些草木灰显影规则！</span><span style="color:var(--text-muted);font-size:0.85rem;">还有更多的规则隐藏在灰烬深处，但似乎需要某种"条件"才能完全显现……</span>`);
+                        changeDragonization(1);
+                        if (!state.gameOver) showStory('龙气微微涌动（龙化 +1）');
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderOptions([{
+                            label: '🚪 离开房屋',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你带着新的线索离开了废弃房屋。');
+                                finishSceneAndReturn();
+                            }
+                        }]);
+                        return;
+                    }
+                }
+
+                // ---- 普通探索（未集齐3条） ----
+                const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
+                if (availableAbandoned.length === 0) {
+                    // 理论上不会发生，但以防万一
+                    setStory('你搜索了房屋，但似乎已经没有新的发现了。');
+                    renderOptions([{ label: '🚪 离开', action: () => { finishSceneAndReturn(); } }]);
+                    return;
+                }
+                setStory(`
+            <span class="title-line">🏚️ 废弃房屋</span>
+            你推开吱呀作响的木门，一股霉味扑面而来。屋内光线昏暗，灰尘在光束中飞舞。
+            你仔细搜索，发现了以下物品：
+            <span class="divider">· · ·</span>
+        `);
+                const count = Math.min(rand(1, 2), availableAbandoned.length);
+                const shuffled = shuffleArray(availableAbandoned);
+                let gained = [];
+                for (let i = 0; i < count; i++) {
+                    const ok = await addRule(shuffled[i]);
+                    if (ok) gained.push(shuffled[i]);
+                }
+                showStory(`<span style="color:var(--text-gold);">📜 你获得了 ${gained.length} 条废弃房屋规则！</span>`);
+                changeDragonization(2);
+                if (!state.gameOver) showStory(`龙气微微涌动（龙化 +2）`);
+                // 检查是否集齐
+                const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
+                if (nowHasAll) {
+                    state.flags.abandonedCompleteReady = true;
+                    showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……（草木灰显影已准备就绪）');
                 }
                 if (state.gameOver || state._waitingConfirm) return;
                 renderOptions([{
@@ -1781,7 +2201,7 @@
                     return;
                 }
                 const ruleCount = state.rules.length;
-                if (ruleCount >= 23) {
+                if (ruleCount >= 20) {
                     enterChapter2();
                 } else {
                     setStory(`
@@ -1789,7 +2209,7 @@
                         你沿着山路向上走了一段，但心中总觉得不安。你想起嫂嫂的话，想起那些零零碎碎的规则，感觉自己还没有准备好面对道观中的秘密。
                         你站在山腰，望着云雾缭绕的山顶，最终决定返回。
                         <span class="divider">· · ·</span>
-                        <span style="color:#d4b87a;">你还需要收集更多线索。目前你已收集 ${ruleCount} 条规则，需要至少23条才能揭开道观的真面目。</span>
+                        <span style="color:#d4b87a;">你还需要收集更多线索。目前你已收集 ${ruleCount} 条规则，需要至少20条才能揭开道观的真面目。</span>
                         <span style="color:var(--text-muted);font-size:0.85rem;">继续探索村庄，收集规则吧。</span>
                     `);
                     changeDragonization(2);
@@ -2656,9 +3076,23 @@
                 folkloreWarned: false,
                 shopRhymeIndex: 0,
                 chapter2: false,
-                hasPeachWood: state.flags.hasPeachWood, // 保留桃木吊坠
+                hasPeachWood: state.flags.hasPeachWood,
                 abandonedCompleteReady: false,
                 abandonedHiddenTriggered: false,
+                abandonedVisitCount: 0,
+                hidden_hasBookmark: false,
+                hidden_hasBrand: false,
+                hidden_sleepCount: 0,
+                hidden_teaCount: 0,
+                hidden_answeredCode: false,
+                hidden_unlocked: false,
+                morningEvents: {
+                    day2_grayLine_triggered: false,
+                    day3_code_triggered: false,
+                    day4_code_triggered: false,
+                    day5_code_triggered: false,
+                },
+                grayLine_choseComply: false,
             };
             state.ch2 = {
                 phase: '0km',
@@ -2708,6 +3142,20 @@
                 hasPeachWood: false,
                 abandonedCompleteReady: false,
                 abandonedHiddenTriggered: false,
+                abandonedVisitCount: 0,
+                hidden_hasBookmark: false,
+                hidden_hasBrand: false,
+                hidden_sleepCount: 0,
+                hidden_teaCount: 0,
+                hidden_answeredCode: false,
+                hidden_unlocked: false,
+                morningEvents: {
+                    day2_grayLine_triggered: false,
+                    day3_code_triggered: false,
+                    day4_code_triggered: false,
+                    day5_code_triggered: false,
+                },
+                grayLine_choseComply: false,
             };
             state.actionsToday = 0;
             state.weekCount = 0;
