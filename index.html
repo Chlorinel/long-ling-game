@@ -1185,7 +1185,7 @@
 
             renderRulesList();
 
-            if (state.dragonization >= 80 && !state.gameOver) {
+            if (state.dragonization >= 90 && !state.gameOver) {
 
                 triggerEnding('BE1_龙化值过高');
 
@@ -1290,7 +1290,7 @@
             updateUI();
 
             // 检测龙化值是否达到结局阈值（使用 setTimeout 避免打断当前操作）
-            if (state.dragonization >= 80 && !state.gameOver && !state._dragonEndingQueued) {
+            if (state.dragonization >= 90 && !state.gameOver && !state._dragonEndingQueued) {
                 state._dragonEndingQueued = true;
                 // 延迟 300ms 让当前操作（如 addRule 确认、购买等）先完成
                 setTimeout(function () {
@@ -4088,7 +4088,7 @@
             }
 
             // 检查龙化值是否超标
-            if (state.dragonization >= 80) {
+            if (state.dragonization >= 90) {
                 triggerEnding('BE1_龙化值过高');
                 return;
             }
@@ -4981,7 +4981,7 @@
                             <span style="color:#d45a5a;">💀 你被龙化者袭击了！</span>
                         `);
                                 // 如果没有护身符，触发一个危险判定
-                                if (state.dragonization + 20 >= 80) {
+                                if (state.dragonization + 20 >= 90) {
                                     triggerEnding('BE1_龙化值过高');
                                 } else {
                                     changeDragonization(20);
@@ -5374,7 +5374,7 @@
             var d = state.dragonization;
             if (d < 30) {
                 visionText = '一切正常，只是山路有点阴森。路旁的古树上绑满了红布条，在风中轻轻摇晃。';
-            } else if (d < 50) {
+            } else if (d < 40) {
                 visionText = '你注意到树上的红布条在无风自动，像是活物一样轻轻扭动。你揉了揉眼睛，它们又静止了。';
             } else if (d < 70) {
                 visionText = '你看到树后面有青色的影子一闪而过。你停下脚步，四周一片寂静，只有风吹过树叶的声音。';
@@ -5896,11 +5896,10 @@
 
             updateUI();
 
-            var ch2Endings = ['BE2_大不敬', 'BE3_惊扰', 'BE4_半途而废', 'HE2_被救助'];
-            var isCh2Ending = ch2Endings.indexOf(type) !== -1;
-            var isSpecialEnding = (type === 'TE1_薪火相传' || type === 'HE1_幸存者' || type === 'NE2_被标记的归来');
-
-            setStory(`
+            // 判断是否为第二章结局：根据当前游戏进度标志
+            // 被迫献祭结局（BE5）虽然发生在第二章，但它是强制终结，不应提供重置选项
+            var isCh2Ending = state.flags.chapter2 === true && type !== 'BE5_祭品_被迫献祭';
+            var isSpecialEnding = (type === 'TE1_薪火相传' || type === 'HE1_幸存者' || type === 'NE2_被标记的归来'); setStory(`
         <span class="ending-title">${title}</span>
         <span class="divider">—— —— ——</span>
         ${desc}
