@@ -5643,18 +5643,15 @@
         //  结局系统（完整版）
         // ================================================================
 
-        function triggerEnding(type) {
-            if (state.gameOver) return;
-            state.gameOver = true;
-
+        // ================================================================
+        //  结局渲染（纯显示，不修改 gameOver）
+        // ================================================================
+        function renderEndingContent(type) {
             var title = '💀 结局';
             var desc = '';
             var endingClass = '';
 
             switch (type) {
-                // ============================================================
-                //  完美结局（TE）
-                // ============================================================
                 case 'TE1_薪火相传':
                     title = '🔥 完美结局 · 薪火相传';
                     endingClass = 'ending-he';
@@ -5676,9 +5673,6 @@
             `;
                     break;
 
-                // ============================================================
-                //  好结局（HE）
-                // ============================================================
                 case 'HE1_幸存者':
                     title = '🌅 好结局 · 幸存者';
                     endingClass = 'ending-he';
@@ -5703,23 +5697,20 @@
                     title = '🌅 好结局 · 得救';
                     endingClass = 'ending-he';
                     desc = `
-        <span style="color:#5a3a1a;">✅ 你认出了民俗部的人员！</span>
-        你压低声音，向那个挂着桃木牌的人低声说了一句暗语。对方瞳孔微缩，看了看四周，迅速将你拉到了一个隐蔽的角落。
-        <span class="rule-text" style="color:#5a3a1a;">「你怎么走到这里了？太危险了！」</span>
-        他压低声音，<span class="rule-text" style="color:#5a3a1a;">「先生的人一直在山上巡逻。你被盯上了。」</span>
-        他递给你一碗深褐色的符水，你喝下后感到体内的龙气被压制了不少。
-        <span class="rule-text" style="color:#5a3a1a;">「你算是幸运的——很多人到了这一步就再也回不去了。」</span>
-        他带你穿过一条密道，来到一个隐蔽的藏身处，墙上挂满了桃木牌，角落里堆着符纸。
-        <span class="rule-text" style="color:#5a3a1a;">「你暂时不能离开这座村子了。他们会找到你的。但至少——你活着。」</span>
-        <span class="divider">· · ·</span>
-        <span style="color:#5a3a1a;font-weight:700;">你及时得到了救助，但你也无法离开这座村子了。</span>
-        <span style="color:#5a3a1a;font-weight:700;">—— 活着，就是最好的结局 ——</span>
-    `;
+                <span style="color:#5a3a1a;">✅ 你认出了民俗部的人员！</span>
+                你压低声音，向那个挂着桃木牌的人低声说了一句暗语。对方瞳孔微缩，看了看四周，迅速将你拉到了一个隐蔽的角落。
+                <span class="rule-text" style="color:#5a3a1a;">「你怎么走到这里了？太危险了！」</span>
+                他压低声音，<span class="rule-text" style="color:#5a3a1a;">「先生的人一直在山上巡逻。你被盯上了。」</span>
+                他递给你一碗深褐色的符水，你喝下后感到体内的龙气被压制了不少。
+                <span class="rule-text" style="color:#5a3a1a;">「你算是幸运的——很多人到了这一步就再也回不去了。」</span>
+                他带你穿过一条密道，来到一个隐蔽的藏身处，墙上挂满了桃木牌，角落里堆着符纸。
+                <span class="rule-text" style="color:#5a3a1a;">「你暂时不能离开这座村子了。他们会找到你的。但至少——你活着。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#5a3a1a;font-weight:700;">你及时得到了救助，但你也无法离开这座村子了。</span>
+                <span style="color:#5a3a1a;font-weight:700;">—— 活着，就是最好的结局 ——</span>
+            `;
                     break;
 
-                // ============================================================
-                //  中立结局（NE）
-                // ============================================================
                 case 'NE1_老实人':
                     title = '🏁 中立结局 · 老实人';
                     endingClass = 'ending-normal';
@@ -5755,9 +5746,6 @@
             `;
                     break;
 
-                // ============================================================
-                //  坏结局（BE）
-                // ============================================================
                 case 'BE1_龙化值过高':
                     title = '💀 坏结局 · 龙化值过高';
                     endingClass = 'ending-dragon';
@@ -5882,13 +5870,6 @@
             `;
                     break;
 
-                // ============================================================
-                //  兼容旧版结局名称
-                // ============================================================
-
-
-
-
                 default:
                     desc = '游戏结束。';
                     endingClass = 'ending-normal';
@@ -5897,14 +5878,10 @@
             // 更新UI
             updateUI();
 
-            // 判断是否为第二章结局（显示不同的重新开始选项）
             var ch2Endings = ['BE2_大不敬', 'BE3_惊扰', 'BE4_半途而废', 'HE2_被救助'];
             var isCh2Ending = ch2Endings.indexOf(type) !== -1;
-
-            // 判断是否为完美结局或特殊结局（显示额外标记）
             var isSpecialEnding = (type === 'TE1_薪火相传' || type === 'HE1_幸存者' || type === 'NE2_被标记的归来');
 
-            // 显示结局文本
             setStory(`
         <span class="ending-title">${title}</span>
         <span class="divider">—— —— ——</span>
@@ -5917,17 +5894,15 @@
         ${state.flags.awakening.visited ? `<span style="color:var(--text-gold);font-size:0.85rem;">🌾 已接触觉醒者 · 信任度 ${state.flags.awakening.trustLevel}/5</span>` : ''}
     `, endingClass);
 
-            // 显示结局选项
             var options = [];
 
             if (isSpecialEnding) {
-                // 特殊结局：显示成就标记和重新开始
                 options.push({
                     label: '🏆 查看成就',
                     hint: '你达成了一个特殊结局！',
                     ending: true,
                     action: function () {
-                        if (state.gameOver || state._waitingConfirm) return;
+                        if (state._waitingConfirm) return;
                         showAchievement(type);
                     }
                 });
@@ -5951,26 +5926,24 @@
                     label: '📜 回顾已收集的规则',
                     ending: true,
                     action: function () {
-                        // 结局中 gameOver 为 true，移除该检查，只保留 _waitingConfirm
                         if (state._waitingConfirm) return;
-                        // 如果规则面板未打开，则展开
                         if (!rulesPanelOpen) {
                             toggleRulesPanel();
                         }
                         setStory(`
-            <span class="title-line">📜 规则回顾</span>
-            <span class="divider">—— —— ——</span>
-            你一共收集了 ${state.rules.length} 条规则。
-            这些规则编织成了你在邱龙村的全部经历。
-            <span class="divider">· · ·</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
-        `);
+                    <span class="title-line">📜 规则回顾</span>
+                    <span class="divider">—— —— ——</span>
+                    你一共收集了 ${state.rules.length} 条规则。
+                    这些规则编织成了你在邱龙村的全部经历。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
+                `);
                         renderOptions([{
                             label: '🔙 返回结局',
                             ending: true,
                             action: function () {
                                 if (state._waitingConfirm) return;
-                                // 重新触发原本的结局，保持 type 不变
+                                // 现在即使 gameOver === true 也能正常重新渲染
                                 triggerEnding(type);
                             }
                         }]);
@@ -5978,18 +5951,29 @@
                 });
             }
 
-            // 添加一个「分享结局」功能（可选，社交分享）
-            // 实际上游戏中可能不需要，但保留作为扩展
-
             renderOptions(options);
             updateUI();
+        }
+
+        // ================================================================
+        //  触发结局（设置 gameOver 状态 + 调用渲染）
+        // ================================================================
+        function triggerEnding(type) {
+            if (state.gameOver) {
+                // 游戏已结束，直接重新渲染结局（用于"返回结局"等场景）
+                renderEndingContent(type);
+                return;
+            }
+            state.gameOver = true;
+            renderEndingContent(type);
         }
 
         // ================================================================
         //  成就显示（特殊结局专用）
         // ================================================================
         function showAchievement(type) {
-            if (state.gameOver || state._waitingConfirm) return;
+            if (state._waitingConfirm) return;
+            // 移除 gameOver 检查，允许在结局后查看成就并返回
 
             var achievementText = '';
             var achievementIcon = '';
@@ -6024,13 +6008,12 @@
                 label: '🔙 返回结局',
                 ending: true,
                 action: function () {
-                    if (state.gameOver || state._waitingConfirm) return;
-                    // 重新触发结局（复用之前的type）
+                    if (state._waitingConfirm) return;
+                    // 现在 triggerEnding 可以正确处理 gameOver === true 的情况
                     triggerEnding(type);
                 }
             }]);
         }
-
 
         // ================================================================
         //  重置函数
