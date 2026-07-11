@@ -5210,15 +5210,7 @@
                         var feedback = '';
                         var needRule = false;
                         var ruleId = '';
-                        var staminaCost = 1;
 
-                        // 检查体力是否足够
-                        if (!spendStamina(staminaCost)) {
-                            // 体力不足，撤销购买
-                            state.ch2.boughtItems.pop();
-                            showStory(`<span style="color:#d45a5a;">⚠️ 体力不足！需要 ${staminaCost} 点体力。</span>`);
-                            return;
-                        }
 
                         switch (item.id) {
                             case 'incense':
@@ -5352,23 +5344,29 @@
             if (state.ch2.incenseRemaining < 3) {
                 opts.push({
                     label: '🙏 向老汉讨要香火',
-                    hint: '伪装-1，获得1根香',
+                    hint: '体力-1，伪装-1，获得1根香',
                     tag: '备选',
+                    disabled: state.stamina < 1,  // ← 添加
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.ch2.incenseRemaining >= 3) {
                             showStory('你的香火已经够多了。');
                             return;
                         }
+                        if (!spendStamina(1)) {   // ← 添加体力消耗
+                            showStory('⚠️ 你已经没有力气去讨要了。');
+                            return;
+                        }
                         setStory(`
-                    <span class="title-line">🙏 讨要香火</span>
-                    你走到老汉面前，有些不好意思地开口：「老人家……我身上没带香火，您能不能……？」
-                    老汉打量了你几眼，叹了口气：「年轻人，参加社戏连香火都不准备？算了，我这儿还剩一点，拿去吧。」
-                    他递给你一根香，但眼神里带着一丝鄙夷。
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+1（当前：${state.ch2.incenseRemaining + 1}/3）</span>
-                    <span style="color:#aa4a4a;">🎭 伪装-1（被老汉嫌弃）</span>
-                `);
+                <span class="title-line">🙏 讨要香火</span>
+                你走到老汉面前，有些不好意思地开口：「老人家……我身上没带香火，您能不能……？」
+                老汉打量了你几眼，叹了口气：「年轻人，参加社戏连香火都不准备？算了，我这儿还剩一点，拿去吧。」
+                他递给你一根香，但眼神里带着一丝鄙夷。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+1（当前：${state.ch2.incenseRemaining + 1}/3）</span>
+                <span style="color:#aa4a4a;">🎭 伪装-1（被老汉嫌弃）</span>
+                <span style="color:#aa4a4a;">⚡ 体力-1</span>
+            `);
                         changeIncense(1);
                         changeDisguise(-1);
                         updateUI();
@@ -5387,12 +5385,17 @@
             if (state.ch2.incenseRemaining < 3) {
                 opts.push({
                     label: '🥷 偷摊贩的香火',
-                    hint: '伪装-2，获得2根香',
+                    hint: '体力-1，伪装-2，获得2根香',
                     tag: '💀 风险',
+                    disabled: state.stamina < 1,  // ← 添加
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.ch2.incenseRemaining >= 3) {
                             showStory('你的香火已经够多了。');
+                            return;
+                        }
+                        if (!spendStamina(1)) {   // ← 添加体力消耗
+                            showStory('⚠️ 你已经没有力气去偷了。');
                             return;
                         }
                         // 计算偷取成功率（基于伪装值）
@@ -5403,23 +5406,25 @@
                             changeIncense(gain);
                             changeDisguise(-2);
                             setStory(`
-                        <span class="title-line">🥷 偷取香火 · 成功</span>
-                        你趁摊贩转身的瞬间，迅速从案板上抽走了几根香火，藏进袖中。
-                        心跳如雷，但你没有被发现！
-                        <span class="divider">· · ·</span>
-                        <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+${gain}（当前：${state.ch2.incenseRemaining}/3）</span>
-                        <span style="color:#aa4a4a;">🎭 伪装-2（做了亏心事，心虚）</span>
-                    `);
+                    <span class="title-line">🥷 偷取香火 · 成功</span>
+                    你趁摊贩转身的瞬间，迅速从案板上抽走了几根香火，藏进袖中。
+                    心跳如雷，但你没有被发现！
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+${gain}（当前：${state.ch2.incenseRemaining}/3）</span>
+                    <span style="color:#aa4a4a;">🎭 伪装-2（做了亏心事，心虚）</span>
+                    <span style="color:#aa4a4a;">⚡ 体力-1</span>
+                `);
                         } else {
                             // 失败
                             changeDisguise(-3);
                             setStory(`
-                        <span class="title-line">🥷 偷取香火 · 失败</span>
-                        你刚伸手，摊贩就转过头来，厉声喝道：「你干什么？！」
-                        你慌忙缩手，周围的人都看了过来。你低着头快步走开，脸上火辣辣的。
-                        <span class="divider">· · ·</span>
-                        <span style="color:#d45a5a;">🎭 伪装-3（被当众识破）</span>
-                    `);
+                    <span class="title-line">🥷 偷取香火 · 失败</span>
+                    你刚伸手，摊贩就转过头来，厉声喝道：「你干什么？！」
+                    你慌忙缩手，周围的人都看了过来。你低着头快步走开，脸上火辣辣的。
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d45a5a;">🎭 伪装-3（被当众识破）</span>
+                    <span style="color:#aa4a4a;">⚡ 体力-1</span>
+                `);
                         }
                         updateUI();
                         renderOptions([{
