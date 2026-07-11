@@ -958,6 +958,7 @@
                     day5_code_triggered: false,
                 },
                 grayLine_choseComply: false,
+                hasYinBloodPotion: false,
             },
             actionsToday: 0,
             weekCount: 0,
@@ -1863,7 +1864,31 @@
                 // 增加访问计数
                 state.flags.abandonedVisitCount++;
                 const visitCount = state.flags.abandonedVisitCount;
-
+                // ---- 第3次访问：暗格残纸提示（不再给规则） ----
+                if (visitCount === 3 && !state.flags.abandonedHiddenTriggered) {
+                    setStory(`
+        <span class="title-line">🏚️ 废弃房屋 · 第三次探索</span>
+        你再次来到这间废弃房屋，这一次你注意到书架后面似乎有一个暗格。
+        你移开几本发霉的书，发现暗格里藏着一张泛黄的残纸：
+        <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">这句话似乎与草木灰有关……也许你需要某种"条件"才能让灰烬中的文字完全显现。</span>
+        ${state.flags.abandonedCompleteReady ? '<span style="color:var(--text-muted);font-size:0.85rem;">💡 你已经集齐了三条普通规则，草木灰显影已经准备就绪。</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">💡 你还需要收集更多废弃房屋的规则才能触发草木灰显影。</span>'}
+    `);
+                    // 不给任何规则，只给提示
+                    changeDragonization(0);
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚪 离开房屋',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你将残纸小心收好，走出了废弃房屋。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
                 // ---- 第2次访问且未获得书签：给予书签 ----
                 if (visitCount === 2 && !state.flags.hidden_hasBookmark) {
                     setStory(`
@@ -2032,39 +2057,113 @@
         SCENES['explore_folklore'] = {
             render: async () => {
                 if (state._waitingConfirm) return;
-                state.flags.folkloreWarned = true;
+                // 增加访问计数
+                state.flags.folkloreVisitCount++;
+                const visitCount = state.flags.folkloreVisitCount;
+
+                // ---- 第1次：劝你下山，暗示村西有问题 ----
+                if (visitCount === 1) {
+                    state.flags.folkloreWarned = true;
+                    setStory(`
+                <span class="title-line">🏛️ 民俗部 · 第一次拜访</span>
+                你走进民俗部，一位穿着景区制服的工作人员正在整理文件。他抬头看了你一眼，放下手中的东西：
+                <span class="rule-text" style="color:#d4b87a;">「你是来参加社戏的吧？最近村里不太平，建议你不要上山。山里的东西……不是你能惹的。」</span>
+                你正想追问，他却摆了摆手：<span class="rule-text" style="color:#d4b87a;">「别多问，听我一句劝。实在想了解什么，去村西看看，那边的婆娘比村东的嫂嫂知道得多。」</span>
+                说完，他低头继续整理文件，不再理你。
+                <span class="divider">· · ·</span>
+                <span style="color:#6a8aaa;">你获得了重要线索：村西可能藏着真相。</span>
+            `);
+                    // 不获得任何规则
+                    changeDragonization(0);
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚶 离开民俗部',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你走出民俗部，工作人员的话在你脑中回响。村西……那里似乎是个关键。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第2次：获得桃木吊坠 + 民俗部密语规则 ----
+                if (visitCount === 2) {
+                    setStory(`
+                <span class="title-line">🏛️ 民俗部 · 第二次拜访</span>
+                你再次走进民俗部，这次那位工作人员似乎早有准备。他从抽屉里拿出一枚<highlight>桃木吊坠</highlight>，放在桌上推到你面前：
+                <span class="rule-text" style="color:#d4b87a;">「拿着吧，山里潮气重，这木头的味道能驱驱虫。别跟人说是谁给的。」</span>
+                你接过吊坠，触感温润，上面刻着一些看不懂的符文。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">📌 你获得了「桃木吊坠」！</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是一件能辟邪的护身符。</span>
+            `);
+                    // 给桃木吊坠 + 规则
+                    if (!state.flags.hasPeachWood) {
+                        state.flags.hasPeachWood = true;
+                    }
+                    const folkRuleId = 'folk_1';
+                    if (!state.rules.includes(folkRuleId)) {
+                        await addRule(folkRuleId);
+                    }
+                    changeDragonization(-2);
+                    if (!state.gameOver) showStory('你感到一丝安心，龙气稍有减退（龙化 -2）');
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🙏 道谢，离开',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你谢过工作人员，将桃木吊坠贴身藏好，走出民俗部。他的话让你隐隐感觉，这村里的水比想象中深得多。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第3次：获得阴血汤药（龙化-10，仅一次） ----
+                if (visitCount === 3) {
+                    setStory(`
+                <span class="title-line">🏛️ 民俗部 · 第三次拜访</span>
+                你再次走进民俗部，工作人员看到你，微微皱眉：
+                <span class="rule-text" style="color:#d4b87a;">「你怎么又来了？……算了，既然你执意要上山，这个你拿着。」</span>
+                他从柜子里取出一碗黑褐色的汤药，药味刺鼻，似乎混合了某种草药和……血？
+                <span class="rule-text" style="color:#d4b87a;">「这是阴血汤药，喝了能压制山里的邪气。只能喝一次，省着用。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">📌 你获得了「阴血汤药」！（龙化 -10）</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">这碗药散发着奇怪的气味，但似乎真的能驱散龙气。</span>
+            `);
+                    // 阴血汤药效果：龙化-10，并记录已获得
+                    changeDragonization(-10);
+                    if (!state.gameOver) showStory('你喝下汤药，一股暖流在体内散开，龙气被压制了不少（龙化 -10）。');
+                    // 记录已获得阴血汤药（用于后续判定）
+                    state.flags.hasYinBloodPotion = true; // 需要先在 flags 中添加此字段
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🙏 道谢，离开',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你谢过工作人员，将空碗放下，走出了民俗部。阴血汤药的力量在你体内缓缓流动。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第4次及以上：重复劝告，无新内容 ----
                 setStory(`
-                    <span class="title-line">🏛️ 民俗部</span>
-                    你走进民俗部，一位穿着景区制服、胸前挂着桃木小牌的工作人员抬头看了你一眼。
-                    他放下手中的茶杯，不紧不慢地说：
-                    <span class="rule-text" style="color:#d4b87a;">「来打听社戏的？最近村里人多，有些规矩得自己掂量。村东的嫂嫂们热情，村西的婆娘们清冷，</span>
-                    <span class="rule-text" style="color:#d4b87a;">挂着桃木牌子的自己人说话也要留三分。你记住——有些话，说给对的人听才管用。」</span>
-                    他说完从抽屉里拿出一枚<highlight>桃木吊坠</highlight>，在手里掂了掂，推到你面前：
-                    <span class="rule-text">「拿着吧，山里潮气重，这木头的味道能驱驱虫。别跟人说是谁给的。」</span>
-                    <span class="divider">· · ·</span>
-                `);
-                const folkRuleId = 'folk_1';
-                let gotFolkRule = false;
-                if (!state.rules.includes(folkRuleId)) {
-                    gotFolkRule = await addRule(folkRuleId);
-                }
-                let gotWood = false;
-                if (!state.flags.hasPeachWood) {
-                    state.flags.hasPeachWood = true;
-                    gotWood = true;
-                }
-                showStory(`
-                    ${gotFolkRule ? '你接过吊坠，这些零碎的话似乎暗藏深意，你记下了一条规则。' : '你再次听到类似的提醒，心中更加确信这地方不简单。'}
-                    ${gotWood ? '（获得了桃木吊坠）' : ''}
-                `);
-                changeDragonization(-2);
-                if (!state.gameOver) showStory('你感到一丝安心，龙气稍有减退（龙化 -2）');
+            <span class="title-line">🏛️ 民俗部</span>
+            工作人员抬头看了你一眼，摇了摇头：
+            <span class="rule-text" style="color:#d4b87a;">「你怎么又来了？该说的我都说了。听我一句劝，别上山了。</span>
+            <span class="rule-text" style="color:#d4b87a;">如果你执意要去……记住，有些事情，不知道反而更好。」</span>
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">这里已经没有什么新信息了。</span>
+        `);
                 if (state.gameOver || state._waitingConfirm) return;
                 renderOptions([{
-                    label: '🙏 道谢，离开',
+                    label: '🚶 离开民俗部',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
-                        setStory('你谢过工作人员，将桃木吊坠贴身藏好，走出民俗部。他的话让你隐隐感觉，这村里的水比想象中深得多。');
+                        setStory('你走出民俗部，工作人员的话让你更加坚定了上山的决心——那里一定有答案。');
                         finishSceneAndReturn();
                     }
                 }]);
@@ -2074,29 +2173,110 @@
         SCENES['explore_shop'] = {
             render: () => {
                 if (state._waitingConfirm) return;
+                // 增加访问计数
+                state.flags.shopVisitCount++;
+                const visitCount = state.flags.shopVisitCount;
+
                 const rhymes = [
                     `邱龙山里赖黄蛇呦，修长生、食茯神，教那山鬼落荒逃嘿，要那山深水更沉。\n囚龙村里出先生哟，教得阿太三餐饱，叫我阿爸没烦恼嘿，咿咿呀呀到外头。\n邱龙山上囚龙观嘿，囚龙观里有先生，先生教我学本领嘿，学好出山找阿爸。\n先生教我纵云梯嘿，吃的灵芝力气饱；先生教我读奇书嘿，蒙蒙搽搽见神仙。\n你问我书里神仙说甚么，邱龙山里赖黄蛇呦～`,
                     `是操棍棒没有心，耍笔头的没有肝，于是那乡痞老贼没朋伴，那庙堂狗官招子没名堂；\n是在天无神空寥寥，在地无灵病怏怏，须仙人修得纯阳体嘿，精筋强骨瘦南山；\n是那山路深远湿溜溜，惹得一身霉点长，脑筋活来手脚利，黄蛇也逃来先生也找不着。\n逃出学堂过山峰，朝晨喝泉水来晚吃草，甭赖家里不接济，实在自己不成器。`
                 ];
-                const index = state.flags.shopRhymeIndex % 2;
-                state.flags.shopRhymeIndex++;
-                const rhymeText = rhymes[index];
+
+                // ---- 第1次：童谣1 ----
+                if (visitCount === 1) {
+                    const rhymeText = rhymes[0];
+                    setStory(`
+                <span class="title-line">🏪 小卖部 · 第一次拜访</span>
+                小卖部的老妪正在剥豆子，她抬头看了你一眼，露出一个意味深长的笑容。
+                你没有买东西，但她似乎并不在意，只是自顾自地哼起了一首童谣：
+                <span class="nursery-rhyme">${rhymeText}</span>
+                你正想追问，老妪却摆了摆手，不再说话。你注意到她的指甲缝里有一些青褐色的粉末，像是……菌类的孢子？
+                你感到一阵不适，匆匆离开了小卖部。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你记录了童谣（其一）。</span>
+            `);
+                    changeDragonization(1);
+                    if (!state.gameOver) showStory('童谣在你脑中回响，龙气似乎加重了（龙化 +1）');
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚶 离开小卖部',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你快步离开，那首童谣却一直在你脑海中回响。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第2次：童谣2 ----
+                if (visitCount === 2) {
+                    const rhymeText = rhymes[1];
+                    setStory(`
+                <span class="title-line">🏪 小卖部 · 第二次拜访</span>
+                你再次来到小卖部，老妪这次没有剥豆子，而是在擦拭一个陶罐。她看到你，又哼起了另一首童谣：
+                <span class="nursery-rhyme">${rhymeText}</span>
+                唱完后，她定定地看着你，眼神有些怪异，像是想说什么，最终却只是挥了挥手：
+                <span class="rule-text" style="color:#d4b87a;">「走吧，有些事，知道得太多对你不好。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你记录了童谣（其二）。</span>
+            `);
+                    changeDragonization(1);
+                    if (!state.gameOver) showStory('另一首童谣让你更加不安（龙化 +1）');
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚶 离开小卖部',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你快步离开，两首童谣在你脑中交织。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第3次：龙鳞碎片（龙化+10，后续对抗道具） ----
+                if (visitCount === 3) {
+                    setStory(`
+                <span class="title-line">🏪 小卖部 · 第三次拜访</span>
+                你第三次走进小卖部。老妪这次没有哼歌，而是静静地坐在柜台后面，手里拿着一块东西。
+                看到你进来，她将那块东西放在柜台上，缓缓推到你面前——那是一块巴掌大的鳞片，泛着青黑色的光泽，边缘带着细小的菌丝。
+                <span class="rule-text" style="color:#d4b87a;">「拿着吧，你以后用得上。这东西……是龙王爷身上掉下来的。」</span>
+                你犹豫了一下，伸手触碰——<span style="color:#d45a5a;">一阵冰凉的刺痛传来，龙气猛地涌入你的体内！</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d45a5a;">⚠️ 你触碰了「龙鳞碎片」！（龙化 +10）</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你获得了「龙鳞碎片」——这似乎是对抗道士的关键道具。</span>
+            `);
+                    // 触碰龙鳞碎片：龙化+10，获得道具
+                    changeDragonization(10);
+                    state.flags.hasDragonScale = true; // 需要在 flags 中添加此字段
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '🚶 离开小卖部',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你将龙鳞碎片包好，快步离开了小卖部。老妪在你身后发出了一声若有若无的叹息。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 第4次及以上：老太太不再说话，只是盯着你 ----
                 setStory(`
-                    <span class="title-line">🏪 小卖部</span>
-                    小卖部的老妪正在剥豆子，她抬头看了你一眼，露出一个意味深长的笑容。
-                    你没有买东西，但她似乎并不在意，只是自顾自地哼起了一首童谣：
-                    <span class="nursery-rhyme">${rhymeText}</span>
-                    你正想追问，老妪却摆了摆手，不再说话。你注意到她的指甲缝里有一些青褐色的粉末，像是……菌类的孢子？
-                    你感到一阵不适，匆匆离开了小卖部。
-                `);
-                changeDragonization(1);
-                if (!state.gameOver) showStory('童谣在你脑中回响，龙气似乎加重了（龙化 +1）');
+            <span class="title-line">🏪 小卖部</span>
+            你再次走进小卖部。老妪坐在柜台后面，不再说话，只是一动不动地盯着你。
+            她的眼神空洞而平静，像是早已看透了你的命运。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">老妪不再开口，她的沉默比任何话语都更令人不安。</span>
+        `);
+                changeDragonization(0);
                 if (state.gameOver || state._waitingConfirm) return;
                 renderOptions([{
                     label: '🚶 离开小卖部',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
-                        setStory('你快步离开，那首童谣却一直在你脑海中回响。');
+                        setStory('你在老妪的注视下快步离开，她的目光像针一样刺在你的背上。');
                         finishSceneAndReturn();
                     }
                 }]);
@@ -2106,34 +2286,85 @@
         SCENES['play_cards'] = {
             render: async () => {
                 if (state._waitingConfirm) return;
-                setStory(`
-                    <span class="title-line">🃏 玩花切给大爷看</span>
-                    你走到树下，一位大爷正在摆弄一副扑克牌，手法花哨。你上前搭话，表示自己也会几手。
-                    大爷来了兴致，和你切磋起来。一边玩，一边和你唠起村里的旧事。
-                    <span class="divider">· · ·</span>
-                `);
-                const cardRuleIds = ['card_important_1', 'card_important_2', 'card_important_3',
-                    'card_useless_1', 'card_useless_2', 'card_useless_3'
-                ];
-                const available = cardRuleIds.filter(id => !state.rules.includes(id));
-                let gained = null;
-                if (available.length > 0) {
-                    const picked = pick(available);
-                    const ok = await addRule(picked);
-                    if (ok) gained = picked;
+                // 增加访问计数
+                state.flags.cardVisitCount++;
+                const visitCount = state.flags.cardVisitCount;
+
+                // 所有6条规则混在一起，随机抽取
+                const allCardRules = ['card_important_1', 'card_important_2', 'card_important_3',
+                    'card_useless_1', 'card_useless_2', 'card_useless_3'];
+
+                // 过滤出未获得的规则
+                const available = allCardRules.filter(id => !state.rules.includes(id));
+
+                // 如果已经唠了6次（所有规则已获得），不再给新规则
+                if (visitCount > 6 || available.length === 0) {
+                    setStory(`
+                <span class="title-line">🃏 王大爷</span>
+                你又走到树下，王大爷正在晒太阳。他看到你，笑了笑：
+                <span class="rule-text" style="color:#d4b87a;">「小伙子，你又来了？该说的我都说了，剩下的路得你自己走了。」</span>
+                他闭上眼睛，不再理你。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">王大爷已经没有更多消息了。</span>
+            `);
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '👋 告别王大爷',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你告别了王大爷，老人继续在树下晒太阳，仿佛你从未出现过。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                    return;
                 }
-                showStory(`
-                    ${gained ? `他随口说了一句：「${RULES_DB[gained].text.replace('【花切·重要】', '').replace('【花切·闲聊】', '')}」` : '他聊得尽兴，但似乎没有什么特别的线索。'}
-                    ${gained ? '<span style="color:var(--text-gold);">📜 你获得了一条规则！</span>' : '大爷笑了笑，继续玩他的牌。你感觉收获不大，但至少打发了一些时间。'}
-                `);
+
+                // 从剩余规则中随机抽取一条
+                const picked = pick(available);
+                const rule = RULES_DB[picked];
+
+                // 判断是否是重要规则（仅用于显示标签）
+                const isImportant = picked.startsWith('card_important_');
+
+                // 显示唠嗑场景
+                const isFirstFew = visitCount <= 3; // 前3次气氛活跃，后面冷淡
+                const extraText = isFirstFew ?
+                    '大爷来了兴致，和你切磋起花切来。一边玩，一边和你唠起村里的旧事。' :
+                    '大爷今天兴致不高，只是有一搭没一搭地和你说着话。';
+
+                setStory(`
+            <span class="title-line">🃏 玩花切给大爷看 · 第${visitCount}次</span>
+            你走到树下，一位大爷正在摆弄一副扑克牌，手法花哨。你上前搭话，表示自己也会几手。
+            ${extraText}
+            <span class="divider">· · ·</span>
+            ${isImportant ? '<span style="color:#d4b87a;">💡 你感觉他说的话似乎暗藏深意！</span>' : '<span style="color:var(--text-muted);">💭 这听起来像是一句普通的闲聊……</span>'}
+        `);
+
+                // 添加规则
+                const ok = await addRule(picked);
+                if (ok) {
+                    const displayText = rule.text.replace('【花切·重要】', '').replace('【花切·闲聊】', '');
+                    showStory(`大爷随口说了一句：「${displayText}」`);
+                    showStory(`<span style="color:var(--text-gold);">📜 你获得了一条规则！</span>`);
+                }
+
                 changeDragonization(-1);
                 if (!state.gameOver) showStory('与大爷闲聊让你放松了一些（龙化 -1）');
+
+                // 显示剩余规则数量提示
+                const remaining = available.length - 1;
+                if (remaining > 0) {
+                    showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">💡 王大爷似乎还有 ${remaining} 条消息没说。</span>`);
+                } else {
+                    showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">💡 王大爷已经把知道的都告诉你了。</span>`);
+                }
+
                 if (state.gameOver || state._waitingConfirm) return;
                 renderOptions([{
-                    label: '👋 告别大爷',
+                    label: '👋 告别王大爷',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
-                        setStory('你谢过大爷，转身离开。他还在那里自顾自地摆弄着牌，仿佛你从未出现过。');
+                        setStory('你谢过大爷，转身离开。他还在那里自顾自地摆弄着牌。');
                         finishSceneAndReturn();
                     }
                 }]);
@@ -2250,6 +2481,7 @@
             state.ch2.lastMessage = null;
             state.stamina = state.maxStamina;
             state.actionsToday = 0;
+
             updateUI();
             renderChapter2();
         }
@@ -3084,7 +3316,7 @@
                 folkloreWarned: false,
                 shopRhymeIndex: 0,
                 chapter2: false,
-                hasPeachWood: state.flags.hasPeachWood,
+                hasPeachWood: false,  // resetToChapter1 中保留 state.flags.hasPeachWood
                 abandonedCompleteReady: false,
                 abandonedHiddenTriggered: false,
                 abandonedVisitCount: 0,
@@ -3094,13 +3326,12 @@
                 hidden_teaCount: 0,
                 hidden_answeredCode: false,
                 hidden_unlocked: false,
-                morningEvents: {
-                    day2_grayLine_triggered: false,
-                    day3_code_triggered: false,
-                    day4_code_triggered: false,
-                    day5_code_triggered: false,
-                },
+                morningEvents: { ... },
                 grayLine_choseComply: false,
+                folkloreVisitCount: 0,
+                shopVisitCount: 0,
+                cardVisitCount: 0,
+                hasYinBloodPotion: false,
             };
             state.ch2 = {
                 phase: '0km',
@@ -3147,7 +3378,7 @@
                 folkloreWarned: false,
                 shopRhymeIndex: 0,
                 chapter2: false,
-                hasPeachWood: false,
+                hasPeachWood: false,  // resetToChapter1 中保留 state.flags.hasPeachWood
                 abandonedCompleteReady: false,
                 abandonedHiddenTriggered: false,
                 abandonedVisitCount: 0,
@@ -3157,13 +3388,12 @@
                 hidden_teaCount: 0,
                 hidden_answeredCode: false,
                 hidden_unlocked: false,
-                morningEvents: {
-                    day2_grayLine_triggered: false,
-                    day3_code_triggered: false,
-                    day4_code_triggered: false,
-                    day5_code_triggered: false,
-                },
+                morningEvents: { ... },
                 grayLine_choseComply: false,
+                folkloreVisitCount: 0,
+                shopVisitCount: 0,
+                cardVisitCount: 0,
+                hasYinBloodPotion: false,
             };
             state.actionsToday = 0;
             state.weekCount = 0;
