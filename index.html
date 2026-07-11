@@ -1,0 +1,2765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>龙岭观前坑 · 完整版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        :root {
+            --bg-primary: #0d0a08;
+            --bg-card: #1a1410;
+            --bg-panel: #241e18;
+            --border-gold: #8b7a4a;
+            --text-primary: #e8ddd0;
+            --text-muted: #a8957a;
+            --text-gold: #d4b87a;
+            --red-bright: #8a2a2a;
+            --font-serif: 'Noto Serif SC', '华文楷体', 'KaiTi', serif;
+            --font-title: 'Ma Shan Zheng', '华文楷体', cursive;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-serif);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(60, 30, 20, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse at 80% 50%, rgba(30, 20, 50, 0.3) 0%, transparent 70%);
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 860px;
+            height: 96vh;
+            max-height: 820px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), inset 0 0 80px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #status-bar {
+            background: linear-gradient(180deg, #1f1812 0%, #16100c 100%);
+            border-bottom: 1px solid var(--border-gold);
+            padding: 8px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px 12px;
+            flex-shrink: 0;
+            z-index: 1;
+            position: relative;
+        }
+
+        #status-bar .title {
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: var(--text-gold);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(180, 140, 80, 0.2);
+            white-space: nowrap;
+        }
+
+        .status-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px 12px;
+            font-size: 0.75rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+        }
+
+        .status-item .label {
+            opacity: 0.7;
+        }
+
+        .status-item .value {
+            color: var(--text-primary);
+            font-weight: 700;
+            min-width: 18px;
+        }
+
+        .stamina-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .stamina-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid var(--border-gold);
+            background: #2a221a;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .stamina-dot.filled {
+            background: #4a7a4a;
+            border-color: #6aaa6a;
+            box-shadow: 0 0 10px rgba(74, 122, 74, 0.3);
+            color: #b0e0b0;
+        }
+
+        .stamina-dot.spent {
+            opacity: 0.2;
+            background: #1a1410;
+        }
+
+        .bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .bar-track {
+            width: 60px;
+            height: 5px;
+            background: #2a221a;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #3a322a;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .bar-fill.dragon {
+            background: linear-gradient(90deg, #4a7a4a, #8a5a3a, #aa4a2a);
+        }
+
+        .bar-fill.sanity {
+            background: linear-gradient(90deg, #4a5a8a, #7a8aaa, #aac0e0);
+        }
+
+        #main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            padding: 0 18px 0 18px;
+        }
+
+        #story-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 10px 10px 10px;
+            scroll-behavior: smooth;
+        }
+
+        #story-area::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #story-area::-webkit-scrollbar-track {
+            background: #1a1410;
+        }
+
+        #story-area::-webkit-scrollbar-thumb {
+            background: var(--border-gold);
+            border-radius: 4px;
+        }
+
+        .story-text {
+            font-size: 0.95rem;
+            line-height: 1.9;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            transition: background 0.5s, color 0.5s;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 0 -6px;
+        }
+
+        .story-text .highlight {
+            color: var(--text-gold);
+        }
+
+        .story-text .danger {
+            color: #d45a5a;
+        }
+
+        .story-text .rule-text {
+            display: block;
+            padding: 6px 14px;
+            margin: 5px 0;
+            border-left: 3px solid var(--text-gold);
+            background: rgba(180, 140, 80, 0.06);
+            font-size: 0.9rem;
+            color: #d4c8b0;
+        }
+
+        .story-text .divider {
+            display: block;
+            text-align: center;
+            color: var(--text-muted);
+            margin: 10px 0;
+            letter-spacing: 6px;
+            opacity: 0.4;
+        }
+
+        .story-text .title-line {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            color: var(--text-gold);
+            text-align: center;
+            margin: 8px 0 12px 0;
+            letter-spacing: 2px;
+        }
+
+        .story-text .nursery-rhyme {
+            display: block;
+            padding: 10px 14px;
+            margin: 6px 0;
+            background: rgba(180, 140, 80, 0.08);
+            border-radius: 6px;
+            font-style: italic;
+            color: #d4c8b0;
+            line-height: 2;
+            white-space: pre-line;
+        }
+
+        .story-text .ending-title {
+            font-size: 1.8rem;
+            text-align: center;
+            font-weight: 700;
+            text-shadow: 0 0 30px rgba(200, 50, 50, 0.3);
+        }
+
+        .story-text .info-box {
+            display: block;
+            padding: 8px 14px;
+            margin: 6px 0;
+            border-left: 3px solid #6a8aaa;
+            background: rgba(100, 130, 170, 0.06);
+            font-size: 0.9rem;
+            color: #b0c8d8;
+        }
+
+        .story-text .km-progress {
+            display: block;
+            text-align: center;
+            color: var(--text-gold);
+            font-size: 0.85rem;
+            margin: 4px 0;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .story-text .comedy-box {
+            display: block;
+            padding: 14px 18px;
+            margin: 10px 0;
+            background: rgba(180, 140, 80, 0.12);
+            border-radius: 8px;
+            border: 1px solid var(--border-gold);
+            color: #d4c8b0;
+            line-height: 2;
+        }
+
+        .story-text .feedback {
+            display: block;
+            padding: 8px 12px;
+            margin: 6px 0;
+            background: rgba(180, 140, 80, 0.08);
+            border-left: 3px solid var(--text-gold);
+            color: var(--text-gold);
+            font-weight: 500;
+        }
+
+        /* ===== 结局配色 ===== */
+        /* HE - 暖金色 */
+        .story-text.ending-he {
+            background: #d4c8a0;
+            color: #3a2a1a;
+        }
+
+        .story-text.ending-he .ending-title {
+            color: #5a3a1a;
+            text-shadow: 0 0 30px rgba(180, 140, 80, 0.3);
+        }
+
+        .story-text.ending-he .divider {
+            color: #8a7a5a;
+        }
+
+        .story-text.ending-he .rule-text {
+            background: rgba(200, 180, 150, 0.2);
+            border-left-color: #8a7a5a;
+            color: #3a2a1a;
+        }
+
+        .story-text.ending-he .highlight {
+            color: #5a3a1a;
+        }
+
+        /* BE2 大不敬 - 暗红底深红字 */
+        .story-text.ending-be2 {
+            background: #2a0a0a;
+            color: #8a2a2a;
+        }
+
+        .story-text.ending-be2 .ending-title {
+            color: #aa2a2a;
+            text-shadow: 0 0 40px rgba(200, 30, 30, 0.5);
+        }
+
+        .story-text.ending-be2 .divider {
+            color: #4a1a1a;
+        }
+
+        .story-text.ending-be2 .rule-text {
+            background: rgba(80, 20, 20, 0.2);
+            border-left-color: #8a2a2a;
+            color: #aa4a4a;
+        }
+
+        .story-text.ending-be2 .highlight {
+            color: #aa4a4a;
+        }
+
+        /* BE3 惊扰 - 暗紫底紫红字 */
+        .story-text.ending-be3 {
+            background: #1a0a1a;
+            color: #7a2a6a;
+        }
+
+        .story-text.ending-be3 .ending-title {
+            color: #aa2a8a;
+            text-shadow: 0 0 40px rgba(180, 30, 150, 0.5);
+        }
+
+        .story-text.ending-be3 .divider {
+            color: #3a1a3a;
+        }
+
+        .story-text.ending-be3 .rule-text {
+            background: rgba(60, 20, 50, 0.2);
+            border-left-color: #8a2a7a;
+            color: #9a4a8a;
+        }
+
+        .story-text.ending-be3 .highlight {
+            color: #aa4a9a;
+        }
+
+        /* BE4 半途而废 - 暗灰底深灰字 */
+        .story-text.ending-be4 {
+            background: #141414;
+            color: #5a5a5a;
+        }
+
+        .story-text.ending-be4 .ending-title {
+            color: #7a7a7a;
+            text-shadow: 0 0 30px rgba(100, 100, 100, 0.3);
+        }
+
+        .story-text.ending-be4 .divider {
+            color: #2a2a2a;
+        }
+
+        .story-text.ending-be4 .rule-text {
+            background: rgba(40, 40, 40, 0.2);
+            border-left-color: #5a5a5a;
+            color: #6a6a6a;
+        }
+
+        .story-text.ending-be4 .highlight {
+            color: #7a7a7a;
+        }
+
+        /* 老实人 - 暗绿 */
+        .story-text.ending-normal {
+            background: #0a1a0a;
+            color: #3a5a3a;
+        }
+
+        .story-text.ending-normal .ending-title {
+            color: #4a7a4a;
+            text-shadow: 0 0 30px rgba(60, 160, 60, 0.3);
+        }
+
+        .story-text.ending-normal .divider {
+            color: #1a2a1a;
+        }
+
+        .story-text.ending-normal .rule-text {
+            background: rgba(30, 60, 30, 0.2);
+            border-left-color: #4a7a4a;
+            color: #4a6a4a;
+        }
+
+        .story-text.ending-normal .highlight {
+            color: #5a8a5a;
+        }
+
+        /* 龙化过高 - 暗红亮红 */
+        .story-text.ending-dragon {
+            background: #1a0505;
+            color: #aa3a2a;
+        }
+
+        .story-text.ending-dragon .ending-title {
+            color: #cc3a2a;
+            text-shadow: 0 0 50px rgba(220, 50, 30, 0.6);
+        }
+
+        .story-text.ending-dragon .divider {
+            color: #3a1a1a;
+        }
+
+        .story-text.ending-dragon .rule-text {
+            background: rgba(80, 20, 10, 0.2);
+            border-left-color: #aa3a2a;
+            color: #cc5a4a;
+        }
+
+        .story-text.ending-dragon .highlight {
+            color: #dd5a4a;
+        }
+
+        /* 被龙化 - 暗金 */
+        .story-text.ending-corrupted {
+            background: #1a1208;
+            color: #aa8a3a;
+        }
+
+        .story-text.ending-corrupted .ending-title {
+            color: #ccaa3a;
+            text-shadow: 0 0 40px rgba(200, 170, 50, 0.5);
+        }
+
+        .story-text.ending-corrupted .divider {
+            color: #3a2a1a;
+        }
+
+        .story-text.ending-corrupted .rule-text {
+            background: rgba(80, 60, 20, 0.2);
+            border-left-color: #aa8a3a;
+            color: #bb9a4a;
+        }
+
+        .story-text.ending-corrupted .highlight {
+            color: #ccaa5a;
+        }
+
+        /* 第三章 - 原色 */
+        .story-text.ending-chapter3 {
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .story-text.ending-chapter3 .ending-title {
+            color: var(--text-gold);
+            text-shadow: 0 0 30px rgba(180, 140, 80, 0.3);
+        }
+
+        .story-text.ending-chapter3 .divider {
+            color: var(--text-muted);
+        }
+
+        .story-text.ending-chapter3 .rule-text {
+            background: rgba(180, 140, 80, 0.06);
+            border-left-color: var(--text-gold);
+            color: #d4c8b0;
+        }
+
+        .story-text.ending-chapter3 .highlight {
+            color: var(--text-gold);
+        }
+
+        #rule-notification {
+            background: rgba(26, 20, 16, 0.95);
+            border: 1px solid var(--text-gold);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin: 6px 0 8px 0;
+            display: none;
+            animation: fadeSlide 0.5s ease;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        #rule-notification.show {
+            display: block;
+        }
+
+        #rule-notification .rule-title {
+            color: var(--text-gold);
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        #rule-notification .rule-body {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            margin-top: 3px;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #options-area {
+            padding: 8px 0 14px 0;
+            flex-shrink: 0;
+            border-top: 1px solid rgba(139, 122, 74, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 50px;
+        }
+
+        .option-btn {
+            background: rgba(30, 24, 18, 0.8);
+            border: 1px solid #3a322a;
+            border-radius: 6px;
+            padding: 9px 14px;
+            color: var(--text-primary);
+            font-family: var(--font-serif);
+            font-size: 0.88rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            background: rgba(60, 50, 40, 0.8);
+            border-color: var(--border-gold);
+            transform: translateX(4px);
+            box-shadow: 0 0 20px rgba(139, 122, 74, 0.08);
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .option-btn .hint {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-left: 6px;
+            opacity: 0.6;
+        }
+
+        .option-btn .cost {
+            float: right;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            opacity: 0.5;
+        }
+
+        .option-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .option-btn .tag {
+            display: inline-block;
+            font-size: 0.55rem;
+            background: rgba(139, 122, 74, 0.2);
+            border-radius: 3px;
+            padding: 0 6px;
+            margin-left: 4px;
+            color: var(--text-gold);
+        }
+
+        .option-btn.confirm-btn {
+            border-color: var(--text-gold);
+            background: rgba(180, 140, 80, 0.15);
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-gold);
+            font-size: 1rem;
+            padding: 12px 14px;
+        }
+
+        .option-btn.confirm-btn:hover {
+            background: rgba(180, 140, 80, 0.25);
+            transform: scale(1.01);
+        }
+
+        .option-btn.ending-btn {
+            border-color: #6a4a3a;
+            background: rgba(100, 60, 40, 0.15);
+            text-align: center;
+        }
+
+        .option-btn.ending-btn:hover {
+            background: rgba(100, 60, 40, 0.25);
+        }
+
+        #rules-panel {
+            background: rgba(16, 12, 10, 0.98);
+            border-top: 1px solid var(--border-gold);
+            flex-shrink: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+            position: relative;
+        }
+
+        #rules-panel.open {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #rules-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        #rules-panel::-webkit-scrollbar-thumb {
+            background: var(--border-gold);
+            border-radius: 4px;
+        }
+
+        #rules-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(139, 122, 74, 0.15);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #rules-panel .panel-header:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #rules-panel .panel-header .title {
+            color: var(--text-gold);
+            font-size: 0.82rem;
+            letter-spacing: 2px;
+        }
+
+        #rules-panel .panel-header .count {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+        }
+
+        #rules-panel .panel-body {
+            padding: 8px 18px 14px 18px;
+        }
+
+        .rule-entry {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(139, 122, 74, 0.06);
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .rule-entry .num {
+            color: var(--text-gold);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 20px;
+        }
+
+        .rule-entry .content {
+            color: var(--text-primary);
+        }
+
+        .rule-entry .content .new-tag {
+            color: #6ab06a;
+            font-size: 0.55rem;
+            margin-left: 5px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        #footer-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 18px 6px 18px;
+            flex-shrink: 0;
+            border-top: 1px solid rgba(139, 122, 74, 0.08);
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        #footer-tools .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        #footer-tools .left .day-info {
+            color: var(--text-gold);
+        }
+
+        .toggle-rules-btn {
+            background: none;
+            border: 1px solid var(--border-gold);
+            color: var(--text-muted);
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-family: var(--font-serif);
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-rules-btn:hover {
+            background: rgba(139, 122, 74, 0.1);
+            color: var(--text-gold);
+        }
+
+        .toggle-rules-btn .badge {
+            background: var(--red-bright);
+            color: #fff;
+            border-radius: 50%;
+            padding: 0 5px;
+            font-size: 0.55rem;
+            margin-left: 3px;
+        }
+
+        @media (max-width: 640px) {
+            #game-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+
+            #status-bar {
+                padding: 4px 10px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 3px;
+            }
+
+            #status-bar .title {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .status-group {
+                justify-content: center;
+                font-size: 0.65rem;
+                gap: 3px 8px;
+            }
+
+            .bar-track {
+                width: 45px;
+            }
+
+            #story-area {
+                padding: 10px 4px 6px 4px;
+            }
+
+            .story-text {
+                font-size: 0.82rem;
+                line-height: 1.7;
+                padding: 8px 10px;
+            }
+
+            #options-area {
+                padding: 4px 0 8px 0;
+            }
+
+            .option-btn {
+                padding: 7px 10px;
+                font-size: 0.78rem;
+            }
+
+            #footer-tools {
+                padding: 2px 10px 4px 10px;
+                font-size: 0.6rem;
+            }
+
+            #rules-panel.open {
+                max-height: 160px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div id="status-bar">
+            <div class="title">🌙 龙岭观前坑</div>
+            <div class="status-group">
+                <div class="status-item">
+                    <span class="label">📅</span>
+                    <span class="value" id="dayDisplay">第1天</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">🕐</span>
+                    <span class="value" id="timeDisplay">上午</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">⚡</span>
+                    <span class="stamina-dots" id="staminaDots"></span>
+                </div>
+                <div class="status-item bar-wrap">
+                    <span class="label" style="color:#aa6a4a;">🐉</span>
+                    <span class="bar-track"><span class="bar-fill dragon" id="dragonBar" style="width:0%"></span></span>
+                    <span class="value" id="dragonVal">0%</span>
+                </div>
+                <div class="status-item bar-wrap">
+                    <span class="label" style="color:#6a8aaa;">🧠</span>
+                    <span class="bar-track"><span class="bar-fill sanity" id="sanityBar"
+                            style="width:100%"></span></span>
+                    <span class="value" id="sanityVal">100%</span>
+                </div>
+                <div class="status-item" id="ch2KmDisplay" style="display:none;">
+                    <span class="label">📍</span>
+                    <span class="value" id="kmDisplay">0km</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-area">
+            <div id="story-area">
+                <div class="story-text" id="storyText"></div>
+                <div id="rule-notification">
+                    <div class="rule-title">📜 新规则记录</div>
+                    <div class="rule-body" id="ruleNotifyBody"></div>
+                </div>
+            </div>
+            <div id="options-area"></div>
+        </div>
+
+        <div id="rules-panel">
+            <div class="panel-header" id="rulesToggle">
+                <span class="title">📜 规则记录</span>
+                <span class="count" id="ruleCount">已收集 0 条</span>
+            </div>
+            <div class="panel-body" id="rulesList"></div>
+        </div>
+
+        <div id="footer-tools">
+            <div class="left">
+                <span class="day-info" id="dayInfo">第1天 · 上午</span>
+                <span id="actionCount" style="opacity:0.5;">已行动 0 次</span>
+                <span id="ch2PhaseLabel" style="display:none;color:var(--text-gold);font-size:0.65rem;">第二章</span>
+            </div>
+            <button class="toggle-rules-btn" id="rulesToggleBtn">📜 规则 <span class="badge"
+                    id="newRuleBadge">0</span></button>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  龙岭观前坑 · 完整版（修复“买个屁”刷新 + 顺序 + 配色）
+        // ================================================================
+
+        // ---------- 状态 ----------
+        const state = {
+            day: 1,
+            stamina: 3,
+            maxStamina: 3,
+            dragonization: 0,
+            rules: [],
+            flags: {
+                hasSleptInVillage: false,
+                folkloreWarned: false,
+                shopRhymeIndex: 0,
+                chapter2: false,
+                hasPeachWood: false,
+                abandonedCompleteReady: false,
+                abandonedHiddenTriggered: false,
+            },
+            actionsToday: 0,
+            weekCount: 0,
+            gameOver: false,
+            newRuleCount: 0,
+            ch2: {
+                phase: '0km',
+                boughtItems: [],
+                boughtIncense: false,
+                boughtWater: false,
+                boughtAmulet: false,
+                boughtCompass: false,
+                boughtSausage: false,
+                boughtFridge: false,
+                boughtNothing: false,
+                joinedYoushen: false,
+                km: 0,
+                dragonReductionPerStep: 0,
+                hasTriggeredComedy: false,
+                passerbyCount: 0,
+                comedyReady: false,
+                comedyShown: false,
+                lastMessage: null,
+            },
+            _confirmResolve: null,
+            _waitingConfirm: false,
+        };
+
+        // ---------- 规则库 ----------
+        const RULES_DB = {
+            'base_1': { id: 'base_1', text: '【游客守则】寄宿村民家，早餐玉米粥腌菜；若嫂嫂端上"菌菇炒蛋"可少量食用，不可追问种类；晚餐后"银杏茶"需饮尽。' },
+            'base_2': { id: 'base_2', text: '【游客守则】清晨6点前不可出门。踩坏灰线需找嫂嫂带去土地庙敬香，不可自行处理。' },
+            'base_3': { id: 'base_3', text: '【游客守则】上山带嫂嫂准备的水，不喝山泉水。走登山步道，不碰路边"青褐色织物"。' },
+            'base_4': { id: 'base_4', text: '【游客守则】集体行动，看好家人。符纸若自动浮现青纹，交给导游，不可带入道观。' },
+            'base_5': { id: 'base_5', text: '【游客守则】参加社戏需向民俗部申请，提前斋戒，嫂嫂会准备三柱香。' },
+            'base_6': { id: 'base_6', text: '【游客守则】社戏烟雾中若见"带菌柄的鳞片状阴影"，低头默念"龙佑平安"，不可惊呼。' },
+            'base_7': { id: 'base_7', text: '【游客守则】进入道观保持敬畏，聆听诵经声，心诚挂符。' },
+            'base_8': { id: 'base_8', text: '【游客守则】随队上香或挂符后领香火，上香后乘旅游车从北岭回村。' },
+            'base_9': { id: 'base_9', text: '【游客守则】不买"茯神"或"带菌龙鳞饰品"。' },
+            'base_10': { id: 'base_10', text: '【游客守则】不靠近村西聚居区。' },
+            'base_11': { id: 'base_11', text: '【游客守则】夜间若听到隔壁持续笑声或怒骂声，戴耳塞入睡；若到凌晨3点后，向嫂嫂说明换房。' },
+            'abandoned_1': { id: 'abandoned_1', text: '【废弃房屋】墙上有血字："别信嫂嫂的笑，超过十秒就要跑。"' },
+            'abandoned_2': { id: 'abandoned_2', text: '【废弃房屋】地上散落的旧符纸写着："青纹现，速归还；龙气缠，命难全。"' },
+            'abandoned_3': { id: 'abandoned_3', text: '【废弃房屋】在破旧神龛下发现一张泛黄照片，背后写着："观中弟子皆无影，重阳登高莫回头。"' },
+            'hidden_1': { id: 'hidden_1', text: '【草木灰显影】嫂嫂给的菌菇和茶饮，是护身子的，断不可剩。身上起红斑发痒要尽早告知嫂嫂，晚了便来不及了。' },
+            'hidden_2': { id: 'hidden_2', text: '【草木灰显影】清晨路上的灰线是祖宗传下来的护村法子，踩坏了要找嫂嫂去土地庙"补"，手上香灰印子是补好的记号，擦了就没用了。' },
+            'hidden_3': { id: 'hidden_3', text: '【草木灰显影】导游给的符纸若自己变青了，要赶紧还回去，别带进观里。留在身边会睡不安稳，总想吃生的东西。' },
+            'hidden_4': { id: 'hidden_4', text: '【草木灰显影】社戏的烟里若看见鱼鳞带小柄的影子，别出声，低头念"平安"，它们怕动静。' },
+            'hidden_5': { id: 'hidden_5', text: '【草木灰显影】村西头的房子别靠近，那里的人额头长树芽，要么笑要么闹，身上的气会染给别人。' },
+            'hidden_6': { id: 'hidden_6', text: '【草木灰显影】有人卖带花纹的石头和鳞片饰品，别买也别碰，会被先生注意到，带人回观里再也出不来。' },
+            'hidden_7': { id: 'hidden_7', text: '【草木灰显影】夜里隔壁的笑声骂声若持续到后半夜，说明你被记着了，换房后赶紧走，别多待一天。' },
+            'hidden_8': { id: 'hidden_8', text: '【草木灰显影】若身上的红斑开始变硬，别跟任何人说，顺着坐车子的路下山，再也别回来。' },
+            'hidden_9': { id: 'hidden_9', text: '【草木灰显影】穿景区制服、挂桃木小牌的人能帮衬解围，但别跟他们说你见过这些字，说了他们就不管你了。' },
+            'folk_1': { id: 'folk_1', text: '【民俗部密语】"村西的婆娘和村东的嫂嫂不是一路人，挂着桃木牌子的自己人说话也要留三分。"' },
+            'card_important_1': { id: 'card_important_1', text: '【花切·重要】大爷说："社戏队伍里那些扮神仙的，都是观里出来的，他们走路脚后跟不着地。"' },
+            'card_important_2': { id: 'card_important_2', text: '【花切·重要】大爷说："雷击木是龙王爷的骨头，挂符要挂北面，南面是给先生留的。"' },
+            'card_important_3': { id: 'card_important_3', text: '【花切·重要】大爷说："村里辈分最高的阿婆，她养的那只黑猫，眼睛是竖着的，和观里的一样。"' },
+            'card_useless_1': { id: 'card_useless_1', text: '【花切·闲聊】大爷说："今天天气不错，适合晒菌子。"' },
+            'card_useless_2': { id: 'card_useless_2', text: '【花切·闲聊】大爷说："村口那棵银杏树，听说有几百年了。"' },
+            'card_useless_3': { id: 'card_useless_3', text: '【花切·闲聊】大爷说："我家孙子在城里念书，老叫我搬去住，我舍不得这山。"' },
+            'night_1': { id: 'night_1', text: '【夜间谈话】嫂嫂低语："莫要在半夜照镜子，镜子里看到的不一定是自己。"' },
+            'night_2': { id: 'night_2', text: '【夜间谈话】嫂嫂叹息："村里那口老井，井水泛青时，莫要靠近。"' },
+            'night_3': { id: 'night_3', text: '【夜间谈话】嫂嫂叮嘱："若听到门外有人叫你名字，莫要应答，那是龙王爷在挑人。"' },
+            'passerby_1': { id: 'passerby_1', text: '【路人信息】一个挑柴的老汉说："前头道观里的先生，每年重阳都要收几个徒弟，那些徒弟进去后就再也没出来过。"' },
+            'passerby_2': { id: 'passerby_2', text: '【路人信息】一个采药的妇人说："山上的菌子别乱采，有些菌子吃了会让人看见不该看见的东西。"' },
+            'passerby_3': { id: 'passerby_3', text: '【路人信息】一个放牛娃说："游神队伍里那些戴面具的，面具底下都是青色的脸。"' },
+            'passerby_4': { id: 'passerby_4', text: '【路人信息】一个赶集的阿婆说："村西头的房子闹鬼，晚上能听见哭声，可千万别去。"' },
+            'passerby_5': { id: 'passerby_5', text: '【路人信息】一个退伍老兵说："这山里的龙王爷，是吃人的。我亲眼见过有人被拖进林子里，再也没出来。"' },
+            'ch2_incense': { id: 'ch2_incense', text: '【第二章】你购买了香。香火是沟通龙神的媒介，也是游神仪式中不可或缺的供奉。' },
+            'ch2_water': { id: 'ch2_water', text: '【第二章】你购买了水。山泉水蕴含龙脉之气，饮用后可以暂时压制体内的龙化。' },
+            'ch2_amulet': { id: 'ch2_amulet', text: '【第二章】你购买了护身符。桃木雕刻的符牌可以抵御龙气的侵蚀，减少每步的龙化值。' },
+        };
+
+        // ---------- 工具函数 ----------
+        function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = rand(0, i);
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // ---------- UI更新 ----------
+        function updateUI() {
+            document.getElementById('dayDisplay').textContent = `第${state.day}天`;
+            document.getElementById('dayInfo').textContent = `第${state.day}天 · ${getTimeLabel()}`;
+            document.getElementById('timeDisplay').textContent = getTimeLabel();
+
+            const dots = document.getElementById('staminaDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < state.maxStamina; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'stamina-dot' + (i < state.stamina ? ' filled' : ' spent');
+                dot.textContent = i < state.stamina ? '●' : '○';
+                dots.appendChild(dot);
+            }
+
+            const dVal = clamp(state.dragonization, 0, 100);
+            const sVal = 100 - dVal;
+            document.getElementById('dragonBar').style.width = dVal + '%';
+            document.getElementById('dragonVal').textContent = dVal + '%';
+            document.getElementById('sanityBar').style.width = sVal + '%';
+            document.getElementById('sanityVal').textContent = sVal + '%';
+
+            document.getElementById('actionCount').textContent = `已行动 ${state.actionsToday} 次`;
+            document.getElementById('ruleCount').textContent = `已收集 ${state.rules.length} 条`;
+
+            const ch2PhaseLabel = document.getElementById('ch2PhaseLabel');
+            const ch2KmDisplay = document.getElementById('ch2KmDisplay');
+            if (state.flags.chapter2 && !state.gameOver) {
+                ch2PhaseLabel.style.display = 'inline';
+                ch2KmDisplay.style.display = 'inline';
+                document.getElementById('kmDisplay').textContent = state.ch2.km + 'km';
+                ch2PhaseLabel.textContent = '第二章';
+            } else {
+                ch2PhaseLabel.style.display = 'none';
+                ch2KmDisplay.style.display = 'none';
+            }
+
+            const badge = document.getElementById('newRuleBadge');
+            const newCount = state.rules.length - state.newRuleCount;
+            badge.textContent = newCount > 0 ? newCount : '0';
+            badge.style.display = newCount > 0 ? 'inline' : 'none';
+
+            renderRulesList();
+
+            if (state.dragonization >= 80 && !state.gameOver) {
+                triggerEnding('龙化值过高 · 被龙气侵蚀');
+            }
+        }
+
+        function getTimeLabel() {
+            if (state.stamina === 3) return '上午';
+            if (state.stamina === 2) return '下午';
+            if (state.stamina === 1) return '晚上';
+            return '深夜';
+        }
+
+        function renderRulesList() {
+            const container = document.getElementById('rulesList');
+            if (state.rules.length === 0) {
+                container.innerHTML =
+                    '<div style="color:var(--text-muted);font-size:0.8rem;padding:8px 0;">尚未获得任何规则，探索世界以收集线索。</div>';
+                return;
+            }
+            let html = '';
+            state.rules.forEach((id, idx) => {
+                const rule = RULES_DB[id];
+                if (!rule) return;
+                const isNew = idx >= state.newRuleCount;
+                html += `
+                    <div class="rule-entry">
+                        <span class="num">#${idx + 1}</span>
+                        <span class="content">${rule.text}${isNew ? '<span class="new-tag">● 新</span>' : ''}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ================================================================
+        //  【核心】规则确认机制 - 非侵入式
+        // ================================================================
+        function addRule(id) {
+            return new Promise((resolve) => {
+                if (!RULES_DB[id]) { resolve(false); return; }
+                if (state.rules.includes(id)) { resolve(false); return; }
+
+                if (state._waitingConfirm) {
+                    const checkInterval = setInterval(() => {
+                        if (!state._waitingConfirm) {
+                            clearInterval(checkInterval);
+                            addRule(id).then(resolve);
+                        }
+                    }, 100);
+                    return;
+                }
+
+                state.rules.push(id);
+                const rule = RULES_DB[id];
+                state._waitingConfirm = true;
+                state._confirmResolve = resolve;
+
+                const notify = document.getElementById('rule-notification');
+                document.getElementById('ruleNotifyBody').textContent = rule.text;
+                notify.classList.add('show');
+                updateUI();
+
+                const container = document.getElementById('options-area');
+                const existingBtns = container.querySelectorAll('.option-btn:not(.confirm-btn)');
+                existingBtns.forEach(btn => {
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.5';
+                });
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'option-btn confirm-btn';
+                confirmBtn.textContent = '📖 我知道了';
+                confirmBtn.style.marginTop = '4px';
+                confirmBtn.addEventListener('click', () => {
+                    notify.classList.remove('show');
+                    state._waitingConfirm = false;
+                    state.newRuleCount = state.rules.length;
+                    updateUI();
+
+                    confirmBtn.remove();
+                    existingBtns.forEach(btn => {
+                        btn.style.pointerEvents = '';
+                        btn.style.opacity = '';
+                    });
+
+                    const r = state._confirmResolve;
+                    state._confirmResolve = null;
+                    if (r) r(true);
+                });
+                container.appendChild(confirmBtn);
+
+                const area = document.getElementById('story-area');
+                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+            });
+        }
+
+        // ---------- 数值修改 ----------
+        function changeDragonization(delta) {
+            if (state.gameOver) return;
+            state.dragonization = clamp(state.dragonization + delta, 0, 100);
+            updateUI();
+        }
+
+        // ---------- 体力与场景管理 ----------
+        function deductStamina() {
+            if (state.stamina <= 0) return false;
+            state.stamina--;
+            state.actionsToday++;
+            updateUI();
+            return true;
+        }
+
+        function finishSceneAndReturn() {
+            if (state.gameOver) return;
+            deductStamina();
+            if (state.stamina === 0) {
+                enterNight();
+            } else {
+                renderMainOptions();
+            }
+        }
+
+        // ---------- 显示与选项 ----------
+        let currentScene = 'intro';
+
+        function showStory(text) {
+            const el = document.getElementById('storyText');
+            if (text) {
+                el.innerHTML += text.replace(/\n/g, '<br>') + '<br>';
+            }
+            const area = document.getElementById('story-area');
+            setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+        }
+
+        function clearStory() {
+            document.getElementById('storyText').innerHTML = '';
+        }
+
+        function setStory(text, endingClass) {
+            clearStory();
+            const el = document.getElementById('storyText');
+            el.className = 'story-text';
+            if (endingClass) {
+                el.classList.add(endingClass);
+            }
+            showStory(text);
+        }
+
+        function renderOptions(options) {
+            const container = document.getElementById('options-area');
+            if (state._waitingConfirm) return;
+            container.innerHTML = '';
+            if (!options || options.length === 0) {
+                container.innerHTML =
+                    '<div style="color:var(--text-muted);text-align:center;font-size:0.8rem;padding:8px;">—— 没有更多行动 ——</div>';
+                return;
+            }
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn' + (opt.disabled ? ' disabled' : '') + (opt.ending ? ' ending-btn' : '');
+                btn.innerHTML =
+                    `${opt.label}${opt.hint ? `<span class="hint">${opt.hint}</span>` : ''}${opt.cost ? `<span class="cost">${opt.cost}</span>` : ''}${opt.tag ? `<span class="tag">${opt.tag}</span>` : ''}`;
+                if (!opt.disabled) {
+                    btn.addEventListener('click', () => {
+                        if (opt.action) opt.action();
+                    });
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        // ---------- 主菜单 ----------
+        function renderMainOptions() {
+            if (state.gameOver) return;
+            if (state.stamina === 0) {
+                enterNight();
+                return;
+            }
+            if (state.flags.chapter2) {
+                renderChapter2();
+                return;
+            }
+            const opts = [{
+                label: '🏚️ 1.1.1 废弃房屋',
+                hint: '探索获得规则',
+                cost: '⚡1',
+                action: () => { goToScene('explore_abandoned'); }
+            }, {
+                label: '🏛️ 1.1.2 民俗部',
+                hint: '打听消息',
+                cost: '⚡1',
+                action: () => { goToScene('explore_folklore'); }
+            }, {
+                label: '🏪 1.1.3 小卖部',
+                hint: '听童谣',
+                cost: '⚡1',
+                action: () => { goToScene('explore_shop'); }
+            }, {
+                label: '🃏 1.1.4 玩花切给大爷看',
+                hint: '唠嗑获得规则',
+                cost: '⚡1',
+                action: () => { goToScene('play_cards'); }
+            }, {
+                label: '⛰️ 1.2 直接登山',
+                hint: '前往道观',
+                cost: '⚡1',
+                action: () => { goToScene('climb_mountain'); }
+            }];
+            renderOptions(opts);
+        }
+
+        function goToScene(sceneId, extraData) {
+            if (state._waitingConfirm) return;
+            currentScene = sceneId;
+            const scene = SCENES[sceneId];
+            if (!scene) {
+                console.error('场景不存在:', sceneId);
+                return;
+            }
+            if (scene.onEnter) {
+                scene.onEnter(extraData);
+            }
+            if (scene.render) {
+                scene.render(extraData);
+            }
+            updateUI();
+        }
+
+        // ================================================================
+        //  夜间休息（先显示场景，再获取规则）
+        // ================================================================
+        function enterNight() {
+            if (state.gameOver || state._waitingConfirm) return;
+            if (state.flags.chapter2) {
+                setStory(`
+                    <span class="title-line">🌙 深夜 · 山间</span>
+                    你在山间找了一处避风的地方休息。远处的游神队伍已经散去，只剩下零星的火把在山路上摇曳。
+                    你感到疲惫不堪，必须找个地方过夜。
+                    你有两个选择：
+                    • 去附近的村民家借宿，或许能听到一些有用的消息。
+                    • 在野外将就一晚，虽然简陋但至少清净。
+                    请选择：
+                `);
+                renderOptions([{
+                    label: '🏠 去村民家借宿',
+                    action: async () => { await restAtVillageCh2(); }
+                }, {
+                    label: '🏕️ 在野外将就一晚',
+                    action: async () => { await restInWildCh2(); }
+                }]);
+                return;
+            }
+            setStory(`
+                <span class="title-line">🌙 深夜已至</span>
+                你忙碌了一整天，此时夜色已深，村中寂静无声。你感到疲惫不堪，必须找个地方过夜。
+                你有两个选择：
+                • 去村民家借宿，或许能听到一些有用的消息。
+                • 回到自己的车里将就一晚，虽然简陋但至少清净。
+                请选择：
+            `);
+            renderOptions([{
+                label: '🏠 去村民家过夜',
+                hint: '获得1-2条规则',
+                action: async () => { await restAtVillage(); }
+            }, {
+                label: '🚗 在车里将就一晚',
+                hint: '无事发生',
+                action: async () => { await restInCar(); }
+            }]);
+        }
+
+        async function restAtVillage() {
+            if (state.gameOver || state._waitingConfirm) return;
+            state.flags.hasSleptInVillage = true;
+            // 先显示场景
+            setStory(`
+                <span class="title-line">🌙 村民家过夜</span>
+                嫂嫂热情地招待了你，端来热汤和银杏茶。你一边喝，一边和她闲聊。
+                <span class="divider">· · ·</span>
+            `);
+            // 获取规则
+            const nightRuleIds = ['night_1', 'night_2', 'night_3'];
+            const available = nightRuleIds.filter(id => !state.rules.includes(id));
+            let gained = [];
+            if (available.length > 0) {
+                const count = Math.min(rand(1, 2), available.length);
+                const shuffled = shuffleArray(available);
+                for (let i = 0; i < count; i++) {
+                    const ok = await addRule(shuffled[i]);
+                    if (ok) gained.push(shuffled[i]);
+                }
+            }
+            let eventText = '';
+            if (gained.length > 0) {
+                eventText = '你从她的话里听出了一些端倪，记下了几条规则。';
+            } else {
+                eventText = '她没有多说什么，只是让你早些休息。你一夜安稳。';
+            }
+            const reduceDragon = rand(5, 10);
+            changeDragonization(-reduceDragon);
+            if (!state.gameOver) {
+                eventText += ` 你感到神清气爽，龙气似乎被驱散了一些（龙化 -${reduceDragon}）。`;
+            }
+            finishRest('村民家', eventText);
+        }
+
+        async function restInCar() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">🚗 车里过夜</span>
+                你回到车里，蜷缩在后座。车窗外的村庄一片漆黑，只有远处偶尔传来几声狗叫。
+                <span class="divider">· · ·</span>
+            `);
+            let eventText = '你在车里蜷缩了一晚，睡得腰酸背痛，而且总觉得窗外有什么东西在盯着你。';
+            const increaseDragon = rand(3, 5);
+            changeDragonization(increaseDragon);
+            if (!state.gameOver) {
+                eventText += ` 你感到身体有些沉重，似乎龙气在悄然滋长（龙化 +${increaseDragon}）。`;
+            }
+            if (Math.random() < 0.2) {
+                eventText += ' 半夜你似乎听到了远处传来的诵经声，但很快又消失了。';
+            }
+            finishRest('车里', eventText);
+        }
+
+        async function restAtVillageCh2() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">🏠 村民家借宿（第二章）</span>
+                你敲开了一户村民的门，一位老妇热情地接待了你。她给你端来一碗热粥，和你聊起了山里的故事。
+                <span class="divider">· · ·</span>
+            `);
+            let eventText = '你敲开了一户村民的门，一位老妇热情地接待了你。她给你端来一碗热粥，和你聊起了山里的故事。';
+            const reduceDragon = rand(3, 7);
+            changeDragonization(-reduceDragon);
+            if (!state.gameOver) {
+                eventText += ` 你感到温暖了一些（龙化 -${reduceDragon}）。`;
+            }
+            const passerbyIds = ['passerby_1', 'passerby_2', 'passerby_3', 'passerby_4', 'passerby_5'];
+            const available = passerbyIds.filter(id => !state.rules.includes(id));
+            if (available.length > 0) {
+                const picked = pick(available);
+                const ok = await addRule(picked);
+                if (ok) {
+                    eventText += ` 老妇随口说了一些村里的旧事，你默默记在心里。`;
+                }
+            }
+            finishRest('村民家', eventText);
+        }
+
+        async function restInWildCh2() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">🏕️ 野外过夜</span>
+                你找了一处干燥的地方，裹紧外套躺下。夜晚的山林里虫鸣阵阵，偶尔还能听到远处传来的诡异声响。
+                <span class="divider">· · ·</span>
+            `);
+            let eventText = '你在山间的树丛中找了一处干燥的地方，裹紧外套躺下。夜晚的山林里虫鸣阵阵，偶尔还能听到远处传来的诡异声响。';
+            const increaseDragon = rand(5, 10);
+            changeDragonization(increaseDragon);
+            if (!state.gameOver) {
+                eventText += ` 你感到龙气在体内翻涌（龙化 +${increaseDragon}）。`;
+            }
+            if (Math.random() < 0.3) {
+                eventText += ' 半夜你被一阵脚步声惊醒，但什么也没看到。';
+            }
+            finishRest('野外', eventText);
+        }
+
+        function finishRest(place, eventText) {
+            if (state.gameOver || state._waitingConfirm) return;
+            state.stamina = state.maxStamina;
+            state.day++;
+            state.weekCount++;
+            state.actionsToday = 0;
+
+            if (state.weekCount >= 7 && !state.flags.chapter2) {
+                triggerEnding('老实人结局');
+                return;
+            }
+
+            updateUI();
+
+            setStory(`
+                <span class="title-line">🌅 第${state.day}天 · 清晨</span>
+                你在${place}度过了一夜。${eventText}
+                <span class="divider">· · ·</span>
+                你整理好行装，走出住处。${state.flags.chapter2 ? '山间的薄雾笼罩着道路，新的一天开始了。' : '邱龙村的清晨笼罩在薄雾之中，新的一天开始了。'}
+            `);
+            renderMainOptions();
+        }
+
+        // ================================================================
+        //  第一章 场景（先显示场景，再获取规则）
+        // ================================================================
+        const SCENES = {};
+
+        SCENES['intro'] = {
+            onEnter: () => {
+                setStory(`
+                    <span class="title-line">🌙 龙岭观前坑 · 第一章</span>
+                    <span class="divider">—— —— ——</span>
+                    你带着一份朦胧的期待，来到了邱龙村。村口立着一块斑驳的木牌，上面写着：
+                    <span class="rule-text">「欢迎来到龙岭观前坑景区 · 请遵守游客守则」</span>
+                    你从公告栏上撕下了一份《游客守则》，纸张泛黄，墨迹有些晕染。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-gold);">📜 你获得了全部基础规则：</span>
+                `);
+                const allBaseIds = ['base_1', 'base_2', 'base_3', 'base_4', 'base_5', 'base_6', 'base_7', 'base_8', 'base_9',
+                    'base_10', 'base_11'
+                ];
+                allBaseIds.forEach(id => {
+                    if (!state.rules.includes(id)) {
+                        state.rules.push(id);
+                    }
+                });
+                const ruleTexts = allBaseIds.map(id => RULES_DB[id].text);
+                ruleTexts.forEach(t => {
+                    showStory(`<span class="rule-text">${t}</span>`);
+                });
+                showStory(`
+                    <span class="divider">—— —— ——</span>
+                    你收起守则，环顾四周。村中炊烟袅袅，远处山峦叠翠，但空气中隐隐有一丝潮湿的、泥土与菌类混合的气息。
+                    你感到，这里的一切似乎并不像表面那般宁静……
+                    <span class="divider">· · ·</span>
+                    你决定先做些什么？（每次行动消耗1个体力时段，体力耗尽后必须过夜）
+                    <span style="color:var(--text-muted);font-size:0.85rem;">提示：收集23条以上规则并过夜后登山，可进入第二章。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">龙化值与理智值相加为100，龙化≥80将触发坏结局0。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">废弃房屋先获得3条普通规则，集齐后下一次触发草木灰显影（共9条）。</span>
+                `);
+                state.newRuleCount = state.rules.length;
+                renderMainOptions();
+                updateUI();
+            }
+        };
+
+        SCENES['explore_abandoned'] = {
+            render: async () => {
+                if (state._waitingConfirm) return;
+                const abandonedIds = ['abandoned_1', 'abandoned_2', 'abandoned_3'];
+                const hiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5',
+                    'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'
+                ];
+
+                if (!state.flags.abandonedHiddenTriggered) {
+                    if (state.flags.abandonedCompleteReady) {
+                        state.flags.abandonedHiddenTriggered = true;
+                        state.flags.abandonedCompleteReady = false;
+                        setStory(`
+                            <span class="title-line">🏚️ 废弃房屋 · 草木灰显影</span>
+                            你再次走进这间废弃房屋，这一次，你注意到墙角有一堆灰烬，似乎是草木灰。
+                            你用清水涂抹，灰烬下渐渐显露出一行行字迹……
+                            <span class="divider">· · ·</span>
+                            你仔细辨认，获得了以下隐藏规则：
+                        `);
+                        const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
+                        if (availableHidden.length > 0) {
+                            const count = Math.min(rand(1, 2), availableHidden.length);
+                            const shuffled = shuffleArray(availableHidden);
+                            for (let i = 0; i < count; i++) {
+                                await addRule(shuffled[i]);
+                            }
+                            showStory(`<span style="color:var(--text-gold);">📜 你获得了草木灰显影规则！</span>`);
+                        } else {
+                            showStory('你已经收集了所有隐藏规则，这里不再有新的秘密。');
+                        }
+                        changeDragonization(1);
+                        if (!state.gameOver) showStory('龙气微微涌动（龙化 +1）');
+                    } else {
+                        const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
+                        if (availableAbandoned.length === 0) {
+                            setStory('你搜索了房屋，但似乎已经没有新的发现了。');
+                        } else {
+                            setStory(`
+                                <span class="title-line">🏚️ 废弃房屋</span>
+                                你推开吱呀作响的木门，一股霉味扑面而来。屋内光线昏暗，灰尘在光束中飞舞。
+                                你仔细搜索，发现了以下物品：
+                                <span class="divider">· · ·</span>
+                            `);
+                            const count = Math.min(rand(1, 2), availableAbandoned.length);
+                            const shuffled = shuffleArray(availableAbandoned);
+                            let gained = [];
+                            for (let i = 0; i < count; i++) {
+                                const ok = await addRule(shuffled[i]);
+                                if (ok) gained.push(shuffled[i]);
+                            }
+                            showStory(`<span style="color:var(--text-gold);">📜 你获得了 ${gained.length} 条废弃房屋规则！</span>`);
+                            changeDragonization(2);
+                            if (!state.gameOver) showStory(`龙气微微涌动（龙化 +2）`);
+                        }
+                        if (!state.flags.abandonedHiddenTriggered) {
+                            const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
+                            if (nowHasAll) {
+                                state.flags.abandonedCompleteReady = true;
+                                showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……');
+                            }
+                        }
+                    }
+                } else {
+                    const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
+                    if (availableHidden.length > 0) {
+                        setStory(`
+                            <span class="title-line">🏚️ 废弃房屋 · 再次探索</span>
+                            你再次来到这间废弃房屋，在草木灰中又发现了一些模糊的字迹……
+                            <span class="divider">· · ·</span>
+                        `);
+                        const count = Math.min(rand(1, 2), availableHidden.length);
+                        const shuffled = shuffleArray(availableHidden);
+                        for (let i = 0; i < count; i++) {
+                            await addRule(shuffled[i]);
+                        }
+                        showStory(`<span style="color:var(--text-gold);">📜 你获得了新的草木灰显影规则！</span>`);
+                        changeDragonization(1);
+                        if (!state.gameOver) showStory('龙气微微涌动');
+                    } else {
+                        setStory(`
+                            <span class="title-line">🏚️ 废弃房屋</span>
+                            你再次来到这间废弃房屋，但这里已经没有任何值得探索的东西了。
+                            你决定离开。
+                        `);
+                    }
+                }
+                if (state.gameOver || state._waitingConfirm) return;
+                renderOptions([{
+                    label: '🚪 离开房屋',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory('你快步走出废弃房屋，阳光照在身上，却驱不散那股寒意。你回到村中。');
+                        finishSceneAndReturn();
+                    }
+                }]);
+            }
+        };
+
+        SCENES['explore_folklore'] = {
+            render: async () => {
+                if (state._waitingConfirm) return;
+                state.flags.folkloreWarned = true;
+                setStory(`
+                    <span class="title-line">🏛️ 民俗部</span>
+                    你走进民俗部，一位穿着景区制服、胸前挂着桃木小牌的工作人员抬头看了你一眼。
+                    他放下手中的茶杯，不紧不慢地说：
+                    <span class="rule-text" style="color:#d4b87a;">「来打听社戏的？最近村里人多，有些规矩得自己掂量。村东的嫂嫂们热情，村西的婆娘们清冷，</span>
+                    <span class="rule-text" style="color:#d4b87a;">挂着桃木牌子的自己人说话也要留三分。你记住——有些话，说给对的人听才管用。」</span>
+                    他说完从抽屉里拿出一枚<highlight>桃木吊坠</highlight>，在手里掂了掂，推到你面前：
+                    <span class="rule-text">「拿着吧，山里潮气重，这木头的味道能驱驱虫。别跟人说是谁给的。」</span>
+                    <span class="divider">· · ·</span>
+                `);
+                const folkRuleId = 'folk_1';
+                let gotFolkRule = false;
+                if (!state.rules.includes(folkRuleId)) {
+                    gotFolkRule = await addRule(folkRuleId);
+                }
+                let gotWood = false;
+                if (!state.flags.hasPeachWood) {
+                    state.flags.hasPeachWood = true;
+                    gotWood = true;
+                }
+                showStory(`
+                    ${gotFolkRule ? '你接过吊坠，这些零碎的话似乎暗藏深意，你记下了一条规则。' : '你再次听到类似的提醒，心中更加确信这地方不简单。'}
+                    ${gotWood ? '（获得了桃木吊坠）' : ''}
+                `);
+                changeDragonization(-2);
+                if (!state.gameOver) showStory('你感到一丝安心，龙气稍有减退（龙化 -2）');
+                if (state.gameOver || state._waitingConfirm) return;
+                renderOptions([{
+                    label: '🙏 道谢，离开',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory('你谢过工作人员，将桃木吊坠贴身藏好，走出民俗部。他的话让你隐隐感觉，这村里的水比想象中深得多。');
+                        finishSceneAndReturn();
+                    }
+                }]);
+            }
+        };
+
+        SCENES['explore_shop'] = {
+            render: () => {
+                if (state._waitingConfirm) return;
+                const rhymes = [
+                    `邱龙山里赖黄蛇呦，修长生、食茯神，教那山鬼落荒逃嘿，要那山深水更沉。\n囚龙村里出先生哟，教得阿太三餐饱，叫我阿爸没烦恼嘿，咿咿呀呀到外头。\n邱龙山上囚龙观嘿，囚龙观里有先生，先生教我学本领嘿，学好出山找阿爸。\n先生教我纵云梯嘿，吃的灵芝力气饱；先生教我读奇书嘿，蒙蒙搽搽见神仙。\n你问我书里神仙说甚么，邱龙山里赖黄蛇呦～`,
+                    `是操棍棒没有心，耍笔头的没有肝，于是那乡痞老贼没朋伴，那庙堂狗官招子没名堂；\n是在天无神空寥寥，在地无灵病怏怏，须仙人修得纯阳体嘿，精筋强骨瘦南山；\n是那山路深远湿溜溜，惹得一身霉点长，脑筋活来手脚利，黄蛇也逃来先生也找不着。\n逃出学堂过山峰，朝晨喝泉水来晚吃草，甭赖家里不接济，实在自己不成器。`
+                ];
+                const index = state.flags.shopRhymeIndex % 2;
+                state.flags.shopRhymeIndex++;
+                const rhymeText = rhymes[index];
+                setStory(`
+                    <span class="title-line">🏪 小卖部</span>
+                    小卖部的老妪正在剥豆子，她抬头看了你一眼，露出一个意味深长的笑容。
+                    你没有买东西，但她似乎并不在意，只是自顾自地哼起了一首童谣：
+                    <span class="nursery-rhyme">${rhymeText}</span>
+                    你正想追问，老妪却摆了摆手，不再说话。你注意到她的指甲缝里有一些青褐色的粉末，像是……菌类的孢子？
+                    你感到一阵不适，匆匆离开了小卖部。
+                `);
+                changeDragonization(1);
+                if (!state.gameOver) showStory('童谣在你脑中回响，龙气似乎加重了（龙化 +1）');
+                if (state.gameOver || state._waitingConfirm) return;
+                renderOptions([{
+                    label: '🚶 离开小卖部',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory('你快步离开，那首童谣却一直在你脑海中回响。');
+                        finishSceneAndReturn();
+                    }
+                }]);
+            }
+        };
+
+        SCENES['play_cards'] = {
+            render: async () => {
+                if (state._waitingConfirm) return;
+                setStory(`
+                    <span class="title-line">🃏 玩花切给大爷看</span>
+                    你走到树下，一位大爷正在摆弄一副扑克牌，手法花哨。你上前搭话，表示自己也会几手。
+                    大爷来了兴致，和你切磋起来。一边玩，一边和你唠起村里的旧事。
+                    <span class="divider">· · ·</span>
+                `);
+                const cardRuleIds = ['card_important_1', 'card_important_2', 'card_important_3',
+                    'card_useless_1', 'card_useless_2', 'card_useless_3'
+                ];
+                const available = cardRuleIds.filter(id => !state.rules.includes(id));
+                let gained = null;
+                if (available.length > 0) {
+                    const picked = pick(available);
+                    const ok = await addRule(picked);
+                    if (ok) gained = picked;
+                }
+                showStory(`
+                    ${gained ? `他随口说了一句：「${RULES_DB[gained].text.replace('【花切·重要】', '').replace('【花切·闲聊】', '')}」` : '他聊得尽兴，但似乎没有什么特别的线索。'}
+                    ${gained ? '<span style="color:var(--text-gold);">📜 你获得了一条规则！</span>' : '大爷笑了笑，继续玩他的牌。你感觉收获不大，但至少打发了一些时间。'}
+                `);
+                changeDragonization(-1);
+                if (!state.gameOver) showStory('与大爷闲聊让你放松了一些（龙化 -1）');
+                if (state.gameOver || state._waitingConfirm) return;
+                renderOptions([{
+                    label: '👋 告别大爷',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        setStory('你谢过大爷，转身离开。他还在那里自顾自地摆弄着牌，仿佛你从未出现过。');
+                        finishSceneAndReturn();
+                    }
+                }]);
+            }
+        };
+
+        SCENES['climb_mountain'] = {
+            render: () => {
+                if (state._waitingConfirm) return;
+                if (!state.flags.hasSleptInVillage) {
+                    setStory(`
+                        <span class="title-line">⛰️ 直接登山</span>
+                        你决定不理会那些神神叨叨的规则，直接上山。你沿着登山步道向上走去，起初一切正常，空气清新，鸟鸣阵阵。
+                        但越往上走，雾气越浓，空气中开始弥漫一股潮湿的、带有腥气的味道——像雨后腐烂的树叶，又像……某种菌类。
+                        你看到路边有人在晾晒青褐色的织物，你想起守则上的话，<highlight>没有触碰，绕行而过</highlight>。
+                        又走了一段，你突然听到前方传来一阵诵经声，声音整齐划一，像是几十个人在同时念诵同一段经文。
+                        你感到一阵眩晕，眼前的雾气似乎扭曲成了某种形状——像是巨大的鳞片，又像是……一只手？
+                        <span class="divider">· · ·</span>
+                        <span style="color:#aa4a4a;">⚠️ 你感到有什么东西在注视着你……</span>
+                        你犹豫了。继续往前走，还是返回？
+                    `);
+                    changeDragonization(5);
+                    if (!state.gameOver) showStory('山中的诡异气息让你龙气上升（龙化 +5）');
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '⬇️ 1.2.1.1 下山',
+                        hint: '大幅增加龙化值（+50）',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            changeDragonization(50);
+                            if (state.gameOver) return;
+                            setStory(
+                                '你转身快步下山，雾气在你身后翻涌，仿佛有什么东西在追赶你。终于，你回到了村中，松了一口气，但龙气已经深深渗入你的骨髓（龙化 +50）。'
+                            );
+                            finishSceneAndReturn();
+                        }
+                    }, {
+                        label: '⬆️ 1.2.1.2 继续上山',
+                        hint: '坏结局1',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory(`
+                                <span style="color:#aa4a4a;">⚠️ 你继续上山……</span>
+                                你穿过浓雾，来到了道观门前。大门紧闭，但诵经声从里面传来，震得你耳膜发疼。
+                                你推开门——看到了令人毛骨悚然的一幕：
+                                大殿里站满了人，他们穿着道袍，动作整齐划一，脸上却没有任何表情。他们的指尖泛着青黑色，额头上鼓起像银杏果一样的疙瘩。
+                                老道士站在神像前，背对着你。他缓缓转过身来——
+                                <span style="color:#d45a5a;font-weight:700;">「你终于来了，我等你很久了。」</span>
+                                你感到一股无形的力量抓住了你，你的身体开始不听使唤……
+                                <span class="divider">· · ·</span>
+                                <span style="color:#d45a5a;font-weight:700;">💀 你被道士抓住了。</span>
+                                你的意识逐渐模糊，最后看到的，是神像背后那一层层堆叠的、画着"阳"字的牌位……
+                            `);
+                            changeDragonization(30);
+                            if (!state.gameOver) {
+                                renderOptions([{
+                                    label: '💀 结局',
+                                    action: () => {
+                                        triggerEnding('被龙化 · 成为道观的一员');
+                                    }
+                                }]);
+                            }
+                        }
+                    }]);
+                    return;
+                }
+                const ruleCount = state.rules.length;
+                if (ruleCount >= 23) {
+                    enterChapter2();
+                } else {
+                    setStory(`
+                        <span class="title-line">⛰️ 1.2.3 登山 · 中途折返</span>
+                        你沿着山路向上走了一段，但心中总觉得不安。你想起嫂嫂的话，想起那些零零碎碎的规则，感觉自己还没有准备好面对道观中的秘密。
+                        你站在山腰，望着云雾缭绕的山顶，最终决定返回。
+                        <span class="divider">· · ·</span>
+                        <span style="color:#d4b87a;">你还需要收集更多线索。目前你已收集 ${ruleCount} 条规则，需要至少23条才能揭开道观的真面目。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">继续探索村庄，收集规则吧。</span>
+                    `);
+                    changeDragonization(2);
+                    if (state.gameOver || state._waitingConfirm) return;
+                    renderOptions([{
+                        label: '↩️ 返回村中',
+                        action: () => {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory('你回到村中，决定继续收集线索。');
+                            finishSceneAndReturn();
+                        }
+                    }]);
+                }
+            }
+        };
+
+        // ================================================================
+        //  第二章（修复“买个屁”刷新问题）
+        // ================================================================
+        function enterChapter2() {
+            state.flags.chapter2 = true;
+            state.ch2.phase = '0km';
+            state.ch2.km = 0;
+            state.ch2.boughtItems = [];
+            state.ch2.boughtIncense = false;
+            state.ch2.boughtWater = false;
+            state.ch2.boughtAmulet = false;
+            state.ch2.boughtCompass = false;
+            state.ch2.boughtSausage = false;
+            state.ch2.boughtFridge = false;
+            state.ch2.boughtNothing = false;
+            state.ch2.joinedYoushen = false;
+            state.ch2.dragonReductionPerStep = 0;
+            state.ch2.hasTriggeredComedy = false;
+            state.ch2.passerbyCount = 0;
+            state.ch2.comedyReady = false;
+            state.ch2.comedyShown = false;
+            state.ch2.lastMessage = null;
+            state.stamina = state.maxStamina;
+            state.actionsToday = 0;
+            updateUI();
+            renderChapter2();
+        }
+
+        function renderChapter2() {
+            if (state.gameOver || state._waitingConfirm) return;
+            if (state.stamina === 0) {
+                enterNight();
+                return;
+            }
+            switch (state.ch2.phase) {
+                case '0km':
+                    renderCh2_0km();
+                    break;
+                case 'shopping_done':
+                    renderCh2_shoppingDone();
+                    break;
+                case '2km_youshen':
+                    renderCh2_2kmYoushen();
+                    break;
+                case '2km_no_youshen':
+                    renderCh2_2kmNoYoushen();
+                    break;
+                case '5km':
+                    renderCh2_5km();
+                    break;
+                case 'left_path':
+                    renderCh2_leftPath();
+                    break;
+                case 'right_path':
+                    renderCh2_rightPath();
+                    break;
+                case 'chapter3':
+                    renderCh2_chapter3();
+                    break;
+                default:
+                    setStory('第二章出现错误，请重新开始。');
+                    renderOptions([{ label: '🔄 重新开始', action: () => { resetGame(); } }]);
+            }
+        }
+
+        // ---- 2.1 0km 购物 ----
+        function renderCh2_0km() {
+            if (state._waitingConfirm) return;
+            // 喜剧分支
+            if (state.ch2.comedyReady && !state.ch2.comedyShown) {
+                state.ch2.comedyShown = true;
+                setStory(`
+                    <span class="title-line">🎭 诙谐插曲</span>
+                    <div class="comedy-box">
+                        🧭 你拿着指南针、🌭 烤肠和 🧲 冰箱贴，站在山前。<br>
+                        指南针在山里转得跟陀螺一样，完全分不清南北；烤肠的香气引来了几只流着口水的野狗；冰箱贴则牢牢粘在了你的衣服上，怎么都扯不下来。<br><br>
+                        一个路过的村民看着你，忍不住笑出声：<br>
+                        <span style="color:#d4b87a;">「小伙子，你这是来旅游的还是来赶集的？带这些东西上山，你是要当货郎还是野餐啊？」</span><br><br>
+                        你尴尬地笑了笑，把东西收好。虽然有些狼狈，但心情倒是轻松了不少。<br>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">（你获得了一个短暂的愉悦，龙化 -3）</span>
+                    </div>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">🎉 你买齐了「吉祥三宝」！虽然没什么用，但至少让你笑了出来。</span>
+                `);
+                changeDragonization(-3);
+                renderOptions([{
+                    label: '🚶 继续前进',
+                    action: () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.ch2.phase = 'shopping_done';
+                        renderChapter2();
+                    }
+                }]);
+                return;
+            }
+
+            let storyText = `
+                <span class="title-line">📍 0km · 山前补给点</span>
+                <span class="km-progress">—— 第二章 · 邱龙山道 ——</span>
+                你站在山前，一条蜿蜒的石板路通向云雾缭绕的山顶。路边有一个简陋的补给点，一位戴着草帽的老汉正在打盹。
+                你想起在山下收集的那些规则，心中明白——这座山远比表面看起来要危险得多。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-gold);">你可以在补给点购买一些物品（最多买三样）：</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">提示：护身符可减少每步龙化，水可降低龙化，香是游神仪式的关键。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">如果买了指南针、烤肠、冰箱贴这三样，会有意想不到的事情发生……</span>
+            `;
+            if (state.ch2.lastMessage) {
+                storyText += `<div class="feedback">${state.ch2.lastMessage}</div>`;
+                state.ch2.lastMessage = null;
+            }
+            setStory(storyText);
+
+            const items = [{
+                id: 'incense',
+                label: '🪔 买香',
+                hint: '游神仪式必备'
+            }, {
+                id: 'water',
+                label: '💧 买水',
+                hint: '一次性减少龙化值'
+            }, {
+                id: 'amulet',
+                label: '🛡️ 买护身符',
+                hint: '减少每步龙化值'
+            }, {
+                id: 'compass',
+                label: '🧭 买指南针',
+                hint: '干扰选项'
+            }, {
+                id: 'sausage',
+                label: '🌭 买根烤肠',
+                hint: '干扰选项'
+            }, {
+                id: 'fridge',
+                label: '🧲 买冰箱贴',
+                hint: '干扰选项'
+            }];
+            const boughtCount = state.ch2.boughtItems.length;
+            const maxBuy = 3;
+            const canBuy = boughtCount < maxBuy;
+
+            const opts = items.map(item => {
+                const alreadyBought = state.ch2.boughtItems.includes(item.id);
+                return {
+                    label: item.label,
+                    hint: alreadyBought ? '已购买' : item.hint,
+                    tag: alreadyBought ? '已购' : (canBuy ? '可买' : '已满'),
+                    disabled: alreadyBought || !canBuy || state.gameOver || state.ch2.comedyReady,
+                    action: async () => {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        if (state.ch2.boughtItems.includes(item.id)) return;
+                        if (state.ch2.boughtItems.length >= maxBuy) {
+                            showStory('你已经买了三样东西，不能再买了。');
+                            return;
+                        }
+
+                        state.ch2.boughtItems.push(item.id);
+                        let feedback = '';
+                        let needRule = false;
+                        let ruleId = '';
+
+                        switch (item.id) {
+                            case 'incense':
+                                state.ch2.boughtIncense = true;
+                                feedback = '你买了一束香，清香扑鼻。老汉说："这香是山上的老君庙里供过的，灵验得很。"';
+                                needRule = true;
+                                ruleId = 'ch2_incense';
+                                break;
+                            case 'water':
+                                state.ch2.boughtWater = true;
+                                const reduce = rand(8, 15);
+                                changeDragonization(-reduce);
+                                feedback = `你喝了一口水，清凉入喉，龙气似乎被压制了一些（龙化 -${reduce}）。`;
+                                needRule = true;
+                                ruleId = 'ch2_water';
+                                break;
+                            case 'amulet':
+                                state.ch2.boughtAmulet = true;
+                                state.ch2.dragonReductionPerStep = 3;
+                                feedback = '你买了一个桃木护身符，上面刻着模糊的符文。戴上的瞬间，你感到一阵清凉。';
+                                needRule = true;
+                                ruleId = 'ch2_amulet';
+                                break;
+                            case 'compass':
+                                state.ch2.boughtCompass = true;
+                                feedback = '你买了一个指南针，指针在山里转得厉害，似乎不太准。';
+                                break;
+                            case 'sausage':
+                                state.ch2.boughtSausage = true;
+                                feedback = '你买了一根烤肠，香气四溢。老汉说："这肠子是用山里的野猪肉做的，香得很！"';
+                                break;
+                            case 'fridge':
+                                state.ch2.boughtFridge = true;
+                                feedback = '你买了一个冰箱贴，上面印着"邱龙村·龙岭观"的字样，做工粗糙。';
+                                break;
+                        }
+
+                        state.ch2.lastMessage = feedback;
+
+                        if (needRule) {
+                            await addRule(ruleId);
+                        }
+
+                        if (state.ch2.boughtCompass && state.ch2.boughtSausage && state.ch2.boughtFridge && !state
+                            .ch2.comedyReady) {
+                            state.ch2.comedyReady = true;
+                            renderCh2_0km();
+                            return;
+                        }
+
+                        if (state.ch2.boughtItems.length >= maxBuy) {
+                            state.ch2.phase = 'shopping_done';
+                            renderChapter2();
+                            return;
+                        }
+
+                        renderCh2_0km();
+                    }
+                };
+            });
+
+            // "买个屁" - 直接切换到下一阶段，并标记已选
+            opts.push({
+                label: '💨 买个屁，掉头就走',
+                hint: '什么都不买',
+                tag: '干扰',
+                disabled: state.ch2.comedyReady,
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.boughtNothing = true;
+                    state.ch2.phase = 'shopping_done';
+                    renderChapter2();
+                }
+            });
+
+            renderOptions(opts);
+        }
+
+        // ---- 购物完成 ----
+        function renderCh2_shoppingDone() {
+            if (state._waitingConfirm) return;
+            // 先显示初始信息（包含“买个屁”反馈）
+            let initialText = '';
+            if (state.ch2.boughtNothing) {
+                initialText = `
+                    <span class="title-line">📍 0km · 掉头</span>
+                    你摇了摇头，觉得这些东西都不靠谱，转身就走。老汉在背后嘟囔了一句："现在的年轻人啊……"
+                    <span class="divider">· · ·</span>
+                    你继续沿着山路前进。
+                `;
+                state.ch2.boughtNothing = false; // 清除标志
+            } else {
+                initialText = `
+                    <span class="title-line">📍 2km · 前进</span>
+                    你整理好行装，踏上了山道。
+                `;
+            }
+            setStory(initialText);
+
+            // 执行步行和路人遭遇
+            const stepDragon = 3 - state.ch2.dragonReductionPerStep;
+            changeDragonization(Math.max(1, stepDragon));
+            if (!state.gameOver) {
+                const passerbyIds = ['passerby_1', 'passerby_2', 'passerby_3', 'passerby_4', 'passerby_5'];
+                const available = passerbyIds.filter(id => !state.rules.includes(id));
+                if (available.length > 0) {
+                    const picked = pick(available);
+                    addRule(picked).then(() => {
+                        showStory(
+                            `<span class="info-box">🚶 你在路上遇到一个路人，他低声对你说：「${RULES_DB[picked].text.replace('【路人信息】', '')}」</span>`
+                        );
+                        state.ch2.passerbyCount++;
+                        state.ch2.km = 2;
+                        showStory(
+                            `<span class="km-progress">📍 你走了约2公里，龙气在体内翻涌（龙化 +${Math.max(1, stepDragon)}）</span>`
+                        );
+                        updateUI();
+                        if (!state.gameOver && !state._waitingConfirm) renderCh2_shoppingDone_continue();
+                    });
+                    return;
+                }
+                state.ch2.passerbyCount++;
+                state.ch2.km = 2;
+                showStory(
+                    `<span class="km-progress">📍 你走了约2公里，龙气在体内翻涌（龙化 +${Math.max(1, stepDragon)}）</span>`
+                );
+                updateUI();
+                if (!state.gameOver && !state._waitingConfirm) renderCh2_shoppingDone_continue();
+                return;
+            }
+            if (!state.gameOver && !state._waitingConfirm) renderCh2_shoppingDone_continue();
+        }
+
+        function renderCh2_shoppingDone_continue() {
+            if (state.gameOver || state._waitingConfirm) return;
+            // 追加岔路口信息
+            showStory(`
+                <span class="divider">· · ·</span>
+                <span class="title-line">📍 2km · 岔路口</span>
+                <span class="km-progress">—— 你已经走了2公里 ——</span>
+                你站在一个岔路口，前方是通往道观的主干道，左边有一条小路通向密林深处。
+                远处传来锣鼓声和诵经声——那是游神队伍正在行进。
+                你听说每逢重阳，山里都会有游神仪式，村民们抬着神像在山上巡游，祈求平安。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你是否要加入游神队伍？</span>
+                ${state.ch2.boughtIncense ? '<span style="color:var(--text-muted);font-size:0.85rem;">你买了香，可以加入游神队伍上香。</span>' : '<span style="color:#aa4a4a;font-size:0.85rem;">⚠️ 你没有买香，加入游神队伍可能有风险。</span>'}
+            `);
+            renderOptions([{
+                label: '🙏 是，加入游神队伍',
+                hint: state.ch2.boughtIncense ? '可以上香' : '⚠️ 无香有风险',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    if (!state.ch2.boughtIncense) {
+                        triggerEnding('BE2_大不敬');
+                        return;
+                    }
+                    state.ch2.joinedYoushen = true;
+                    state.ch2.phase = '2km_youshen';
+                    showStory('你点燃了香，加入了游神队伍。香烟缭绕，锣鼓喧天，你跟在神像后面，一步一步向山上走去。');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            }, {
+                label: '🚶 否，不加入游神队伍',
+                hint: '走另一条路',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.joinedYoushen = false;
+                    state.ch2.phase = '2km_no_youshen';
+                    showStory('你决定不加入游神队伍，独自沿着山路前进。锣鼓声渐渐远去，四周变得安静下来。');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            }]);
+        }
+
+        // ---- 2.2 2km游神路线 ----
+        function renderCh2_2kmYoushen() {
+            if (state._waitingConfirm) return;
+            const stepDragon = 3 - state.ch2.dragonReductionPerStep;
+            changeDragonization(Math.max(1, stepDragon));
+            if (!state.gameOver) {
+                const passerbyIds = ['passerby_1', 'passerby_2', 'passerby_3', 'passerby_4', 'passerby_5'];
+                const available = passerbyIds.filter(id => !state.rules.includes(id));
+                if (available.length > 0) {
+                    const picked = pick(available);
+                    addRule(picked).then(() => {
+                        showStory(
+                            `<span class="info-box">🚶 你在游神队伍中遇到一个戴着斗笠的人，他凑近你说：「${RULES_DB[picked].text.replace('【路人信息】', '')}」</span>`
+                        );
+                        state.ch2.passerbyCount++;
+                        showStory(`<span class="km-progress">📍 继续前行，龙气涌动（龙化 +${Math.max(1, stepDragon)}）</span>`);
+                        updateUI();
+                        if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmYoushen_continue();
+                    });
+                    return;
+                }
+                state.ch2.passerbyCount++;
+                showStory(`<span class="km-progress">📍 继续前行，龙气涌动（龙化 +${Math.max(1, stepDragon)}）</span>`);
+                updateUI();
+                if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmYoushen_continue();
+                return;
+            }
+            if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmYoushen_continue();
+        }
+
+        function renderCh2_2kmYoushen_continue() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">📍 2km · 补给点（游神队伍）</span>
+                <span class="km-progress">—— 游神队伍在此休整 ——</span>
+                你跟着游神队伍来到了一个山间的补给点。这里有一个小摊，卖水和干粮，还有几个穿着民俗服饰的人在休息。
+                你注意到一个店员——他胸前挂着一枚桃木牌子，和你在民俗部看到的一模一样。
+                他的眼神有些奇怪，似乎在向你传递某种信号。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你感觉到这个补给点不简单……</span>
+                ${state.flags.folkloreWarned ? '<span style="color:var(--text-muted);font-size:0.85rem;">你认出了那枚桃木牌子——和民俗部给你的那块一样。</span>' : ''}
+            `);
+            const opts = [];
+            const canHelp = state.flags.folkloreWarned && state.flags.hasPeachWood;
+            opts.push({
+                label: '🆘 求救（向桃木牌店员求助）',
+                hint: canHelp ? '✅ 认出民俗部人员' : '⚠️ 可能被当作亵渎者',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    if (canHelp) {
+                        triggerEnding('HE2_被救助');
+                    } else {
+                        triggerEnding('BE2_大不敬');
+                    }
+                }
+            });
+            opts.push({
+                label: '🏃 店员眼神怪异，逃进人群',
+                hint: '转到5km岔路',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.phase = '5km';
+                    showStory('你感到那个店员的眼神越来越不对劲，你趁他不注意，混进了游神队伍的人群中，跟着队伍继续前进。');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            });
+            opts.push({
+                label: '💧 买瓶水吧，降低龙化',
+                hint: '转到5km岔路',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    const reduce = rand(5, 12);
+                    changeDragonization(-reduce);
+                    if (!state.gameOver) {
+                        showStory(`你买了一瓶水，喝下后感觉龙气被压制了一些（龙化 -${reduce}）。`);
+                        state.ch2.phase = '5km';
+                        setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                    }
+                }
+            });
+            renderOptions(opts);
+        }
+
+        // ---- 2.3 不游神路线 ----
+        function renderCh2_2kmNoYoushen() {
+            if (state._waitingConfirm) return;
+            const stepDragon = 3 - state.ch2.dragonReductionPerStep;
+            changeDragonization(Math.max(1, stepDragon));
+            if (!state.gameOver) {
+                const passerbyIds = ['passerby_1', 'passerby_2', 'passerby_3', 'passerby_4', 'passerby_5'];
+                const available = passerbyIds.filter(id => !state.rules.includes(id));
+                if (available.length > 0) {
+                    const picked = pick(available);
+                    addRule(picked).then(() => {
+                        showStory(
+                            `<span class="info-box">🚶 你在路上遇到一个采药人，他对你说：「${RULES_DB[picked].text.replace('【路人信息】', '')}」</span>`
+                        );
+                        state.ch2.passerbyCount++;
+                        showStory(
+                            `<span class="km-progress">📍 你独自前行，龙气在体内翻涌（龙化 +${Math.max(1, stepDragon)}）</span>`
+                        );
+                        updateUI();
+                        if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmNoYoushen_continue();
+                    });
+                    return;
+                }
+                state.ch2.passerbyCount++;
+                showStory(
+                    `<span class="km-progress">📍 你独自前行，龙气在体内翻涌（龙化 +${Math.max(1, stepDragon)}）</span>`
+                );
+                updateUI();
+                if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmNoYoushen_continue();
+                return;
+            }
+            if (!state.gameOver && !state._waitingConfirm) renderCh2_2kmNoYoushen_continue();
+        }
+
+        function renderCh2_2kmNoYoushen_continue() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">📍 2km · 补给点（独行）</span>
+                <span class="km-progress">—— 你选择了独自前行 ——</span>
+                你沿着山路走了2公里，来到了一个简陋的补给点。这里没有什么人，只有一个老妪在卖茶水。
+                你喝了一碗茶，继续向前走。远处的游神队伍锣鼓喧天，你隐约能看到他们抬着神像在山路上行进。
+                你感到一阵孤独——或许你也应该加入他们？
+                <span class="divider">· · ·</span>
+                <span style="color:#aa4a4a;">你继续前行，来到了山腰的缆道处……</span>
+            `);
+            renderOptions([{
+                label: '🚠 行走至山腰缆道',
+                hint: '触发BE4：半途而废',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    triggerEnding('BE4_半途而废');
+                }
+            }]);
+        }
+
+        // ---- 2.4 5km岔路 ----
+        function renderCh2_5km() {
+            if (state._waitingConfirm) return;
+            const stepDragon = (3 - state.ch2.dragonReductionPerStep) * 3;
+            changeDragonization(Math.max(3, stepDragon));
+            if (!state.gameOver) {
+                const passerbyIds = ['passerby_1', 'passerby_2', 'passerby_3', 'passerby_4', 'passerby_5'];
+                const available = passerbyIds.filter(id => !state.rules.includes(id));
+                const count = Math.min(rand(1, 2), available.length);
+                const shuffled = shuffleArray(available);
+                let addedCount = 0;
+                const addNext = () => {
+                    if (addedCount >= count || state.gameOver || state._waitingConfirm) {
+                        state.ch2.passerbyCount += addedCount;
+                        state.ch2.km = 5;
+                        showStory(`<span class="km-progress">📍 你走了5公里，龙气越发浓郁（龙化 +${Math.max(3, stepDragon)}）</span>`);
+                        updateUI();
+                        if (!state.gameOver && !state._waitingConfirm) renderCh2_5km_continue();
+                        return;
+                    }
+                    const id = shuffled[addedCount];
+                    addRule(id).then(() => {
+                        showStory(
+                            `<span class="info-box">🚶 路遇行人：「${RULES_DB[id].text.replace('【路人信息】', '')}」</span>`
+                        );
+                        addedCount++;
+                        addNext();
+                    });
+                };
+                if (available.length > 0 && count > 0) {
+                    addNext();
+                    return;
+                }
+                state.ch2.passerbyCount += count;
+                state.ch2.km = 5;
+                showStory(`<span class="km-progress">📍 你走了5公里，龙气越发浓郁（龙化 +${Math.max(3, stepDragon)}）</span>`);
+                updateUI();
+                if (!state.gameOver && !state._waitingConfirm) renderCh2_5km_continue();
+                return;
+            }
+            if (!state.gameOver && !state._waitingConfirm) renderCh2_5km_continue();
+        }
+
+        function renderCh2_5km_continue() {
+            if (state.gameOver || state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">📍 5km · 三岔路口</span>
+                <span class="km-progress">—— 你来到了一个重要的岔路口 ——</span>
+                你站在一个三岔路口。前方是一条宽阔的主干道，通往山腰的缆道站；左边是一条林间小路，幽深莫测；右边是陡峭的山坡，长满了密密的菌菇。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你该如何选择？</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">提示：林间小路可能通向真相，但也可能通向危险。</span>
+            `);
+            renderOptions([{
+                label: '➡️ 向右，回到主干道',
+                hint: 'BE4：半途而废',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.phase = 'right_path';
+                    renderChapter2();
+                }
+            }, {
+                label: '⬅️ 向左，进入林间小路',
+                hint: '继续探索',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.phase = 'left_path';
+                    showStory('你深吸一口气，转身走进了林间小路。树木遮蔽了天空，光线变得昏暗，空气中弥漫着潮湿的泥土气息。');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            }, {
+                label: '🌲 进入林子（直接钻入树林）',
+                hint: 'BE3：惊扰',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    triggerEnding('BE3_惊扰');
+                }
+            }]);
+        }
+
+        // ---- 2.5 右主干道 ----
+        function renderCh2_rightPath() {
+            if (state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">📍 右主干道 · 山腰缆道</span>
+                <span class="km-progress">—— 你选择了宽敞的大路 ——</span>
+                你沿着主干道前行，很快就来到了山腰的缆道站。这里有几个游客在等缆车，看起来一切正常。
+                但你知道——这座山上的"正常"，从来都只是表象。
+                你看到了远处的游神队伍，锣鼓声若有若无地传来。你感到一阵空虚——也许你应该和他们同行，也许你不该独自一人。
+                <span class="divider">· · ·</span>
+                <span style="color:#aa4a4a;">你站在缆道站前，感到内心缺了很多一直以来支撑你的事物……</span>
+            `);
+            renderOptions([{
+                label: '🚠 乘坐缆车下山',
+                hint: 'BE4：半途而废',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    triggerEnding('BE4_半途而废');
+                }
+            }]);
+        }
+
+        // ---- 2.6 左林间小路 ----
+        function renderCh2_leftPath() {
+            if (state._waitingConfirm) return;
+            const stepDragon = 2 - state.ch2.dragonReductionPerStep;
+            changeDragonization(Math.max(1, stepDragon));
+            if (!state.gameOver) {
+                showStory(`<span class="km-progress">📍 林间小路幽深曲折，龙气在暗处涌动（龙化 +${Math.max(1, stepDragon)}）</span>`);
+                updateUI();
+            }
+            if (state.gameOver || state._waitingConfirm) return;
+
+            setStory(`
+                <span class="title-line">🌲 左林间小路</span>
+                <span class="km-progress">—— 密林深处 ——</span>
+                你沿着林间小路走了约1公里，树木越来越密，光线越来越暗。你听到前方有脚步声和低语声。
+                你悄悄靠近，拨开树叶——看到了一群人正在举行某种仪式。他们围着一棵巨大的雷击木，木头上挂满了符纸。
+                一个穿着道袍的人站在中间，正在念诵着什么。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你要怎么做？</span>
+                ${state.ch2.boughtAmulet ? '<span style="color:var(--text-muted);font-size:0.85rem;">你有护身符护体，可以安全观察。</span>' : '<span style="color:#aa4a4a;font-size:0.85rem;">⚠️ 你没有护身符，贸然观察可能被察觉。</span>'}
+            `);
+
+            const canObserve = state.ch2.boughtAmulet;
+            renderOptions([{
+                label: '👁️ 偷偷观察',
+                hint: canObserve ? '✅ 有护身符保护' : '⚠️ 可能被察觉',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    if (!canObserve) {
+                        triggerEnding('BE2_大不敬');
+                        return;
+                    }
+                    state.ch2.phase = 'chapter3';
+                    showStory('你躲在树后，偷偷观察着仪式。护身符发出一阵微弱的暖意，保护着你不被察觉。你看到了许多惊人的秘密……');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            }, {
+                label: '🚶 不观察，继续前进',
+                hint: '进入第三章',
+                action: () => {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    state.ch2.phase = 'chapter3';
+                    showStory('你决定不惊动他们，悄悄地绕道而行。你继续沿着小路前进，前方隐约可见道观的轮廓……');
+                    setTimeout(() => { if (!state.gameOver && !state._waitingConfirm) renderChapter2(); }, 600);
+                }
+            }]);
+        }
+
+        // ---- 第三章 ----
+        function renderCh2_chapter3() {
+            if (state._waitingConfirm) return;
+            setStory(`
+                <span class="title-line">📖 第三章 · 道观之秘</span>
+                <span class="divider">—— —— ——</span>
+                <span style="color:var(--text-gold);">🎉 你成功完成了第二章的挑战！</span>
+                你穿过林间小路，终于来到了道观前。大门敞开，里面传来阵阵诵经声。
+                你握紧了手中的桃木吊坠，深吸一口气，迈步走了进去……
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;font-weight:700;">第二章 · 完</span>
+                <span style="color:var(--text-muted);">你已成功完成第二章，后续故事将在第三章展开。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">感谢游玩《龙岭观前坑》第一二章。</span>
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%，度过了 ${state.day} 天。</span>
+            `, 'ending-chapter3');
+            renderOptions([{
+                label: '🔄 重新开始游戏',
+                action: () => { resetGame(); }
+            }]);
+            updateUI();
+        }
+
+        // ================================================================
+        //  结局系统（配色差异化）
+        // ================================================================
+
+        function triggerEnding(type) {
+            if (state.gameOver) return;
+            state.gameOver = true;
+            let title = '💀 结局';
+            let desc = '';
+            let endingClass = '';
+
+            switch (type) {
+                case '老实人结局':
+                    title = '🏁 老实人结局';
+                    endingClass = 'ending-normal';
+                    desc = `
+                        你在邱龙村度过了整整一周，每天都在遵循那些守则，不敢越雷池一步。
+                        你渐渐习惯了村中的生活，习惯了嫂嫂的笑容，习惯了那若有若无的菌菇气息。
+                        你甚至开始觉得，那些规则也不是那么难以接受……
+                        一天清晨，你醒来时发现，自己的指尖泛起了一丝青灰色。
+                        你看着镜子里的自己，额头上似乎鼓起了一个小小的、像银杏果一样的疙瘩。
+                        <span class="divider">· · ·</span>
+                        <span style="color:#4a7a4a;">你已经成为邱龙村的一部分了。</span>
+                        <span style="color:#5a8a5a;">—— 龙王爷欢迎你的加入 ——</span>
+                    `;
+                    break;
+                case '被龙化 · 成为道观的一员':
+                    title = '💀 坏结局 · 被龙化';
+                    endingClass = 'ending-corrupted';
+                    desc = `
+                        你的意识逐渐消散，取而代之的是一种冰冷而古老的力量。
+                        你感到鳞片从皮肤下生长出来，指尖变得青黑，额头上鼓起龙角一般的突起。
+                        你站在道观的大殿里，和其他"弟子"一起，机械地念诵着经文。
+                        老道士站在神像前，微笑着看着你——他的眼镜后面，那双苍白的手心竖瞳，正满意地注视着你。
+                        <span class="divider">· · ·</span>
+                        <span style="color:#ccaa3a;">你又是一个"干净"的阳原了。</span>
+                        <span style="color:#bb9a4a;">—— 长生之路，永无止境 ——</span>
+                    `;
+                    break;
+                case '龙化值过高 · 被龙气侵蚀':
+                    title = '💀 坏结局0 · 龙化值过高';
+                    endingClass = 'ending-dragon';
+                    desc = `
+                        你感到体内的龙气越来越重，皮肤开始泛起青黑色的鳞片，额头上鼓起硬块。
+                        你的理智逐渐被龙气吞噬，你开始听到山中传来的呼唤声，那是龙王爷在召唤你。
+                        你再也无法抵抗，一步步走向深山，走向道观……
+                        <span class="divider">· · ·</span>
+                        <span style="color:#cc3a2a;">你成为了龙王爷的又一个侍从。</span>
+                        <span style="color:#cc5a4a;">—— 龙气弥漫，万物皆化 ——</span>
+                    `;
+                    break;
+                case 'BE2_大不敬':
+                    title = '💀 坏结局 · 大不敬';
+                    endingClass = 'ending-be2';
+                    desc = `
+                        <span style="color:#aa2a2a;">⚠️ 你犯了大不敬之罪。</span>
+                        游神队伍的成员们停下了脚步，所有人的目光都聚集在你身上。
+                        你没有香——在龙神面前，没有香的游客就像没有灵魂的躯壳。
+                        「你这是亵渎龙神！」一个戴着面具的人厉声喝道。
+                        「也不尊重道士！」另一个人附和道。
+                        你还没来得及解释，狂热的信徒们已经将你拖入了林中。你挣扎着，呼喊着，但没有人回应。
+                        你最后看到的，是那些面具下冷漠的、泛着青光的眼睛……
+                        <span class="divider">· · ·</span>
+                        <span style="color:#8a2a2a;">你再也没有回来。</span>
+                        <span style="color:#aa4a4a;">—— 山神的怒火，凡人不可承受 ——</span>
+                    `;
+                    break;
+                case 'BE3_惊扰':
+                    title = '💀 坏结局 · 惊扰';
+                    endingClass = 'ending-be3';
+                    desc = `
+                        <span style="color:#aa2a8a;">⚠️ 你慌不择路地逃进了树林中。</span>
+                        菌菇锋利的裙边划过你的脸，游神的青烟离你也越来越远了。
+                        你迎面撞上了一个满身鳞片、开膛破肚耷拉着肠子的人——或者曾经是人。
+                        他发出一声嘶哑的嚎叫，向你扑来。
+                        你惊恐地坐在地上，手摸到了湿滑粘腻的东西——那是菌菇，密密麻麻的菌菇，在黑暗中散发着幽绿的光。
+                        你知道，你马上也会成为他们的一员了。
+                        <span class="divider">· · ·</span>
+                        <span style="color:#7a2a6a;">菌菇在生长，龙气在蔓延。</span>
+                        <span style="color:#9a4a8a;">—— 山林不语，万物皆菌 ——</span>
+                    `;
+                    break;
+                case 'BE4_半途而废':
+                    title = '💀 坏结局 · 半途而废';
+                    endingClass = 'ending-be4';
+                    desc = `
+                        <span style="color:#7a7a7a;">⚠️ 你选择了放弃。</span>
+                        你站在山腰的缆道站，看着远处的游神队伍。锣鼓声隐约可闻，香烟缭绕。
+                        也许你也应该与之同行——但你没有。
+                        你感到内心缺了很多一直以来支撑你的事物，那些信念、那些好奇、那些勇气，都在这一刻烟消云散。
+                        当你驱车离开这里时，你知道你的一部分永远留在了山里。
+                        <span class="divider">· · ·</span>
+                        <span style="color:#5a5a5a;">你带着残缺的灵魂离开了邱龙山。</span>
+                        <span style="color:#6a6a6a;">—— 有些路，一旦错过就不再 ——</span>
+                    `;
+                    break;
+                case 'HE2_被救助':
+                    title = '🌅 好结局 · 得救';
+                    endingClass = 'ending-he';
+                    desc = `
+                        <span style="color:#5a3a1a;">✅ 你认出了民俗部的人员！</span>
+                        你悄悄向那个挂着桃木牌的店员使了个眼色。他微微点头，趁着队伍不注意，将你拉到了一个隐蔽的角落。
+                        「跟我来。」他低声说。
+                        你跟着他穿过一条密道，来到了一个安全的藏身处。他递给你一碗符水，你喝下后感到体内的龙气被压制了不少。
+                        「你算是幸运的——很多人到了这一步就再也回不去了。」他说，「但你也不能离开这座村子了，他们会找到你的。」
+                        <span class="divider">· · ·</span>
+                        <span style="color:#5a3a1a;">你及时得到了救助，但你也无法离开这座村子了。</span>
+                        <span style="color:#5a3a1a;">—— 活着，就是最好的结局 ——</span>
+                    `;
+                    break;
+                default:
+                    desc = `游戏结束。`;
+                    endingClass = 'ending-normal';
+            }
+
+            updateUI();
+
+            const ch2Endings = ['BE2_大不敬', 'BE3_惊扰', 'BE4_半途而废', 'HE2_被救助'];
+            const isCh2Ending = ch2Endings.includes(type);
+
+            setStory(`
+                <span class="ending-title">${title}</span>
+                <span class="divider">—— —— ——</span>
+                ${desc}
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你一共度过了 ${state.day} 天，收集了 ${state.rules.length} 条规则。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">最终龙化值: ${clamp(state.dragonization, 0, 100)}% · 理智值: ${100 - clamp(state.dragonization, 0, 100)}%</span>
+                ${state.flags.chapter2 ? `<span style="color:var(--text-muted);font-size:0.85rem;">第二章进度: ${state.ch2.km}km · 遇到路人 ${state.ch2.passerbyCount} 次</span>` : ''}
+            `, endingClass);
+
+            if (isCh2Ending) {
+                renderOptions([{
+                    label: '🔄 重新开始第二章',
+                    hint: '保留当前规则和龙化值',
+                    ending: true,
+                    action: () => { resetChapter2(); }
+                }, {
+                    label: '🏠 回到第一章开头（重置所有状态）',
+                    hint: '保留规则和龙化值，重置所有剧情进度',
+                    ending: true,
+                    action: () => { resetToChapter1(); }
+                }]);
+            } else {
+                renderOptions([{
+                    label: '🔄 重新开始游戏',
+                    ending: true,
+                    action: () => { resetGame(); }
+                }]);
+            }
+            updateUI();
+        }
+
+        // ================================================================
+        //  重置函数
+        // ================================================================
+
+        function resetChapter2() {
+            if (state.gameOver) state.gameOver = false;
+            state.ch2 = {
+                phase: '0km',
+                boughtItems: [],
+                boughtIncense: false,
+                boughtWater: false,
+                boughtAmulet: false,
+                boughtCompass: false,
+                boughtSausage: false,
+                boughtFridge: false,
+                boughtNothing: false,
+                joinedYoushen: false,
+                km: 0,
+                dragonReductionPerStep: 0,
+                hasTriggeredComedy: false,
+                passerbyCount: 0,
+                comedyReady: false,
+                comedyShown: false,
+                lastMessage: null,
+            };
+            state.flags.chapter2 = true;
+            state.stamina = state.maxStamina;
+            state.actionsToday = 0;
+            state._waitingConfirm = false;
+            state._confirmResolve = null;
+            document.getElementById('rule-notification').classList.remove('show');
+            updateUI();
+            setStory(`
+                <span class="title-line">🔄 重新开始第二章</span>
+                <span class="divider">—— —— ——</span>
+                你回到了山前，准备再次踏上邱龙山道。这一次，你带着之前的经验与规则，希望能走得更远。
+                <span style="color:var(--text-muted);font-size:0.85rem;">你已收集 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
+            `);
+            renderChapter2();
+        }
+
+        function resetToChapter1() {
+            if (state.gameOver) state.gameOver = false;
+            // 重置所有剧情状态（保留规则、龙化、桃木吊坠）
+            state.day = 1;
+            state.stamina = 3;
+            state.actionsToday = 0;
+            state.weekCount = 0;
+            state.flags = {
+                hasSleptInVillage: false,
+                folkloreWarned: false,
+                shopRhymeIndex: 0,
+                chapter2: false,
+                hasPeachWood: state.flags.hasPeachWood, // 保留桃木吊坠
+                abandonedCompleteReady: false,
+                abandonedHiddenTriggered: false,
+            };
+            state.ch2 = {
+                phase: '0km',
+                boughtItems: [],
+                boughtIncense: false,
+                boughtWater: false,
+                boughtAmulet: false,
+                boughtCompass: false,
+                boughtSausage: false,
+                boughtFridge: false,
+                boughtNothing: false,
+                joinedYoushen: false,
+                km: 0,
+                dragonReductionPerStep: 0,
+                hasTriggeredComedy: false,
+                passerbyCount: 0,
+                comedyReady: false,
+                comedyShown: false,
+                lastMessage: null,
+            };
+            state._waitingConfirm = false;
+            state._confirmResolve = null;
+            document.getElementById('rule-notification').classList.remove('show');
+            updateUI();
+            setStory(`
+                <span class="title-line">🏠 回到第一章开头</span>
+                <span class="divider">—— —— ——</span>
+                你回到了邱龙村。村口的木牌依然斑驳，空气中依然弥漫着菌菇与泥土的气息。
+                但这一次，你带着更多的经验和规则，对这座村庄有了更深的理解。
+                <span style="color:var(--text-muted);font-size:0.85rem;">你已收集 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
+                <span class="divider">· · ·</span>
+                你决定再次探索村庄，收集更多线索，为再次登山做准备。
+            `);
+            renderMainOptions();
+        }
+
+        function resetGame() {
+            state.day = 1;
+            state.stamina = 3;
+            state.dragonization = 0;
+            state.rules = [];
+            state.flags = {
+                hasSleptInVillage: false,
+                folkloreWarned: false,
+                shopRhymeIndex: 0,
+                chapter2: false,
+                hasPeachWood: false,
+                abandonedCompleteReady: false,
+                abandonedHiddenTriggered: false,
+            };
+            state.actionsToday = 0;
+            state.weekCount = 0;
+            state.gameOver = false;
+            state.newRuleCount = 0;
+            state.ch2 = {
+                phase: '0km',
+                boughtItems: [],
+                boughtIncense: false,
+                boughtWater: false,
+                boughtAmulet: false,
+                boughtCompass: false,
+                boughtSausage: false,
+                boughtFridge: false,
+                boughtNothing: false,
+                joinedYoushen: false,
+                km: 0,
+                dragonReductionPerStep: 0,
+                hasTriggeredComedy: false,
+                passerbyCount: 0,
+                comedyReady: false,
+                comedyShown: false,
+                lastMessage: null,
+            };
+            state._waitingConfirm = false;
+            state._confirmResolve = null;
+            document.getElementById('rule-notification').classList.remove('show');
+            updateUI();
+            goToScene('intro');
+        }
+
+        // ---------- 规则面板切换 ----------
+        let rulesPanelOpen = false;
+        document.getElementById('rulesToggle').addEventListener('click', () => { toggleRulesPanel(); });
+        document.getElementById('rulesToggleBtn').addEventListener('click', () => { toggleRulesPanel(); });
+
+        function toggleRulesPanel() {
+            rulesPanelOpen = !rulesPanelOpen;
+            document.getElementById('rules-panel').classList.toggle('open', rulesPanelOpen);
+            if (rulesPanelOpen) {
+                state.newRuleCount = state.rules.length;
+                updateUI();
+            }
+        }
+
+        // ---------- 初始化 ----------
+        function init() {
+            resetGame();
+        }
+        window.onload = init;
+    </script>
+
+</body>
+
+</html>
