@@ -1159,6 +1159,8 @@
                 endingTriggered: null,           // 已触发的结局类型（防止重复触发）
                 // ----- 事件链情报标记（第二章用） -----
                 marketVisitCount: 0,  // 新增：集市访问次数
+                hasBeggedIncense: false,   // 是否已讨要过香火
+                hasStolenIncense: false,   // 是否已偷取过香火
             },
             hasShadowSecret: false,        // 是否从阴影中获得低语情报
             hasTaoistInfo: false,          // 是否从道士处获得额外情报
@@ -3034,11 +3036,17 @@
         }
         function finishRest(place, eventText) {
             if (state.gameOver || state._waitingConfirm) return;
+
+            // ---- 如果是在集市过夜，访问次数+1 ----
+            if (state.ch2.phase === 'market') {
+                state.ch2.marketVisitCount = (state.ch2.marketVisitCount || 0) + 1;
+                state._marketNewDay = true;
+            }
+
             state.stamina = state.maxStamina;
             state.day++;
             state.weekCount++;
             state.actionsToday = 0;
-            // 重置早晨事件处理标记
             state._morningEventProcessed = false;
 
             // 修改：6天限制
@@ -3046,10 +3054,7 @@
                 triggerEnding('NE1_老实人');
                 return;
             }
-            // ---- 新增：每天清晨自动增加龙化（龙气自然滋长） ----
-            var morningDragon = 3 + Math.floor(state.day / 2);  // 第1天+3，第3天+4，第5天+5
-            changeDragonization(morningDragon);
-            showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">🌅 一夜过去，龙气在你体内悄然滋长（龙化 +${morningDragon}）。</span>`);
+
             updateUI();
 
             setStory(`
@@ -3063,13 +3068,11 @@
             if (!state.flags.chapter2 && !state.gameOver) {
                 var hasEvent = checkAndTriggerMorningEvent();
                 if (hasEvent) {
-                    // 标记早晨事件已触发，等待用户交互完成后继续
                     state._morningEventProcessed = true;
                     return;
                 }
             }
 
-            // ---- 如果没有早晨事件，直接检测压力事件 ----
             if (!state.flags.chapter2 && !state.gameOver) {
                 var hasPressure = checkAndTriggerPressureEvent();
                 if (hasPressure) return;
@@ -5139,6 +5142,9 @@
         // ================================================================
         //  阶段1：山脚集市（准备阶段）
         // ================================================================
+        // ================================================================
+        //  阶段1：山脚集市（准备阶段）
+        // ================================================================
         function renderMarket() {
             if (state.gameOver || state._waitingConfirm) return;
 
@@ -5160,45 +5166,50 @@
             }
 
             // ================================================================
-            //  记录访问次数
+            //  读取访问次数
             // ================================================================
-            state.ch2.marketVisitCount = (state.ch2.marketVisitCount || 0) + 1;
-            var visitCount = state.ch2.marketVisitCount;
-
-            // 根据访问次数计算最大可购买数量
+            var visitCount = state.ch2.marketVisitCount || 0;
             var maxBuy = 0;
             if (visitCount === 1) maxBuy = 3;
             else if (visitCount === 2) maxBuy = 2;
             else if (visitCount === 3) maxBuy = 1;
-            else maxBuy = 0;  // 第4次及以上不能再买
+            else maxBuy = 0;
 
             var visitText = '';
             if (visitCount === 1) visitText = '你第一次来到集市，货物还很多。';
             else if (visitCount === 2) visitText = '你再次来到集市，摊位上已经少了不少东西。';
             else if (visitCount === 3) visitText = '这是你第三次来集市了，只剩下一些零碎。';
+            else if (visitCount === 0) visitText = '你第一次来到集市，货物还很多。';
             else visitText = '集市已经空了，没有值得买的东西了。';
 
             // ================================================================
-            //  场景文本
+            //  检查是否从过夜中醒来
+            // ================================================================
+            var isNewDay = state._marketNewDay || false;
+            if (isNewDay) {
+                state._marketNewDay = false;
+            }
+
+            // ================================================================
+            //  场景文本（精简版，减少视觉拥挤）
             // ================================================================
             var marketText = `
         <span class="title-line">🏪 山脚集市</span>
         <span class="divider">—— —— ——</span>
-        你站在邱龙山的山脚下，抬头望去，一座巍峨的道观矗立在云雾缭绕的山顶。
-        你已经收集了足够多的线索，准备揭开道观的真面目。
+        ${isNewDay ? `
+        <span style="color:#6ab06a;">🌅 新的一天，集市重新开张了！</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">摊主们又摆出了新的货物，但经过一夜，集市也变得更拥挤了。</span>
         <span class="divider">· · ·</span>
-        山脚下有一个小集市，几个村民正在摆摊。你注意到这里的气氛和村里不太一样——
-        空气中的菌菇味更浓了，带着一丝潮湿的腥气。
-        <span class="divider">· · ·</span>
+        ` : ''}
         <span style="color:var(--text-muted);font-size:0.85rem;">📌 第${visitCount}次来到集市${visitCount > 3 ? '（已满）' : ''}</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">${visitText}</span>
-        ${maxBuy > 0 ? `<span style="color:var(--text-gold);">🛒 你还可以购买 ${maxBuy} 样物品（本次最多）</span>` : '<span style="color:#aa4a4a;">⚠️ 集市已经没有什么可买的了。</span>'}
+        ${maxBuy > 0 ? `<span style="color:var(--text-gold);">🛒 可购买 ${maxBuy} 样物品</span>` : '<span style="color:#aa4a4a;">⚠️ 集市已空</span>'}
         <span class="divider">· · ·</span>
         ${maxBuy > 0 ? `
-        <span style="color:var(--text-muted);font-size:0.85rem;">💡 购物可以恢复1点体力。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">💡 香火是混入社戏的关键资源，建议至少备一些。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">💡 如果买了指南针+烤肠+冰箱贴，会有意想不到的事情发生……</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 购物恢复1体力 | 香火必备 | 草鞋省力</span>
         ` : ''}
+        ${state.ch2.hasBeggedIncense ? '' : '🙏 可讨要香火（仅一次）'}
+        ${state.ch2.hasStolenIncense ? '' : '🥷 可偷取香火（仅一次，高风险）'}
     `;
 
             if (state.ch2.lastMessage) {
@@ -5214,12 +5225,16 @@
             var boughtCount = state.ch2.boughtItems.length;
             var canBuy = boughtCount < maxBuy && !state.ch2.comedyReady && maxBuy > 0;
 
-            var items = [
+            // ---- 物品列表（分为核心物品和干扰物品） ----
+            var coreItems = [
                 { id: 'incense', label: '🪔 买香（1束=3根）', hint: '混入社戏必备', needRule: 'ch2_incense' },
                 { id: 'water', label: '💧 买水', hint: '龙化-11~18', needRule: 'ch2_water' },
                 { id: 'amulet', label: '🛡️ 买护身符', hint: '每步龙化-3，佩戴降龙化', needRule: 'ch2_amulet' },
                 { id: 'straw', label: '👟 买草鞋', hint: '体力消耗减半' },
                 { id: 'food', label: '🍞 买干粮', hint: '体力上限+1，可恢复+2，龙化-3' },
+            ];
+
+            var junkItems = [
                 { id: 'compass', label: '🧭 买指南针', hint: '干扰选项' },
                 { id: 'sausage', label: '🌭 买根烤肠', hint: '干扰选项' },
                 { id: 'fridge', label: '🧲 买冰箱贴', hint: '干扰选项' },
@@ -5227,9 +5242,9 @@
 
             var opts = [];
 
-            // ---- 1. 购买物品选项 ----
+            // ---- 1. 核心物品 ----
             if (maxBuy > 0) {
-                items.forEach(function (item) {
+                coreItems.forEach(function (item) {
                     var alreadyBought = state.ch2.boughtItems.indexOf(item.id) !== -1;
                     var isDisabled = alreadyBought || !canBuy || state.gameOver || state.ch2.comedyReady;
 
@@ -5251,7 +5266,6 @@
                                 return;
                             }
 
-                            // ---- 执行购买（先恢复1点体力） ----
                             changeStamina(1);
                             state.ch2.boughtItems.push(item.id);
 
@@ -5267,7 +5281,6 @@
                                     needRule = true;
                                     ruleId = 'ch2_incense';
                                     break;
-
                                 case 'water':
                                     state.ch2.boughtWater = true;
                                     var reduce = rand(8, 15);
@@ -5277,7 +5290,6 @@
                                     needRule = true;
                                     ruleId = 'ch2_water';
                                     break;
-
                                 case 'amulet':
                                     state.ch2.boughtAmulet = true;
                                     state.ch2.dragonReductionPerStep = 3;
@@ -5286,32 +5298,15 @@
                                     needRule = true;
                                     ruleId = 'ch2_amulet';
                                     break;
-
                                 case 'straw':
                                     state.ch2.hasStrawSandals = true;
                                     feedback = '你买了一双草鞋，编得很结实。老汉说："穿这个走山路，脚底板少受罪。"';
                                     break;
-
                                 case 'food':
                                     state.ch2.hasDryFood = true;
                                     state.maxStamina = Math.min(state.maxStamina + 1, 5);
                                     state.stamina = Math.min(state.stamina + 1, state.maxStamina);
                                     feedback = '你买了一包干粮，分量很足。吃了以后感觉浑身是劲（体力上限+1，当前体力+1）。';
-                                    break;
-
-                                case 'compass':
-                                    state.ch2.boughtCompass = true;
-                                    feedback = '你买了一个指南针，指针在山里转得厉害，似乎不太准。';
-                                    break;
-
-                                case 'sausage':
-                                    state.ch2.boughtSausage = true;
-                                    feedback = '你买了一根烤肠，香气四溢。老汉说："这肠子是用山里的野猪肉做的，香得很！"';
-                                    break;
-
-                                case 'fridge':
-                                    state.ch2.boughtFridge = true;
-                                    feedback = '你买了一个冰箱贴，上面印着"邱龙村·龙岭观"的字样，做工粗糙。';
                                     break;
                             }
 
@@ -5350,7 +5345,64 @@
                 });
             }
 
-            // ---- 2. 情报打听 ----
+            // ---- 2. 干扰物品（只有买了核心物品后才能看到） ----
+            if (state.ch2.boughtItems.length > 0 && maxBuy > 0 && canBuy) {
+                junkItems.forEach(function (item) {
+                    var alreadyBought = state.ch2.boughtItems.indexOf(item.id) !== -1;
+                    var isDisabled = alreadyBought || !canBuy || state.gameOver || state.ch2.comedyReady;
+
+                    opts.push({
+                        label: item.label,
+                        hint: alreadyBought ? '已购买' : item.hint,
+                        tag: alreadyBought ? '已购' : (canBuy ? '可买' : '已满'),
+                        disabled: isDisabled,
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.boughtItems.indexOf(item.id) !== -1) return;
+                            if (state.ch2.boughtItems.length >= maxBuy) {
+                                showStory(`你已经买了 ${maxBuy} 样东西，本次集市不能再买了。`);
+                                return;
+                            }
+
+                            changeStamina(1);
+                            state.ch2.boughtItems.push(item.id);
+
+                            var feedback = '';
+                            switch (item.id) {
+                                case 'compass':
+                                    state.ch2.boughtCompass = true;
+                                    feedback = '你买了一个指南针，指针在山里转得厉害，似乎不太准。';
+                                    break;
+                                case 'sausage':
+                                    state.ch2.boughtSausage = true;
+                                    feedback = '你买了一根烤肠，香气四溢。老汉说："这肠子是用山里的野猪肉做的，香得很！"';
+                                    break;
+                                case 'fridge':
+                                    state.ch2.boughtFridge = true;
+                                    feedback = '你买了一个冰箱贴，上面印着"邱龙村·龙岭观"的字样，做工粗糙。';
+                                    break;
+                            }
+
+                            state.ch2.lastMessage = feedback;
+                            updateUI();
+
+                            if (state.ch2.boughtCompass && state.ch2.boughtSausage && state.ch2.boughtFridge && !state.ch2.comedyReady) {
+                                state.ch2.comedyReady = true;
+                                renderMarketComedy();
+                                return;
+                            }
+                            if (state.ch2.boughtItems.length >= maxBuy) {
+                                state.ch2.phase = 'path_choice';
+                                renderChapter2();
+                                return;
+                            }
+                            renderMarket();
+                        }
+                    });
+                });
+            }
+
+            // ---- 3. 情报打听 ----
             opts.push({
                 label: '📖 向老汉打听情报',
                 hint: '了解游神队伍',
@@ -5386,14 +5438,19 @@
                 }
             });
 
-            // ---- 3. 讨要香火 ----
-            if (state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
+            // ---- 4. 讨要香火（仅一次） ----
+            if (!state.ch2.hasBeggedIncense && state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
                 opts.push({
                     label: '🙏 向老汉讨要香火',
-                    hint: '体力-1，伪装-1，获得1根香',
+                    hint: '体力-1，伪装-1，获得1根香（仅一次）',
                     tag: '备选',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
+                        if (state.ch2.hasBeggedIncense) {
+                            showStory('老汉瞥了你一眼：「小伙子，你不是已经要过了吗？」');
+                            renderMarket();
+                            return;
+                        }
                         if (state.ch2.incenseRemaining >= 3) {
                             showStory('你的香火已经够多了。');
                             return;
@@ -5402,6 +5459,7 @@
                             showStory('⚠️ 你已经没有力气去讨要了。');
                             return;
                         }
+                        state.ch2.hasBeggedIncense = true;
                         setStory(`
                     <span class="title-line">🙏 讨要香火</span>
                     你走到老汉面前，有些不好意思地开口：「老人家……我身上没带香火，您能不能……？」
@@ -5411,6 +5469,7 @@
                     <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+1（当前：${state.ch2.incenseRemaining + 1}/3）</span>
                     <span style="color:#aa4a4a;">🎭 伪装-1（被老汉嫌弃）</span>
                     <span style="color:#aa4a4a;">⚡ 体力-1</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">📌 已讨要过香火，老汉不会再给了。</span>
                 `);
                         changeIncense(1);
                         changeDisguise(-1);
@@ -5439,16 +5498,30 @@
                         }]);
                     }
                 });
+            } else if (state.ch2.hasBeggedIncense && state.ch2.incenseRemaining < 3) {
+                // 已讨要过，显示灰色提示（不可点击）
+                opts.push({
+                    label: '🙏 已讨要过香火（老汉不再给了）',
+                    hint: '仅一次',
+                    tag: '已用',
+                    disabled: true,
+                    action: function () { }
+                });
             }
 
-            // ---- 4. 偷取香火 ----
-            if (state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
+            // ---- 5. 偷取香火（仅一次） ----
+            if (!state.ch2.hasStolenIncense && state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
                 opts.push({
                     label: '🥷 偷摊贩的香火',
-                    hint: '体力-1，伪装-2，获得2根香',
+                    hint: '体力-1，伪装-2，获得2根香（仅一次）',
                     tag: '💀 风险',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
+                        if (state.ch2.hasStolenIncense) {
+                            showStory('摊贩警惕地看着你：「又是你？我盯着你呢！」');
+                            renderMarket();
+                            return;
+                        }
                         if (state.ch2.incenseRemaining >= 3) {
                             showStory('你的香火已经够多了。');
                             return;
@@ -5457,6 +5530,7 @@
                             showStory('⚠️ 你已经没有力气去偷了。');
                             return;
                         }
+                        state.ch2.hasStolenIncense = true;
                         var successRate = state.ch2.disguise / 5 * 80 + 20;
                         if (Math.random() * 100 < successRate) {
                             var gain = Math.min(2, 3 - state.ch2.incenseRemaining);
@@ -5470,6 +5544,7 @@
                         <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 获得香火+${gain}（当前：${state.ch2.incenseRemaining}/3）</span>
                         <span style="color:#aa4a4a;">🎭 伪装-2（做了亏心事，心虚）</span>
                         <span style="color:#aa4a4a;">⚡ 体力-1</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">📌 已偷取过香火，摊贩已经警觉了。</span>
                     `);
                         } else {
                             changeDisguise(-3);
@@ -5480,6 +5555,7 @@
                         <span class="divider">· · ·</span>
                         <span style="color:#d45a5a;">🎭 伪装-3（被当众识破）</span>
                         <span style="color:#aa4a4a;">⚡ 体力-1</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">📌 偷窃失败，摊贩已经警觉了。</span>
                     `);
                         }
                         updateUI();
@@ -5507,9 +5583,17 @@
                         }]);
                     }
                 });
+            } else if (state.ch2.hasStolenIncense && state.ch2.incenseRemaining < 3) {
+                opts.push({
+                    label: '🥷 已偷取过香火（摊贩警觉了）',
+                    hint: '仅一次',
+                    tag: '已用',
+                    disabled: true,
+                    action: function () { }
+                });
             }
 
-            // ---- 5. "买个屁" —— 重置所有购买 ----
+            // ---- 6. "买个屁" —— 重置所有购买 ----
             opts.push({
                 label: '💨 买个屁，掉头就走',
                 hint: '什么都不买，直接离开',
@@ -5547,7 +5631,7 @@
                 }
             });
 
-            // ---- 6. 直接离开 ----
+            // ---- 7. 直接离开 ----
             if (!state.ch2.comedyReady) {
                 opts.push({
                     label: '🚶 离开集市',
@@ -5562,7 +5646,6 @@
 
             renderOptions(opts);
         }
-
         // ================================================================
         //  喜剧分支（吉祥三宝）
         // ================================================================
@@ -7744,7 +7827,8 @@
                 endingTriggered: null,
                 // ----- 事件链情报标记（第二章用） -----
                 marketVisitCount: 0,  // 新增：集市访问次数
-
+                hasBeggedIncense: false,   // 是否已讨要过香火
+                hasStolenIncense: false,   // 是否已偷取过香火
             };
             state.flags = {
                 hasShadowSecret: false,        // 是否从阴影中获得低语情报
@@ -7936,6 +8020,8 @@
                 // ===== 新增：结局标记 =====
                 endingTriggered: null,
                 marketVisitCount: 0,  // 新增：集市访问次数
+                hasBeggedIncense: false,   // 是否已讨要过香火
+                hasStolenIncense: false,   // 是否已偷取过香火
             };
             // ----- 事件链情报标记（第二章用） -----
 
@@ -8129,6 +8215,8 @@
                 endingTriggered: null,
                 // ----- 事件链情报标记（第二章用） -----
                 marketVisitCount: 0,  // 新增：集市访问次数
+                hasBeggedIncense: false,   // 是否已讨要过香火
+                hasStolenIncense: false,   // 是否已偷取过香火
 
             };
 
