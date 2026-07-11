@@ -1288,6 +1288,18 @@
             if (state.gameOver) return;
             state.dragonization = clamp(state.dragonization + delta, 0, 100);
             updateUI();
+
+            // 检测龙化值是否达到结局阈值（使用 setTimeout 避免打断当前操作）
+            if (state.dragonization >= 80 && !state.gameOver && !state._dragonEndingQueued) {
+                state._dragonEndingQueued = true;
+                // 延迟 300ms 让当前操作（如 addRule 确认、购买等）先完成
+                setTimeout(function () {
+                    if (!state.gameOver) {
+                        triggerEnding('BE1_龙化值过高');
+                    }
+                    state._dragonEndingQueued = false;
+                }, 300);
+            }
         }
 
         // ---------- 体力与场景管理 ----------
@@ -4694,6 +4706,7 @@
             state.ch2.km += 1;
             changeDragonization(stepDragon);
             updateUI();
+
             renderMainRoad();
         }
 
@@ -5646,6 +5659,12 @@
         // ================================================================
         //  结局渲染（纯显示，不修改 gameOver）
         // ================================================================
+        // ================================================================
+        //  结局渲染（纯显示，不修改 gameOver）
+        // ================================================================
+        // ================================================================
+        //  结局渲染（纯显示，不修改 gameOver）
+        // ================================================================
         function renderEndingContent(type) {
             var title = '💀 结局';
             var desc = '';
@@ -5875,7 +5894,6 @@
                     endingClass = 'ending-normal';
             }
 
-            // 更新UI
             updateUI();
 
             var ch2Endings = ['BE2_大不敬', 'BE3_惊扰', 'BE4_半途而废', 'HE2_被救助'];
@@ -5913,43 +5931,60 @@
                     label: '🔄 重新开始第二章',
                     hint: '保留当前规则和龙化值',
                     ending: true,
-                    action: function () { resetChapter2(); }
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        resetChapter2();
+                    }
                 });
                 options.push({
                     label: '🏠 回到第一章开头（重置所有状态）',
                     hint: '保留规则和龙化值，重置所有剧情进度',
                     ending: true,
-                    action: function () { resetToChapter1(); }
-                });
-            } else {
-                options.push({
-                    label: '📜 回顾已收集的规则',
-                    ending: true,
                     action: function () {
                         if (state._waitingConfirm) return;
-                        if (!rulesPanelOpen) {
-                            toggleRulesPanel();
-                        }
-                        setStory(`
-                    <span class="title-line">📜 规则回顾</span>
-                    <span class="divider">—— —— ——</span>
-                    你一共收集了 ${state.rules.length} 条规则。
-                    这些规则编织成了你在邱龙村的全部经历。
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
-                `);
-                        renderOptions([{
-                            label: '🔙 返回结局',
-                            ending: true,
-                            action: function () {
-                                if (state._waitingConfirm) return;
-                                // 现在即使 gameOver === true 也能正常重新渲染
-                                triggerEnding(type);
-                            }
-                        }]);
+                        resetToChapter1();
                     }
                 });
             }
+
+            // 【所有结局通用】回顾规则
+            options.push({
+                label: '📜 回顾已收集的规则',
+                ending: true,
+                action: function () {
+                    if (state._waitingConfirm) return;
+                    if (!rulesPanelOpen) {
+                        toggleRulesPanel();
+                    }
+                    setStory(`
+                <span class="title-line">📜 规则回顾</span>
+                <span class="divider">—— —— ——</span>
+                你一共收集了 ${state.rules.length} 条规则。
+                这些规则编织成了你在邱龙村的全部经历。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
+            `);
+                    renderOptions([{
+                        label: '🔙 返回结局',
+                        ending: true,
+                        action: function () {
+                            if (state._waitingConfirm) return;
+                            renderEndingContent(type);
+                        }
+                    }]);
+                }
+            });
+
+            // 【所有结局通用】完全重新开始
+            options.push({
+                label: '🔄 完全重新开始游戏',
+                hint: '清除所有进度，从头开始',
+                ending: true,
+                action: function () {
+                    if (state._waitingConfirm) return;
+                    resetGame();
+                }
+            });
 
             renderOptions(options);
             updateUI();
@@ -5960,7 +5995,6 @@
         // ================================================================
         function triggerEnding(type) {
             if (state.gameOver) {
-                // 游戏已结束，直接重新渲染结局（用于"返回结局"等场景）
                 renderEndingContent(type);
                 return;
             }
@@ -5973,7 +6007,6 @@
         // ================================================================
         function showAchievement(type) {
             if (state._waitingConfirm) return;
-            // 移除 gameOver 检查，允许在结局后查看成就并返回
 
             var achievementText = '';
             var achievementIcon = '';
@@ -6009,8 +6042,7 @@
                 ending: true,
                 action: function () {
                     if (state._waitingConfirm) return;
-                    // 现在 triggerEnding 可以正确处理 gameOver === true 的情况
-                    triggerEnding(type);
+                    renderEndingContent(type);
                 }
             }]);
         }
