@@ -1215,7 +1215,7 @@
             'ch2_amulet': { id: 'ch2_amulet', text: '【第二章】你购买了护身符。桃木雕刻的符牌可以抵御龙气的侵蚀，减少每步的龙化值。' },
             'night_knock': { id: 'night_knock', text: '【夜间敲门】你听到门外有脚步声，打开门却空无一人，地上留着一片银杏叶，背面刻着："村西三棵老槐树下，埋着真相。"' },
             'night_dream': { id: 'night_dream', text: '【梦呓低语】嫂嫂在梦中喃喃自语："玄清先生要的纯阳体……今年又该选谁呢……"你惊醒，记下了这句话。' },
-            'night_window': { id: 'night_window', text: '【窗外人影】你看到村西方向有火光一闪而过，像是有人在传递信号。也许那里有人在反抗。' },
+            'night_window': { id: 'night_window', text: '【窗外人影】你往窗外看了一眼，村子那头有一点亮光，闪了两下又没了。' },
             'stele_1': { id: 'stele_1', text: '【暗碑·柱底碑（工匠藏真篇）】余承命修观，亲见羽士施术，龙啸震野，山崩地裂。然观成之后，每夜闻观内有异响，似孩童啜泣，又似鳞甲摩擦。' },
             'stele_2': { id: 'stele_2', text: '【暗碑·柱底碑（工匠藏真篇）】羽士令献童入观，余见新童入观半载，指尖泛青，眼神呆滞；旧童离观，从不回望，言及观中事，皆茫然无措。' },
             'stele_3': { id: 'stele_3', text: '【暗碑·柱底碑（工匠藏真篇）】更有甚者，身生热症癞斑，斑痕渐成龙鳞，鳞上竟生菌柄，状若灵芝；受羽士影响深者，额间长出雷击木似的突起，色如银杏，宛然龙角。' },
@@ -1477,11 +1477,11 @@
 
         // ---------- 计算初始伪装值（进入第二章时调用） ----------
         function calculateInitialDisguise() {
-            let base = 2;
+            let base = 0;
             if (state.flags.hidden_hasBrand) base += 1;
             if (state.flags.hidden_answeredCode) base += 1;
-            if (state.flags.awakening.visited) base += 1;
-            if (state.flags.folkloreWarned) base += 1;
+            if (state.flags.awakening.visited) base += 2;
+
             if (state.flags.hasPeachWood) base += 1;
             // 上限改为4，让玩家始终有紧张感
             return clamp(base, 2, 4);
@@ -1548,10 +1548,10 @@
         // ---------- 社戏进度推进 ----------
         function advanceRitual(amount) {
             if (state.gameOver) return;
-
+            amount = amount + 8;  // 每次推进基础值 +8%，可通过参数增加额外推进
             var oldValue = state.ch2.ritualProgress;
             // 根据类型限制最大推进值
-            var maxAmount = 10;  // 单次推进不超过10%
+            var maxAmount = 20;  // 单次推进不超过10%
             var actualAmount = Math.min(amount, maxAmount);
             state.ch2.ritualProgress = Math.min(state.ch2.ritualProgress + actualAmount, 100);
             // 显示进度变化
@@ -1760,28 +1760,28 @@
                 return;
             }
             const opts = [{
-                label: '🏚️ 1.1.1 废弃房屋',
-                hint: '荒无人烟的民宿',
+                label: '🏚️ 去那栋没人住的房子看看',
+                hint: '也许能找到些旧物',
                 cost: '⚡1',
                 action: () => { goToScene('explore_abandoned'); }
             }, {
-                label: '🏛️ 1.1.2 民俗部',
-                hint: '奇怪的地方',
+                label: '🏛️ 去挂着公家牌子的地方',
+                hint: '那里的人说话总留半句',
                 cost: '⚡1',
                 action: () => { goToScene('explore_folklore'); }
             }, {
-                label: '🏪 1.1.3 小卖部',
-                hint: '711便利店吗',
+                label: '🏪 去村口那家杂货铺',
+                hint: '老太婆总在哼怪调子',
                 cost: '⚡1',
                 action: () => { goToScene('explore_shop'); }
             }, {
-                label: '🃏 1.1.4 玩花切给大爷看',
-                hint: '唠嗑，吹牛',
+                label: '🃏 树底下有个玩牌的老头',
+                hint: '他手里那副牌旧得发黄',
                 cost: '⚡1',
                 action: () => { goToScene('play_cards'); }
             }, {
-                label: '⛰️ 1.2 直接登山',
-                hint: '前往道观',
+                label: '⛰️ 沿着那条石板路往上走',
+                hint: '越往上走雾越大',
                 cost: '⚡1',
                 action: () => { goToScene('climb_mountain'); }
             }];
@@ -1789,8 +1789,8 @@
             // ---- 新增：如果已解锁村西探索，添加该选项 ----
             if (state.flags.awakening.unlocked && !state.flags.awakening.visited && !state.flags.chapter2) {
                 opts.push({
-                    label: '🌾 1.3 前往村西聚居区',
-                    hint: '真的要去吗',
+                    label: '🌾 去村子另一头转转',
+                    hint: '那边的人看人的眼神不一样',
                     cost: '⚡2',  // 消耗2体力，去村西路途遥远且风险高
                     tag: '⚠️ 危险',
                     action: () => { goToScene('explore_awakening'); }
@@ -1874,8 +1874,8 @@
 
             if (hasDryFood) {
                 opts.push({
-                    label: '🍞 食用干粮',
-                    hint: '恢复2点体力，龙化-3',
+                    label: '🍞 掏出油纸里裹的饼子',
+                    hint: '干粮嚼着有些发硬',
                     tag: '恢复',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -1893,8 +1893,8 @@
 
             if (hasIncense) {
                 opts.push({
-                    label: '🕯️ 燃香恢复',
-                    hint: '消耗1根香，体力+2，伪装+1，龙化-5',
+                    label: '🕯️ 点一根香坐下歇息',
+                    hint: '香烟在夜色中升起来',
                     tag: '恢复',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -1911,8 +1911,8 @@
 
             // 添加放弃选项，进入夜间休息
             opts.push({
-                label: '😴 放弃恢复，直接过夜',
-                hint: '进入夜间休息',
+                label: '😴 闭眼睡过去',
+                hint: '你实在太累了',
                 tag: '休息',
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -1959,9 +1959,9 @@
 
                 // ---- 选项1：露宿野外（无条件） ----
                 opts.push({
-                    label: '🏕️ 露宿野外',
-                    hint: '天地为被，星月为灯',
-                    tag: '也许不错？',
+                    label: '🏕️ 找块背风的岩石躺下',
+                    hint: '山里的夜比想象中冷',
+                    tag: '天地为被，星月为灯',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         restInWildCh2();
@@ -1971,9 +1971,9 @@
                 // ---- 选项2：摸黑赶路（需要草鞋） ----
                 if (hasStrawSandals) {
                     opts.push({
-                        label: '🚶 摸黑赶路（草鞋）',
-                        hint: '急行军！！',
-                        tag: 'fast！！',
+                        label: '🚶 趁着夜色赶路',
+                        hint: '脚下的路看不太清',
+                        tag: '急行军！！',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             marchWithSandals();
@@ -1982,9 +1982,9 @@
                 } else {
                     // 没有草鞋：冒险前行（高风险）
                     opts.push({
-                        label: '🌲 冒险前行（无草鞋）',
-                        hint: '急性子的冒险之旅',
-                        tag: '意想不到的收获？',
+                        label: '🌲 抄近路穿过林子',
+                        hint: '林子里总有些说不清的声音',
+                        tag: '急性子的冒险之旅',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             marchWithoutSandals();
@@ -1997,8 +1997,8 @@
                 // ---- 选项4：布置防御（需要护身符或桃木吊坠） ----
                 if (hasAmulet || hasPeachWood) {
                     opts.push({
-                        label: '🔮 布置阵地',
-                        hint: '需要一些东西',
+                        label: '🔮 用身上的物件围个圈',
+                        hint: '有些东西比刀剑更管用',
                         tag: '有的时候也许呆在原地才是正确的',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
@@ -2156,9 +2156,9 @@
     `);
             renderOptions([
                 {
-                    label: '🚪 开门看看',
-                    hint: '门外有人？',
-                    tag: '？？？？',
+                    label: '🚪 摸到门边，拉开门闩',
+                    hint: '冷风灌了进来',
+                    tag: '门外有人？',
                     action: async () => {
                         // 开门：获得规则 night_knock，龙化+3
                         changeDragonization(3);
@@ -2184,7 +2184,7 @@
                 },
                 {
                     label: '🔇 不开门，假装睡着了',
-                    hint: '懂得都懂',
+                    hint: '敲门声又响了两次才停',
                     tag: '？？？？',
                     action: () => {
                         setStory(`
@@ -2394,7 +2394,7 @@
             }
 
             setStory(`
-        <span class="title-line">🚶 摸黑赶路（草鞋）</span>
+        <span class="title-line">🚶 趁着夜色赶路</span>
         <span class="divider">—— —— ——</span>
         你穿上草鞋，借着微弱的月光和星光，在夜色中沿着山路前行。
         草鞋的摩擦力让你走得更稳更快，你感觉自己像一只在夜间穿行的野猫。
@@ -2451,7 +2451,7 @@
             }
 
             setStory(`
-        <span class="title-line">🌲 冒险前行（无草鞋）</span>
+        <span class="title-line">🌲 🌲 抄近路穿过林子）</span>
         <span class="divider">—— —— ——</span>
         你没有草鞋，但你不愿意在黑暗中停下脚步。你脱下鞋袜，赤脚踩在冰凉的山路上。
         碎石和荆棘划破了你的脚底，每一步都是钻心的疼痛。
@@ -2527,7 +2527,7 @@
             }
 
             setStory(`
-        <span class="title-line">🔮 布置防御</span>
+        <span class="title-line">🔮 用身上的物件围个圈</span>
         <span class="divider">—— —— ——</span>
         ${defenseText}
         你躺下来，虽然山中的诡异气息仍在，但防御措施让你安心了不少。
@@ -2577,66 +2577,7 @@
                 }
             }]);
         }
-        // ================================================================
-        //  第二章 · 燃香祈福（需要香）
-        // ================================================================
-        function incensePrayer() {
-            if (state.gameOver || state._waitingConfirm) return;
 
-            var savedPhase = state.ch2.phase;
-            var savedDramaPhase = state.ch2.dramaPhase;
-
-            // 消耗香火
-            if (state.ch2.incenseRemaining > 0) {
-                changeIncense(-1);
-            } else {
-                state.ch2.boughtIncense = false;
-            }
-
-            setStory(`
-        <span class="title-line">🕯️ 燃香祈福</span>
-        <span class="divider">—— —— ——</span>
-        你从行囊中取出一根香，用火折子点燃。香烟袅袅升起，在夜色中形成一道淡淡的光晕。
-        你盘腿坐下，闭上眼睛，感受着香火的温暖。山中的雾气似乎在香火面前退散了一些。
-        <span class="divider">· · ·</span>
-        <span style="color:#6ab06a;">✅ 龙气被压制了（龙化 -5）。</span>
-        <span style="color:#6ab06a;">✅ 你恢复了一些体力（+2）。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你消耗了1根香（剩余：${state.ch2.incenseRemaining}/3）。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">⏳ 社戏进度 +5%</span>
-        <span style="color:#d4b87a;">🕯️ 获得「香火护体」：后续龙化 -2/步</span>
-        ${savedPhase === 'ritual_events' ? '<span style="color:var(--text-muted);font-size:0.85rem;">📌 你仍在社戏队伍中，香火让你恢复了不少。</span>' : ''}
-    `);
-
-            changeDragonization(-5);
-            state.stamina = Math.min(state.stamina + 2, state.maxStamina);
-            state.actionsToday = 0;
-            state.day++;
-
-            // ---- 恢复阶段 ----
-            state.ch2.phase = savedPhase;
-            state.ch2.dramaPhase = savedDramaPhase;
-
-            state.ch2.incenseBuff = true;
-            state.ch2.dragonReductionPerStep += 2;
-
-            if (savedPhase === 'ritual_events') {
-                advanceRitual(3);
-            }
-
-            updateUI();
-
-            renderOptions([{
-                label: '🌅 天亮了，继续前进',
-                action: function () {
-                    if (state.gameOver || state._waitingConfirm) return;
-                    if (state.ch2.phase === 'ritual_events') {
-                        renderRitualEvents();
-                    } else {
-                        renderChapter2();
-                    }
-                }
-            }]);
-        }
         // ================================================================
         //  辅助：推进第二章路程
         // ================================================================
@@ -2715,7 +2656,7 @@
             renderOptions([
                 {
                     label: '🗓️ "我还在准备，过两天就去。"',
-                    hint: '糊弄一下再说',
+                    hint: '她皱了皱眉，但没说什么',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDragonization(3);
@@ -2739,7 +2680,7 @@
                 },
                 {
                     label: '❓ "社戏……到底是什么？"',
-                    hint: '试探性追问',
+                    hint: '她的表情有一瞬的不自然',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         setStory(`
@@ -2764,8 +2705,8 @@
                 },
                 {
                     label: '✅ "我今天就上山。"',
-                    hint: '直接登山（需满足条件）',
-                    tag: '顺流而上',
+                    hint: '她的眼神亮了一下',
+                    tag: '直接登山（需满足条件）',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         // 检查是否满足登山条件
@@ -2831,8 +2772,8 @@
 
             renderOptions([
                 {
-                    label: '⛰️ 现在就上山',
-                    hint: '直接登山',
+                    label: '⛰️ 趁天色还早，往山上走',
+                    hint: '路上的人都在看你',
                     tag: '不能在等了！',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -2858,8 +2799,8 @@
                     }
                 },
                 {
-                    label: '🏃 去民俗部求助',
-                    hint: '获取更多信息',
+                    label: '🏃 去那间挂着公牌的房子问问',
+                    hint: '里面的人见到你并不意外',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         setStory(`
@@ -2887,8 +2828,8 @@
                     }
                 },
                 {
-                    label: '🚶 暂时无视，继续探索',
-                    hint: '从不吃压力',
+                    label: '🚶 当作没看见，照常走',
+                    hint: '你挺了挺腰板',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         setStory(`
@@ -2929,9 +2870,9 @@
 
             renderOptions([
                 {
-                    label: '⛰️ "我今天就上山。"',
-                    hint: '终于该上山了',
-                    tag: '！！！1',
+                    label: '⛰️ "好，我去。"',
+                    hint: '她让开了门口的路',
+                    tag: '终于该上山了',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.flags.hasSleptInVillage && state.rules.length >= 20) {
@@ -2966,9 +2907,9 @@
                     }
                 },
                 {
-                    label: '🚶 "我明天再去。"',
-                    hint: '拖延一天.....吗',
-                    tag: '！！！',
+                    label: '🚶 "再缓一天行吗？"',
+                    hint: '她沉默了很久才点头',
+                    tag: '拖延一天.....吗',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDragonization(8);
@@ -2991,9 +2932,9 @@
                     }
                 },
                 {
-                    label: '❓ "如果我不去呢？"',
+                    label: '❓ "如果我……不去呢？"',
                     hint: '天王老子来了都得按我计划来',
-                    tag: '？！？！',
+                    tag: '她的眼神突然变得很冷',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDragonization(10);
@@ -3046,8 +2987,8 @@
             if (canClimb) {
                 // 虽然是被迫的，但至少准备好了
                 renderOptions([{
-                    label: '⛰️ 被迫登山（已准备好）',
-                    hint: '那就上山吧，没办法了',
+                    label: '⛰️ 被众人簇拥着往山上走	',
+                    hint: '你摸到腰间那块硬木',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDragonization(5);
@@ -3070,9 +3011,9 @@
             } else {
                 // 没有准备好就被迫上山 → 坏结局
                 renderOptions([{
-                    label: '⛰️ 被迫登山（未准备好）',
-                    hint: '不！！！！！',
-                    tag: '💀 ',
+                    label: '⛰️ 被推搡着踏上石阶',
+                    hint: '你手里什么也没有',
+                    tag: '不！！！！！ ',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         triggerEnding('BE5_祭品_被迫献祭');
@@ -3187,9 +3128,9 @@
     `);
             renderOptions([
                 {
-                    label: '🙏 顺从 · 跟她去土地庙',
-                    hint: '手背将被香灰烙印',
-                    tag: '？',
+                    label: '🙏 跟着她走进那座小庙',
+                    hint: '庙里光线很暗',
+                    tag: '烙印',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
                         state.flags.grayLine_choseComply = true;
@@ -3216,8 +3157,8 @@
                     }
                 },
                 {
-                    label: '🏃 逃跑 · 拒绝去土地庙',
-                    hint: '走为上',
+                    label: '🏃 找个借口转身走开',
+                    hint: '她在你身后站了很久',
                     tag: '避害',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -3262,9 +3203,9 @@
                     }
                 },
                 {
-                    label: '❓ 质问 · 为什么要用香灰烫人？',
-                    hint: '打破砂锅！',
-                    tag: '！！',
+                    label: '❓ "这香灰……有什么讲究吗？"',
+                    hint: '她的笑容僵了一瞬',
+                    tag: '试探',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
                         state.flags.grayLine_choseComply = false;
@@ -3362,7 +3303,7 @@
                 },
                 {
                     label: ' "你问这个做什么？"',
-                    hint: '试探 · 反问',
+                    hint: '她笑了笑没接话',
                     tag: '问问怎么了',
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -3476,9 +3417,9 @@
                     <span class="divider">—— —— ——</span>
                     你带着一份朦胧的期待，来到了邱龙村。村口立着一块斑驳的木牌，上面写着：
                     <span class="rule-text">「欢迎来到龙岭观前坑景区 · 请遵守游客守则」</span>
-                    你从公告栏上撕下了一份《游客守则》，纸张泛黄，墨迹有些晕染。
+                    墙上贴着一张纸，边角卷起，上面的字有些模糊了，你停下来看了一会儿。
                     <span class="divider">· · ·</span>
-                    <span style="color:var(--text-gold);">📜 你获得了全部基础规则：</span>
+                    <span style="color:var(--text-gold);">📜 你记住了纸上写的东西。：</span>
                 `);
                 const allBaseIds = ['base_1', 'base_2', 'base_3', 'base_4', 'base_5', 'base_6', 'base_7', 'base_8', 'base_9',
                     'base_10', 'base_11'
@@ -3498,7 +3439,7 @@
                     你感到，这里的一切似乎并不像表面那般宁静……
                     <span class="divider">· · ·</span>
                     你决定先做些什么？
-                    <span style="color:var(--text-muted);font-size:0.85rem;">收集？？条以上规则并？？后登山。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">你在村口站了一会儿，不知道该往哪走。。</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">请仔细阅读游客手册</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">到处逛逛，必有福报，必有福报。</span>
                 `);
@@ -3550,7 +3491,7 @@
                     }
 
                     setStory(`
-        <span class="title-line">🏚️ 废弃房屋 · 第三次探索</span>
+        <span class="title-line">🏚️ 废弃房屋</span>
         你再次来到这间废弃房屋，这一次你注意到书架后面似乎有一个暗格。
         你移开几本发霉的书，发现暗格里藏着一张泛黄的残纸：
         <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
@@ -3581,7 +3522,7 @@
                 // ---- 第2次访问且未获得书签：给予书签 ----
                 if (visitCount === 2 && !state.flags.hidden_hasBookmark) {
                     setStory(`
-                <span class="title-line">🏚️ 废弃房屋 · 第二次探索</span>
+                <span class="title-line">🏚️ 废弃房屋</span>
                 你再次走进这间废弃房屋，这一次你注意到床头柜的抽屉似乎没有完全合上。
                 你走过去，拉开抽屉——里面有一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
                 你拿起书签，发现背面刻着一行小字：
@@ -3604,7 +3545,7 @@
                     const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
                     if (nowHasAll && !state.flags.abandonedCompleteReady) {
                         state.flags.abandonedCompleteReady = true;
-                        showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……（草木灰显影已准备就绪）');
+                        showStory('你总觉得自己漏掉了什么，但又说不上来，或许下次再来会有新的发现……');
                     }
                     if (state.gameOver || state._waitingConfirm) return;
                     renderOptions([{
@@ -3623,7 +3564,7 @@
                     const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
                     if (availableHidden.length > 0) {
                         setStory(`
-                    <span class="title-line">🏚️ 废弃房屋 · 再次探索</span>
+                    <span class="title-line">🏚️ 废弃房屋</span>
                     你再次来到这间废弃房屋，在草木灰中又发现了一些模糊的字迹……
                     <span class="divider">· · ·</span>
                 `);
@@ -3756,11 +3697,11 @@
                     setStory(`
                 <span class="title-line">🏛️ 民俗部 · 第一次拜访</span>
                 你走进民俗部，一位穿着景区制服的工作人员正在整理文件。他抬头看了你一眼，放下手中的东西：
-                <span class="rule-text" style="color:#d4b87a;">「你是来参加社戏的吧？最近村里不太平，建议你不要上山。山里的东西……不是你能惹的。」</span>
+                <span class="rule-text" style="color:#d4b87a;">「你是来参加社戏的吧？最近村里不太平，他想了想，说了句“这两天不太平”，又补了一句“你非要上去的话，最好先看看北边那座庙”。」</span>
                 你正想追问，他却摆了摆手：<span class="rule-text" style="color:#d4b87a;">「别多问，听我一句劝。实在想了解什么，去村西看看，那边的婆娘比村东的嫂嫂知道得多。」</span>
                 说完，他低头继续整理文件，不再理你。
                 <span class="divider">· · ·</span>
-                <span style="color:#6a8aaa;">你获得了线索：村西可能藏着什么东西。</span>
+                <span style="color:#6a8aaa;">他的话说得含含糊糊，你不太确定是什么意思。</span>
             `);
                     // 不获得任何规则
                     changeDragonization(0);
@@ -3769,7 +3710,7 @@
                         label: '🚶 离开民俗部',
                         action: () => {
                             if (state.gameOver || state._waitingConfirm) return;
-                            setStory('你走出民俗部，工作人员的话在你脑中回响。村西……那里似乎是个关键。');
+                            setStory('你走出民俗部，工作人员的话在你脑中回响。村子的那头吗……那里似乎藏着什么。');
                             finishSceneAndReturn();
                         }
                     }]);
@@ -4224,7 +4165,7 @@
                 // 显示剩余规则数量提示
                 const remaining = available.length - 1;
                 if (remaining > 0) {
-                    showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">💡 王大爷似乎还有 ${remaining} 条消息没说。</span>`);
+                    showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">💡 他手里那叠牌又少了几张。</span>`);
                 } else {
                     showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">💡 王大爷已经把知道的都告诉你了。</span>`);
                 }
@@ -4372,7 +4313,7 @@
                 renderOptions([{
                     label: '📖 听她讲述真相',
                     hint: '获得重要信息',
-                    tag: '关键',
+
                     action: async () => {
                         if (state.gameOver || state._waitingConfirm) return;
 
@@ -4453,7 +4394,7 @@
                 }, {
                     label: '🔙 保持警惕，离开这里',
                     hint: '这不是你该来的地方',
-                    tag: '！！',
+
                     action: () => {
                         if (state.gameOver || state._waitingConfirm) return;
                         setStory(`
@@ -4614,7 +4555,7 @@
         一个老汉正在收拾摊子，看到你便停下来，指了指山上：
         <span class="rule-text" style="color:#d4b87a;">「游神队伍已经上山了，你现在去还能赶上尾巴。不过……你准备好了吗？」</span>
         <span class="divider">· · ·</span>
-        你摸了摸怀里的东西——那些在村子里收集的规则、信物、印记——心里有了底。
+        你下意识地按了按衣襟里的东西，硬硬的还在。
         <span class="divider">· · ·</span>
         <span style="color:var(--text-gold);">🎭 初始伪装值：${d}/5</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">${disguiseDesc}</span>
@@ -4622,9 +4563,9 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">💡 在集市上可以购买最多3样物品，为接下来的潜伏做准备。</span>
         <span class="divider">· · ·</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">你已收集 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
-        ${state.flags.hasPeachWood ? '<span style="color:#6ab06a;">✅ 你随身携带桃木吊坠，在某些场合可能派上用场。</span>' : ''}
+        ${state.flags.hasPeachWood ? '<span style="color:#6ab06a;">✅ 你摸了摸口袋里的木牌。</span>' : ''}
         ${state.flags.awakening.visited ? '<span style="color:#6ab06a;">✅ 你见过阿芹，知道队伍中可能有觉醒者内应。</span>' : ''}
-        ${state.flags.folkloreWarned ? '<span style="color:#6ab06a;">✅ 你见过民俗部人员，知道队伍有什么东西。</span>' : ''}
+        ${state.flags.folkloreWarned ? '<span style="color:#6ab06a;">✅ 你想起那个穿制服的人说的话，知道队伍有什么东西。</span>' : ''}
         <span class="divider">· · ·</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">📌 点击下方按钮进入山脚集市，开始你的潜伏之旅。</span>
     `);
@@ -4799,8 +4740,8 @@
 
             // ---- 1. 继续伪装（安全路线 → 道观大门） ----
             opts.push({
-                label: '🎭 继续伪装，跟随队伍进入道观',
-                hint: canFollow ? '保持伪装，安全路线' : '⚠️ 伪装或体力不足',
+                label: '🎭 低着头随人群往前走',
+                hint: canFollow ? '混在人群里最不显眼' : '⚠️ 伪装或体力不足',
                 tag: canFollow ? '安全' : '🔒 锁定',
                 disabled: !canFollow,
                 action: function () {
@@ -4827,9 +4768,9 @@
 
             // ---- 2. 解救纯阳体（冒险路线 → TE1 / BE2） ----
             opts.push({
-                label: '🗡️ 试图解救纯阳体',
+                label: '体	🗡️ 趁乱冲上那座高台，救人！',
                 hint: canRescue ? '体力-3，高风险' : '⚠️ 体力/伪装/道具不足',
-                tag: canRescue ? '💀 高风险' : '🔒 锁定',
+                tag: canRescue ? '你攥紧了袖中的硬物' : '🔒 锁定',
                 disabled: !canRescue,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -4909,8 +4850,8 @@
 
             // ---- 3. 找觉醒者内应（→ HE1 / BE6） ----
             opts.push({
-                label: '🌾 寻找觉醒者内应',
-                hint: canAwakening ? '暗语识别' : '你曾经听说过他们',
+                label: '🌾 留意头上扎青巾的人',
+                hint: canAwakening ? '阿芹曾说起过接头的法子' : '你曾经听说过他们',
                 tag: canAwakening ? (hasAwakeningTrust ? '可以离开吗' : '⚠️ 慎重！') : '🔒 锁定',
                 disabled: !canAwakening,
                 action: function () {
@@ -4972,9 +4913,9 @@
 
             // ---- 4. 找民俗部暗桩（→ HE2_被救助） ----
             opts.push({
-                label: '🪬 寻找民俗部暗桩',
-                hint: canFolklore ? '你想起了桃木吊坠' : '你曾经听说过他们',
-                tag: canFolklore ? '也许可以离开？？' : '🔒 锁定',
+                label: '🪬 找腰间挂小木牌的人桩',
+                hint: canFolklore ? '民俗部给过你那东西' : '你曾经听说过他们',
+                tag: canFolklore ? '你想起了桃木吊坠？？' : '🔒 锁定',
                 disabled: !canFolklore,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5013,9 +4954,9 @@
 
             // ---- 5. 逃向村西（→ HE1 / BE6） ----
             opts.push({
-                label: '🏃 逃向村西',
-                hint: canEscapeVillage ? '体力-2' : '⚠️ 体力不足',
-                tag: canEscapeVillage ? (hasAwakeningTrust ? '离开这里！！！' : '⚠️ 风险') : '🔒 锁定',
+                label: '🏃 趁乱往村子那头跑',
+                hint: canEscapeVillage ? '树林里密得看不见路' : '⚠️ 体力不足',
+                tag: canEscapeVillage ? (hasAwakeningTrust ? '体力-2' : '体力-2') : '🔒 锁定',
                 disabled: !canEscapeVillage,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5074,8 +5015,8 @@
 
             // ---- 6. 原地瘫坐（体力耗尽+心理崩溃 → BE3_惊扰） ----
             opts.push({
-                label: '😰 精疲力竭',
-                hint: canCollapse ? '体力耗尽' : '⚠️ 需要体力≤1',
+                label: '😰 腿一软坐倒在地',
+                hint: canCollapse ? '你实在撑不住了' : '⚠️ 需要体力≤1',
                 tag: canCollapse ? '💀 绝望' : '🔒 锁定',
                 disabled: !canCollapse,
                 action: function () {
@@ -5121,7 +5062,7 @@
             opts.push({
                 label: '🤔 再做考虑（返回）',
                 hint: canReconsider ? '体力-1，社戏进度+10%' : '无法返回',
-                tag: canReconsider ? '⚠️ 代价' : '🔒 锁定',
+                tag: canReconsider ? '🤔 退后两步再想想' : '🔒 锁定',
                 disabled: !canReconsider,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5251,17 +5192,17 @@
 
             // ---- 物品列表（分为核心物品和干扰物品） ----
             var coreItems = [
-                { id: 'incense', label: '🪔 买香（1束=3根）', hint: '来都来了', needRule: 'ch2_incense' },
-                { id: 'water', label: '💧 买水', hint: '甘甜的山泉水', needRule: 'ch2_water' },
-                { id: 'amulet', label: '🛡️ 买护身符', hint: '正统，佩戴', needRule: 'ch2_amulet' },
-                { id: 'straw', label: '👟 买草鞋', hint: '草鞋可以加......' },
-                { id: 'food', label: '🍞 买干粮', hint: '好吃，爱吃，能吃' },
+                { id: 'incense', label: '🪔 买香（1束=3根）', hint: '老汉说这东西跟神有关系', needRule: 'ch2_incense' },
+                { id: 'water', label: '💧 买竹筒装的泉水', hint: '水是从山涧里接的', needRule: 'ch2_water' },
+                { id: 'amulet', label: '🛡️ 买那块刻了纹路的木牌', hint: '木牌上的纹路看着有些年头了', needRule: 'ch2_amulet' },
+                { id: 'straw', label: '👟 买那双编得密实的草鞋', hint: '草鞋底子磨得很薄了' },
+                { id: 'food', label: '🍞 买那包油纸裹着的饼子', hint: '闻起来有股淡淡的药草味' },
             ];
 
             var junkItems = [
-                { id: 'compass', label: '🧭 买指南针', hint: '平平无奇的指南针' },
-                { id: 'sausage', label: '🌭 买根烤肠', hint: '热乎乎的烤肠' },
-                { id: 'fridge', label: '🧲 买冰箱贴', hint: '旅行必买手信' },
+                { id: 'compass', label: '🧭 买那个带指针的铁盒子', hint: '指针在盒子里转个不停' },
+                { id: 'sausage', label: '🌭 买根串在木签上的肉条', hint: '摊主说是山里的野味' },
+                { id: 'fridge', label: '🧲 买块印着风景的铁片', hint: '铁片上画着座道观' },
             ];
 
             var opts = [];
@@ -5428,8 +5369,8 @@
 
             // ---- 3. 情报打听 ----
             opts.push({
-                label: '📖 向老汉打听情报',
-                hint: '了解游神队伍',
+                label: '📖 跟卖货的老汉搭几句话',
+                hint: '他嘴里总念叨着些有的没的',
                 cost: '⚡1',
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5441,11 +5382,11 @@
                 <span class="title-line">📖 老汉的情报</span>
                 <span class="divider">—— —— ——</span>
                 老汉放下手中的活计，压低声音说：
-                <span class="rule-text" style="color:#d4b87a;">「游神队伍分三拨——尾巴上是香火后勤队，管着全队的香火；中间是戴面具的护卫队，那些都是被龙气染过的人；最前面是祭司先遣队，玄清先生就在那附近。」</span>
+                <span class="rule-text" style="color:#d4b87a;">“队伍这东西，你得看尾、看中、看头……尾上管着些物件，中间的……戴了东西，你分不清谁是谁。最前头的，你别靠近。”</span>
                 <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;">「你如果想混进去，走不同的路会遇到不同的人。主干道最安全，但追上的是后勤队；林间道能抄近路，但危险；祭坛径最近，但需要香火护体。」</span>
+                <span style="color:#d4b87a;">「你如果想混进去，走不同的路会遇到不同的人。“路有宽窄，宽的路上人多，窄的路上难走，还有一条……有东西挡着，得带点儿什么才能过去。”</span>
                 <span class="divider">· · ·</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你获得了关键情报：三条路对应三支队伍。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 他的话说得不明不白，你只能自己琢磨。</span>
                 ${!state.rules.includes('market_1') ? '<span style="color:var(--text-gold);">📜 你获得了一条新规则！</span>' : ''}
             `);
                     if (!state.rules.includes('market_1')) {
@@ -5466,8 +5407,8 @@
             if (!state.ch2.hasBeggedIncense && state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
                 opts.push({
                     label: '🙏 向老汉讨要香火',
-                    hint: '体力-1，伪装-1，获得1根香）',
-                    tag: '呵呵',
+                    hint: '他上下打量了你几眼',
+                    tag: '体力-1，伪装-1，获得1根香',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.ch2.hasBeggedIncense) {
@@ -5537,8 +5478,8 @@
             if (!state.ch2.hasStolenIncense && state.ch2.incenseRemaining < 3 && state.stamina >= 1) {
                 opts.push({
                     label: '🥷 偷摊贩的香火',
-                    hint: '体力-1，伪装-2，获得2根香（仅一次）',
-                    tag: '💀 风险',
+                    hint: '你心跳得厉害',
+                    tag: '体力-1，伪装-2，获得2根香（仅一次）',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.ch2.hasStolenIncense) {
@@ -5620,7 +5561,7 @@
             // ---- 6. "买个屁" —— 重置所有购买 ----
             opts.push({
                 label: '💨 买个屁，掉头就走',
-                hint: '什么都不买，直接离开',
+                hint: '在摊前站了一会儿，空手走开',
                 tag: '买卖不成自有仁义',
                 disabled: state.ch2.comedyReady,
                 action: function () {
@@ -5756,9 +5697,9 @@
             // ================================================================
             var disguiseStatus = '';
             var d = state.ch2.disguise;
-            if (d >= 4) disguiseStatus = '你看起来像是他们的一员，可以选择更冒险的路线。';
-            else if (d >= 3) disguiseStatus = '你勉强混在人群中，建议走相对安全的主干道。';
-            else if (d >= 2) disguiseStatus = '你显得有些格格不入，需要谨慎选择路线。';
+            if (d >= 4) disguiseStatus = '你混在人群里，不太扎眼。';
+            else if (d >= 3) disguiseStatus = '你总觉得有人在看你。';
+            else if (d >= 2) disguiseStatus = '你低着头，不想让人看到你的脸。';
             else disguiseStatus = '⚠️ 你的伪装很脆弱，一旦被注意就会暴露！';
 
             var ritualWarn = '';
@@ -5777,16 +5718,16 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火剩余：${state.ch2.incenseRemaining}/3根</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">⏳ 社戏进度：${state.ch2.ritualProgress}%</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🏔️ 主干道（向右）</span>
-        <span style="color:var(--text-muted);">宽阔的石板路，蜿蜒向上。</span>
+        <span style="color:#d4b87a;">🏔️宽阔的石板路，蜿蜒向上。</span>
+        <span style="color:var(--text-muted);">右边那条路宽，踩上去的石板有些松动，前面隐约有人影。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">📌好走的路， 可获得？？？。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🌲 林间密道（向左）</span>
-        <span style="color:var(--text-muted);">狭窄的小路，消失在密林深处。</span>
+        <span style="color:#d4b87a;">🌲 狭窄的小路，消失在密林深处。</span>
+        <span style="color:var(--text-muted);">左边那条路窄，草长得很高，像是很少有人走。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">📌 没那么好走的路，可获得？？？。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🕯️ 祭坛小径（正中）</span>
-        <span style="color:var(--text-muted);">一条不起眼的小径，路旁散落着香灰和符纸。</span>
+        <span style="color:#d4b87a;">🕯️ 一条不起眼的小径，路旁散落着香灰和符纸。</span>
+        <span style="color:var(--text-muted);">中间似乎还有一条路，你差点没看见，地上有些纸灰。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">📌 需香火护体，可获取？？？。</span>
         <span class="divider">· · ·</span>
         ${state.ch2.incenseRemaining > 0 ?
@@ -5803,9 +5744,9 @@
             // ---- 1. 主干道（安全，获取香火） ----
             var mainDisabled = state.stamina < 2;
             opts.push({
-                label: '🏔️ 走主干道',
-                hint: mainDisabled ? '⚠️ 体力不足' : '体力-2，获取香火+1',
-                tag: mainDisabled ? '⚠️ 体力不足' : '安全',
+                label: '🏔️ 走右边那条宽敞的路',
+                hint: mainDisabled ? '⚠️ 体力不足' : '路边插着几面褪了色的旗子',
+                tag: mainDisabled ? '⚠️ 体力不足' : '林间密道',
                 disabled: mainDisabled,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5846,9 +5787,9 @@
             // ---- 2. 林间密道（冒险，获取面具） ----
             var forestDisabled = state.stamina < 1;
             opts.push({
-                label: '🌲 走林间密道',
-                hint: forestDisabled ? '⚠️ 体力不足' : '体力-1，获得面具（伪装+1）',
-                tag: forestDisabled ? '⚠️ 体力不足' : '冒险',
+                label: '🌲 走左边那条窄路',
+                hint: forestDisabled ? '⚠️ 体力不足' : '路边长满了荆棘，需要小心前行',
+                tag: forestDisabled ? '⚠️ 体力不足' : '	路口的草被踩倒了一片',
                 disabled: forestDisabled,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5895,8 +5836,8 @@
             else altarTag = '捷径';
 
             opts.push({
-                label: '🕯️ 走祭坛小径',
-                hint: altarDisabled ? altarTag : '体力-1，香火-1，获得仪式情报（伪装+1）',
+                label: '🕯️ 走中间那条几乎看不见的小径',
+                hint: altarDisabled ? altarTag : '地上有些散落的灰烬',
                 tag: altarTag,
                 disabled: altarDisabled,
                 action: function () {
@@ -5944,8 +5885,8 @@
             // ---- 4. 返回集市（需要付出代价） ----
             var canReturn = state.stamina >= 1 && state.ch2.ritualProgress < 100;
             opts.push({
-                label: '🔙 返回集市（重新准备）',
-                hint: canReturn ? '体力-1，社戏进度+15%' : '无法返回',
+                label: '🔙折返回去再转转',
+                hint: canReturn ? '你总觉得忘了什么' : '无法返回',
                 tag: canReturn ? '⚠️ 代价' : '不可用',
                 disabled: !canReturn,
                 action: function () {
@@ -5960,7 +5901,7 @@
                     }
 
                     changeStamina(-1);
-                    advanceRitual(8);
+                    advanceRitual(15);
                     state.ch2.phase = 'market';
 
                     showStory(`
@@ -5987,9 +5928,9 @@
             // ---- 5. 彻底放弃，下山离开（→ BE4_半途而废） ----
             var canGiveUp = state.stamina >= 1;
             opts.push({
-                label: '😞 下山离开',
-                hint: canGiveUp ? '不走了，打道回府' : '⚠️ 体力不足',
-                tag: canGiveUp ? ' 放弃' : '🔒 锁定',
+                label: '😞 沿着来路往回走',
+                hint: canGiveUp ? '山脚下的村子亮起了灯火' : '⚠️ 体力不足',
+                tag: canGiveUp ? ' 打道回府' : '🔒 锁定',
                 disabled: !canGiveUp,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -6094,13 +6035,13 @@
             <span class="title-line">🌫️ 阴影遭遇</span>
             <span class="divider">—— —— ——</span>
             社戏的烟雾中，你看到前方有「带菌柄的鳞片状阴影」在移动。
-            你想起规则上的话——低头念「龙佑平安」可以安全通过。
-            你深吸一口气，照做了。
+            你脑子里闪过一个念头——好像有人说过，碰上这种情况该做什么来着？
+            你深吸一口气</span>
             <span class="divider">· · ·</span>
-            阴影在你面前晃动了几下，似乎犹豫了一下，然后缓缓散开。
-            你松了一口气，手心全是汗。
+            阴影在你面前晃动了几下，似乎犹豫了一下。
+            你手心全是汗。
             <span class="divider">· · ·</span>
-            <span style="color:#6ab06a;">✅ 你成功通过了阴影遭遇！（伪装+1）</span>
+            <span style="color:#6ab06a;"></span>
         `;
             } else {
                 storyText = `
@@ -6126,8 +6067,8 @@
                         changeDisguise(1);
                         showStory(`
                     <span class="divider">· · ·</span>
-                    <span style="color:#6ab06a;">✅ 你念出了咒语，阴影缓缓散去。</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">你安全地通过了。</span>
+                    <span style="color:#6ab06a;">✅ 你念出了咒语，阴影缓缓散去。你松了一口气，手心全是汗。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">✅ 你成功通过了阴影遭遇！（伪装+1）</span>
                 `);
                         advanceRitual(3);
                         state.ch2.hasEncounteredShadow = true;
@@ -6147,8 +6088,8 @@
                     }
                 });
                 options.push({
-                    label: '🙏 迅速跑开',
-                    hint: '三十六计跑为上',
+                    label: '🙏 趁乱钻进人群里',
+                    hint: '锣鼓声正好盖住你的动静',
                     tag: '避凶趋吉',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -6180,7 +6121,7 @@
                 // 低伪装：只有艰难选项
                 options.push({
                     label: '🙏 颤抖着念咒）',
-                    hint: '可能成功，也可能失败',
+                    hint: '你记不太清那句话了',
                     tag: '念了总比不念好',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -6221,7 +6162,7 @@
                     }
                 });
                 options.push({
-                    label: '🏃 立刻逃跑',
+                    label: '🏃 趁乱钻进人群里',
                     hint: '保住安全但暴露风险',
                     tag: '风浪越大鱼越贵',
                     action: function () {
@@ -6317,7 +6258,7 @@
                 storyText = `
             <span class="title-line">🧙 道士盘查</span>
             <span class="divider">—— —— ——</span>
-            一个道士拦住了你：「站住！香火呢？没有香火也敢来参加社戏？」
+            一个道士拦住了你，声音不高不低：“东西呢？”
             你感觉他的目光像刀子一样在你身上刮过。
             <span class="divider">· · ·</span>
             ${hasIncense ? '你有香火，可以出示。' : '你身上没有香火，这很麻烦……'}
@@ -6359,8 +6300,8 @@
                 // 中等或低伪装：需要选择应对方式
                 if (hasIncense) {
                     options.push({
-                        label: '🕯️ 出示香火',
-                        hint: '消耗1根香火',
+                        label: '🕯️ 从怀里摸出那束细香',
+                        hint: '道士盯着你的手',
                         tag: '还有存货吗',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
@@ -6393,8 +6334,8 @@
                 if (hasPeachWood) {
                     options.push({
                         label: '🪬 出示桃木吊坠',
-                        hint: '这个或许能用.....?',
-                        tag: '也许？',
+                        hint: '木牌在火把下泛着暗光',
+                        tag: '木牌在火把下泛着暗光',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             changeDisguise(1);
@@ -6424,9 +6365,9 @@
 
                 // 硬闯选项（风险高）
                 options.push({
-                    label: '💢 硬闯过去',
-                    hint: '体力-2，伪装-1',
-                    tag: '但是很有效不是吗',
+                    label: '💢 推开拦路的人冲过去',
+                    hint: '但是很有效不是吗',
+                    tag: '他的眼神让你脊背发凉',
                     disabled: state.stamina < 2,
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -6497,9 +6438,9 @@
                 var pickedRule = availableRules.length > 0 ? pick(availableRules) : null;
 
                 renderOptions([{
-                    label: '📖 记下老汉的话',
-                    hint: '获得一条路人信息',
-                    tag: '✅ 获得规则',
+                    label: '📖 停下来听他把话说完	',
+                    hint: '他的声音压得很低',
+                    tag: '获得一条路人信息',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         // 点击后才添加规则
@@ -6587,7 +6528,7 @@
             if (canListen) {
                 options.push({
                     label: '👂 停下来听路人说话',
-                    hint: '体力-1，获得1条路人信息',
+                    hint: '他的声音压得很低',
                     tag: '📜 规则',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -6624,7 +6565,7 @@
 
             options.push({
                 label: '🚶 继续赶路，不停留',
-                hint: '不消耗体力，但错过信息',
+                hint: '你总觉得不该多听',
                 tag: '跳过',
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -6709,10 +6650,8 @@
             <span class="title-line">👥 龙化者同行</span>
             <span class="divider">—— —— ——</span>
             你混入队伍中，身边的人走路的姿势很奇怪——脚后跟不着地，像是飘着走。
-            你想起大爷说过的话：「社戏队伍里那些扮神仙的，都是观里出来的，他们走路脚后跟不着地。」
-            <span class="divider">· · ·</span>
-            你必须模仿他们的走路方式才能混过去。
-            ${hasStrawSandals ? '<span style="color:#6ab06a;">👟 你有草鞋，模仿起来会轻松很多。</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">👟 你没有草鞋，模仿时会消耗更多体力。</span>'}
+            
+            ${hasStrawSandals ? '<span style="color:#6ab06a;">👟 你有草鞋，如果模仿会轻松很多。</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">👟 你没有草鞋，模仿时会消耗更多体力。</span>'}
         `;
             } else {
                 storyText = `
@@ -6748,9 +6687,9 @@
             } else if (d >= 2) {
                 // 中等伪装：需要选择
                 options.push({
-                    label: '🚶 正确模仿（脚后跟不着地）',
+                    label: '🚶 模仿（脚后跟不着地）',
                     hint: hasStrawSandals ? '体力不消耗，伪装+1' : '体力-1，伪装+1',
-                    tag: '做鬼也风流？？',
+                    tag: '花切大爷好像说过这事',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDisguise(1);
@@ -6788,7 +6727,7 @@
                 });
                 options.push({
                     label: '🚶 正常走路，嘴里念念有词）',
-                    hint: '我们不一样的路人',
+                    hint: '有人侧过头看了你一眼',
                     tag: '此举？？？',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -6818,9 +6757,9 @@
             } else {
                 // 低伪装：艰难选择
                 options.push({
-                    label: '😰 强行模仿',
-                    hint: '危险！！！！',
-                    tag: '💀 高风险',
+                    label: '😰 硬着头皮学他们的样子',
+                    hint: '你感觉腿在发抖',
+                    tag: '危险！！！',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         // 低伪装时强行模仿大概率失败
@@ -6873,9 +6812,9 @@
                     }
                 });
                 options.push({
-                    label: '🏃 立刻逃跑',
-                    hint: '危险！！！！',
-                    tag: '💀 风险',
+                    label: '🏃 转头钻进人堆里',
+                    hint: '身后传来一声低沉的喉音',
+                    tag: '危险！！！',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDisguise(-1);
@@ -7095,8 +7034,8 @@
             // ---- 1. 检查暗碑（只有获得完整线索才能触发） ----
             if (canFindDarkStele) {
                 opts.push({
-                    label: '📜 检查左立柱底座下的暗格',
-                    hint: '发现工匠暗碑，揭示全部真相',
+                    label: '📜 蹲下来摸柱脚的石砖缝',
+                    hint: '你记得有人提过柱基里藏着东西',
                     tag: '⭐ 重要',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -7118,8 +7057,8 @@
             // ---- 2. 推开大门（主线 → 第三章） ----
             var canEnter = state.stamina >= 1 && state.ch2.disguise >= 2;
             opts.push({
-                label: '🚪 推开大门，进入道观',
-                hint: canEnter ? '进入第三章' : '⚠️ 伪装或体力不足',
+                label: '🚪 推那扇漆色斑驳的木门',
+                hint: canEnter ? '门缝里透出灯火和诵经声' : '⚠️ 伪装或体力不足',
                 tag: canEnter ? '⭐ 主线' : '🔒 锁定',
                 disabled: !canEnter,
                 action: function () {
@@ -7161,8 +7100,8 @@
             // ---- 3. 门前上香（有香时） ----
             if (hasIncense && !state.ch2.incenseUsedAtGate) {
                 opts.push({
-                    label: '🕯️ 在门前上香',
-                    hint: '获得「香火护体」，消耗1根香',
+                    label: '🕯️ 把香插进门前的石炉里',
+                    hint: '旁边有人在做同样的事，消耗1根香',
                     tag: '增益',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -7207,9 +7146,9 @@
             }
 
             opts.push({
-                label: '直接进入道观',
+                label: '🚪 猛地推开门闯进去',
                 hint: canHardEnter ? hardEnterHint : '⚠️ 条件不满足',
-                tag: canHardEnter ? '危险！！！！' : '🔒 锁定',
+                tag: canHardEnter ? '你已没有退路了' : '🔒 锁定',
                 disabled: !canHardEnter,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -7257,8 +7196,8 @@
             // ---- 5. NE2_被标记的归来：转身离开 ----
             var canLeave = state.stamina >= 1;
             opts.push({
-                label: '🔙 犹豫不决，转身离开',
-                hint: canLeave ? '触发中立结局' : '⚠️ 体力不足',
+                label: '🔙 在门前站了很久，转身',
+                hint: canLeave ? '你总觉得背后有什么在看你' : '⚠️ 体力不足',
                 tag: canLeave ? '放弃' : '🔒 锁定',
                 disabled: !canLeave,
                 action: function () {
@@ -7299,8 +7238,8 @@
             // ---- 6. BE4_半途而废：体力不足时瘫坐 ----
             if (state.stamina <= 1) {
                 opts.push({
-                    label: '😞 精疲力竭，瘫坐在地',
-                    hint: '体力耗尽，彻底放弃',
+                    label: '😞 靠着门墩滑坐下去',
+                    hint: '你连站都站不住了',
                     tag: '💀 绝望',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -7545,16 +7484,18 @@
                     endingClass = 'ending-he';
                     desc = `
                 <span style="color:#5a3a1a;">🏃 你活了下来。</span>
-                你跌跌撞撞地冲进村西，阿芹和其他觉醒者接住了你。
+                你冲进村西的时候腿已经不听使唤了。阿芹扶住你，把你拖进了密室。
                 <span class="rule-text" style="color:#5a3a1a;">「快！阴血屏障——！」</span>
-                青色的光幕在你们面前升起，道观的追兵在屏障外停下了脚步。
+               阴血屏障升起来的那一刻，外面的脚步声停下了。
                 <span class="divider">· · ·</span>
-                你活了下来。代价是——你再也无法离开这片阴血覆盖的土地。
+                你的嘴在动，在说谢谢，但你不知道自己的嘴唇有没有真的张开。阿芹递给你一碗热的东西，你的手抖得接不住，汤洒在了裤腿上，烫得你回过神。
                 <span class="rule-text" style="color:#5a3a1a;">「欢迎回家。」</span>
-                阿芹说。
+                你活下来了。
+                后来你每天都坐在门廊下，看着村东的人来来往往。她们笑，你也跟着笑——学会了，笑到嘴唇发酸。偶尔有新人误入村西，你学着阿芹的样子去说话、去警告，说得越来越顺畅。
                 <span class="divider">· · ·</span>
                 <span style="color:#5a3a1a;">你失去了自由，但至少你保住了性命，也保住了自己的意识。</span>
-                <span style="color:#5a3a1a;">你将成为觉醒者的一员，继续监视道观的一举一动。</span>
+                <span style="color:#5a3a1a;">有一天你照镜子，发现自己也开始长东西了。额头上，小小的，像芽。</span>
+                你摸了摸它，又放下手，没有多吃惊。你记得很久以前自己好像是个别的人，但那些记忆已经不那么清楚了。你只记得那天跑了好久，跑了很远——然后跑到了这里。
                 <span class="divider">· · ·</span>
                 <span style="color:#5a3a1a;font-weight:700;">—— 幸存者 · 活着就是胜利 ——</span>
             `;
@@ -7568,12 +7509,17 @@
                 你压低声音，向那个挂着桃木牌的人低声说了一句暗语。对方瞳孔微缩，看了看四周，迅速将你拉到了一个隐蔽的角落。
                 <span class="rule-text" style="color:#5a3a1a;">「你怎么走到这里了？太危险了！」</span>
                 他压低声音，<span class="rule-text" style="color:#5a3a1a;">「先生的人一直在山上巡逻。你被盯上了。」</span>
-                他递给你一碗深褐色的符水，你喝下后感到体内的龙气被压制了不少。
+                符水灌下去的时候，你烧得像一块炭。桃木小牌的人按着你的肩膀说“咽下去，咽下去就好了”，你把碗沿咬出了裂痕。
                 <span class="rule-text" style="color:#5a3a1a;">「你算是幸运的——很多人到了这一步就再也回不去了。」</span>
                 他带你穿过一条密道，来到一个隐蔽的藏身处，墙上挂满了桃木牌，角落里堆着符纸。
                 <span class="rule-text" style="color:#5a3a1a;">「你暂时不能离开这座村子了。他们会找到你的。但至少——你活着。」</span>
-                <span class="divider">· · ·</span>
+                后来你退了烧，躺在满墙挂满符纸的小屋里。他给你裹了厚被子，说“天亮之前别动”，你就真的没动过。
+                <br>你盯着天花板上的木纹看了整整一夜，那些纹路像河流，你觉得自己正躺在水底。
+               
                 <span style="color:#5a3a1a;font-weight:700;">你及时得到了救助，但你也无法离开这座村子了。</span>
+                <span class="divider">只是你冬天开始怕冷，指节会发青，像被什么缠住。你把手揣进兜里，没人看见。
+                <br>你告诉自己一切都过去了。但每年重阳前后你都会做梦——梦见山里雾气像水一样漫上来，而你站在门里没有动。
+                <br>你在梦里等着什么。但你不承认。
                 <span style="color:#5a3a1a;font-weight:700;">—— 活着，就是最好的结局 ——</span>
             `;
                     break;
@@ -7600,7 +7546,7 @@
                     endingClass = 'ending-normal';
                     desc = `
                 <span style="color:#4a7a4a;">🏁 你选择了离开。</span>
-                你坐在缆车上，看着邱龙山在浓雾中渐渐远去。
+                你坐在缆车上，看着邱龙山在浓雾中渐渐远去。<br>
                 你放弃了——但你告诉自己，这是明智的选择。
                 <span class="divider">· · ·</span>
                 回到家后，你试图忘记那一切。但某个深夜，你从梦中惊醒——
@@ -7617,12 +7563,16 @@
                     title = '💀 结局 · 龙吟';
                     endingClass = 'ending-dragon';
                     desc = `
-                <span style="color:#cc3a2a;">🐉 你感到体内的龙气越来越重。</span>
-                皮肤开始泛起青黑色的鳞片，额头上鼓起硬块。
-                你的理智逐渐被龙气吞噬，你开始听到山中传来的呼唤声——
-                那是龙王爷在召唤你。
-                <span class="divider">· · ·</span>
-                你再也无法抵抗，一步步走向深山，走向道观……
+                <span style="color:#cc3a2a;">第一个注意到的是你的手。
+                你握笔的时候指节发紧，皮肤下面有什么在鼓动。你以为是累了，揉了揉——结果那一小块皮肤自己动了一下，像鱼腹抽搐。
+                <br>你不动了。
+                <br>你把灯调亮，死死盯着那只手。青黑色的斑纹在皮肤下面蔓延，像墨水滴进水里，慢得很，但你看见了。你伸出手去摸自己的脸，额头上有什么东西硬硬的，像木瘤，像骨刺。
+                <br>你推开窗户，山风扑进来——你闻到了什么，像血，像铁锈，像蘑菇撕开的气味。你忽然觉得那不是外面吹来的。
+                <br>是你自己散出来的
+                <br>你记得自己有过名字，有过日常，有过天亮关灯睡觉的习惯。但那些东西被什么顶住了，顶到了意识外面。
+                <br>你最后听到的是自己的声音。那不是你在说话。
+                <br>是龙。
+                <br>你咧嘴笑了，裂口一直咧到耳根。
                 <span style="color:#cc3a2a;font-weight:700;">你成为了龙王爷的又一个侍从。</span>
                 <span style="color:#cc5a4a;font-weight:700;">—— 龙气弥漫 · 万物皆化 ——</span>
             `;
@@ -7688,6 +7638,7 @@
                     endingClass = 'ending-corrupted';
                     desc = `
                 <span style="color:#ccaa3a;">⚠️ 你被村民簇拥着走上了山道。</span>
+                他们手搭着你，你迈一步，他们迈一步，你没回头。
                 他们的手像铁钳一样抓着你的胳膊。你挣扎过，但无济于事。
                 道观的大门在你面前打开。诵经声如潮水般涌来。
                 <span class="divider">· · ·</span>
@@ -7865,11 +7816,11 @@
                     break;
                 case 'HE1_幸存者':
                     achievementIcon = '🌅';
-                    achievementText = '「幸存者」—— 你在绝境中找到了活下去的路，代价是永远被困。';
+                    achievementText = '「幸存者」—— 你活着，但你再也回不去了。你想不清这是赢了还是输了。';
                     break;
                 case 'NE2_被标记的归来':
                     achievementIcon = '🏁';
-                    achievementText = '「被标记的归来」—— 你逃离了邱龙山，却永远无法逃离它对你的影响。';
+                    achievementText = '「被标记的归来」—— 你离开之后，常常在半夜醒来，总觉得自己还在那扇门外站着。';
                     break;
                 default:
                     achievementIcon = '🏆';
