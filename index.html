@@ -5770,7 +5770,7 @@
 
                     state.ch2.pathChosen = 'main';
                     state.ch2.phase = 'ritual_events';
-                    state.ch2.dramaPhase = 0;
+
                     state.ch2.km = 0;
                     state.ch2.mainProgress = 0;
                     changeStamina(-2);
@@ -5784,11 +5784,16 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已混入社戏队伍！</span>
             `);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '向祭坛方向走去',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 0;
                             renderRitualEvents();
                         }
-                    }, 400);
+                    }]);
                 }
             });
 
@@ -5808,7 +5813,7 @@
 
                     state.ch2.pathChosen = 'forest';
                     state.ch2.phase = 'ritual_events';
-                    state.ch2.dramaPhase = 0;
+
                     state.ch2.km = 0;
                     state.ch2.forestProgress = 0;
                     changeStamina(-1);
@@ -5823,11 +5828,16 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已混入社戏队伍！</span>
             `);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '向祭坛方向走去',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 0;
                             renderRitualEvents();
                         }
-                    }, 400);
+                    }]);
                 }
             });
 
@@ -5856,7 +5866,7 @@
 
                     state.ch2.pathChosen = 'altar';
                     state.ch2.phase = 'ritual_events';
-                    state.ch2.dramaPhase = 0;
+
                     state.ch2.km = 0;
                     state.ch2.altarProgress = 0;
                     changeStamina(-1);
@@ -5872,11 +5882,16 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已深入社戏队伍核心！</span>
             `);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '向祭坛方向走去',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 0;
                             renderRitualEvents();
                         }
-                    }, 400);
+                    }]);
                 }
             });
 
@@ -5909,18 +5924,24 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">当前社戏进度：${state.ch2.ritualProgress}%</span>
             `);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+                    renderOptions([{
+                        label: '⏩ 继续',
+                        hint: '回到集市',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 0;
                             renderChapter2();
                         }
-                    }, 300);
+                    }]);
+
                 }
             });
 
             // ---- 5. 彻底放弃，下山离开（→ BE4_半途而废） ----
             var canGiveUp = state.stamina >= 1;
             opts.push({
-                label: '😞 彻底放弃，下山离开',
+                label: '😞 下山离开',
                 hint: canGiveUp ? '不走了，打道回府' : '⚠️ 体力不足',
                 tag: canGiveUp ? ' 放弃' : '🔒 锁定',
                 disabled: !canGiveUp,
@@ -5948,11 +5969,17 @@
             `);
                     changeDragonization(5);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver) {
-                            triggerEnding('BE4_半途而废');
+                    renderOptions([{
+                        label: '离开',
+                        hint: '半途而废',
+                        tag: '→ 彻底放弃',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 0;
+                            renderChapter2();
                         }
-                    }, 800);
+                    }]);
+
                 }
             });
 
@@ -6058,13 +6085,19 @@
                 `);
                         advanceRitual(3);
                         state.ch2.hasEncounteredShadow = true;
-                        state.ch2.dramaPhase = 1;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 1;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
+
                     }
                 });
                 options.push({
@@ -6083,13 +6116,18 @@
                 `);
                         advanceRitual(5);
                         state.ch2.hasEncounteredShadow = true;
-                        state.ch2.dramaPhase = 1;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 1;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
                     }
                 });
             } else {
@@ -6122,13 +6160,18 @@
                             advanceRitual(5);
                         }
                         state.ch2.hasEncounteredShadow = true;
-                        state.ch2.dramaPhase = 1;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 1;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
                     }
                 });
                 options.push({
@@ -6147,13 +6190,18 @@
                 `);
                         advanceRitual(5);
                         state.ch2.hasEncounteredShadow = true;
-                        state.ch2.dramaPhase = 1;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 1;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
                     }
                 });
             }
@@ -6199,16 +6247,22 @@
                         if (state.gameOver || state._waitingConfirm) return;
                         // 点击后才应用效果
                         state.ch2.hasEncounteredTaoist = true;
-                        state.ch2.dramaPhase = 2;
+
                         advanceRitual(5);
                         // 伪装自然衰退：保持伪装需要持续消耗精力
                         changeDisguise(-1);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 2;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
+
                     }
                 }]);
                 setStory(storyText);
@@ -6274,13 +6328,18 @@
                     `);
                             advanceRitual(5);
                             state.ch2.hasEncounteredTaoist = true;
-                            state.ch2.dramaPhase = 2;
+
                             updateUI();
-                            setTimeout(function () {
-                                if (!state.gameOver && !state._waitingConfirm) {
-                                    renderRitualEvents();
+                            renderOptions([{
+                                label: '⏩ 继续前进',
+                                hint: '向祭坛方向走去',
+                                tag: '→ 继续',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    state.ch2.dramaPhase = 2;
+                                    renderRitualEvents();;
                                 }
-                            }, 300);
+                            }]);
                         }
                     });
                 }
@@ -6301,13 +6360,18 @@
                     `);
                             advanceRitual(5);
                             state.ch2.hasEncounteredTaoist = true;
-                            state.ch2.dramaPhase = 2;
+
                             updateUI();
-                            setTimeout(function () {
-                                if (!state.gameOver && !state._waitingConfirm) {
-                                    renderRitualEvents();
+                            renderOptions([{
+                                label: '⏩ 继续前进',
+                                hint: '向祭坛方向走去',
+                                tag: '→ 继续',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    state.ch2.dramaPhase = 2;
+                                    renderRitualEvents();;
                                 }
-                            }, 300);
+                            }]);
                         }
                     });
                 }
@@ -6334,13 +6398,18 @@
                 `);
                         advanceRitual(10);
                         state.ch2.hasEncounteredTaoist = true;
-                        state.ch2.dramaPhase = 2;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 2;
+                                renderRitualEvents();;
                             }
-                        }, 300);
+                        }]);
                     }
                 });
             }
@@ -6394,15 +6463,21 @@
                             });
                         }
                         advanceRitual(3);
-                        state.ch2.dramaPhase = 3;
+
                         // 伪装自然衰退：保持伪装需要持续消耗精力
                         changeDisguise(-1);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 3;
+                                renderRitualEvents();;
                             }
-                        }, 200);
+                        }]);
+
                     }
                 }]);
                 setStory(storyText);
@@ -6436,7 +6511,7 @@
                 // 低伪装自动触发惩罚
                 changeDisguise(-1);
                 advanceRitual(5);
-                state.ch2.dramaPhase = 3;
+
                 updateUI();
                 renderOptions([{
                     label: '🚶 继续前进',
@@ -6444,11 +6519,16 @@
                     tag: '→ 继续',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
-                                renderRitualEvents();
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 3;
+                                renderRitualEvents();;
                             }
-                        }, 200);
+                        }]);
                     }
                 }]);
                 setStory(storyText);
@@ -6479,13 +6559,18 @@
                         <span style="color:var(--text-muted);font-size:0.85rem;">⚡ 体力-1，⏳ 社戏进度+5%</span>
                     `);
                             advanceRitual(5);
-                            state.ch2.dramaPhase = 3;
+
                             updateUI();
-                            setTimeout(function () {
-                                if (!state.gameOver && !state._waitingConfirm) {
-                                    renderRitualEvents();
+                            renderOptions([{
+                                label: '⏩ 继续前进',
+                                hint: '向祭坛方向走去',
+                                tag: '→ 继续',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    state.ch2.dramaPhase = 3;
+                                    renderRitualEvents();;
                                 }
-                            }, 200);
+                            }]);
                         });
                     }
                 });
@@ -6503,13 +6588,18 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">⏳ 社戏进度+5%</span>
             `);
                     advanceRitual(5);
-                    state.ch2.dramaPhase = 3;
+
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
-                            renderRitualEvents();
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '向祭坛方向走去',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 3;
+                            renderRitualEvents();;
                         }
-                    }, 200);
+                    }]);
                 }
             });
 
@@ -6635,13 +6725,19 @@
                         }
                         advanceRitual(5);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 4;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+                        // 显示“继续”按钮，点击后进入下一事件
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 4;
                                 renderRitualEvents();
                             }
-                        }, 300);
+                        }]);
                     }
                 });
                 options.push({
@@ -6659,13 +6755,18 @@
                 `);
                         advanceRitual(5);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 4;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 4;
                                 renderRitualEvents();
                             }
-                        }, 300);
+                        }]);
                     }
                 });
             } else {
@@ -6711,13 +6812,18 @@
                             }
                         }
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 4;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 4;
                                 renderRitualEvents();
                             }
-                        }, 300);
+                        }]);
                     }
                 });
                 options.push({
@@ -6736,13 +6842,18 @@
                 `);
                         advanceRitual(10);
                         state.ch2.hasEncounteredDragonFollower = true;
-                        state.ch2.dramaPhase = 4;
+
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '向祭坛方向走去',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 4;
                                 renderRitualEvents();
                             }
-                        }, 300);
+                        }]);
                     }
                 });
             }
@@ -6825,11 +6936,7 @@
                     state.ch2.phase = 'pure_yang';
                     state.ch2.dramaPhase = 4;
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
-                            renderChapter2();
-                        }
-                    }, 300);
+                    renderChapter2();
                 }
             }]);
         }
