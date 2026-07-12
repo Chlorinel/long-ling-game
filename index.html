@@ -1605,33 +1605,16 @@
             var oldValue = state.stamina;
             state.stamina = clamp(state.stamina + delta, 0, state.maxStamina);
 
-            // 体力=0时触发危机检测
+            // 体力=0时触发检测
             if (state.stamina === 0 && oldValue > 0 && !state.gameOver) {
-                // 检查是否有干粮可以紧急恢复
-                if (state.ch2.hasDryFood && !state.ch2.usedFood) {
-                    showStory(`
-                <span style="color:#d45a5a;">⚠️ 你的体力已经耗尽！</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还有干粮，可以立即食用恢复体力。</span>
-            `);
-                } else if (state.ch2.incenseRemaining > 0) {
-                    showStory(`
-                <span style="color:#d45a5a;">⚠️ 你的体力已经耗尽！</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还有香火，可以燃香恢复体力（消耗1根香，体力+2，伪装+1）。</span>
-            `);
-                } else {
-                    // 没有任何恢复手段，进入"精疲力竭"状态
-                    showStory(`
-                <span style="color:#d45a5a;font-weight:700;">⚠️ 你精疲力竭了！</span>
-                你的双腿像灌了铅一样沉重，意识开始模糊。如果不立即休息，你可能撑不下去了……
-                <span style="color:var(--text-muted);font-size:0.85rem;">💡 选择「休息」可以恢复体力，但会推进社戏进度。</span>
-            `);
-                    state.ch2.exhausted = true;
+                if (state.flags.chapter2) {
+                    // 第二章：不显示具体恢复建议，由 handleExhaustionCh2 接管
+                    // 只显示一句简短描述，避免重复
+                    showStory('你感到体力不支，必须想办法恢复。');
                 }
             }
-
             updateUI();
         }
-
         // ---------- 检查体力的辅助函数 ----------
 
 
@@ -1864,7 +1847,81 @@
             }
             updateUI();
         }
+        function handleExhaustionCh2() {
+            if (state.gameOver || state._waitingConfirm) return;
 
+            // 检查是否有恢复手段
+            var hasDryFood = state.ch2.hasDryFood && !state.ch2.usedFood;
+            var hasIncense = state.ch2.incenseRemaining > 0;
+
+            // 如果没有恢复手段，直接进入夜间休息
+            if (!hasDryFood && !hasIncense) {
+                enterNight();
+                return;
+            }
+
+            // 显示恢复选项
+            var storyText = `
+        <span class="title-line">⚠️ 精疲力竭</span>
+        <span class="divider">—— —— ——</span>
+        你的体力已经耗尽（体力：0）。在倒下之前，你有机会恢复一些体力：
+        <span class="divider">· · ·</span>
+    `;
+
+            setStory(storyText);
+
+            var opts = [];
+
+            if (hasDryFood) {
+                opts.push({
+                    label: '🍞 食用干粮',
+                    hint: '恢复2点体力，龙化-3',
+                    tag: '恢复',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.ch2.usedFood = true;
+                        state.stamina = Math.min(state.stamina + 2, state.maxStamina);
+                        changeDragonization(-3);
+                        // 恢复后清除提示
+                        setStory('你狼吞虎咽地吃下干粮，体力恢复了一些（+2）。龙气稍微被压制（-3）。');
+                        updateUI();
+                        // 回到第二章主菜单
+                        renderChapter2();
+                    }
+                });
+            }
+
+            if (hasIncense) {
+                opts.push({
+                    label: '🕯️ 燃香恢复',
+                    hint: '消耗1根香，体力+2，伪装+1，龙化-5',
+                    tag: '恢复',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        changeIncense(-1);
+                        state.stamina = Math.min(state.stamina + 2, state.maxStamina);
+                        changeDisguise(1);
+                        changeDragonization(-5);
+                        setStory('你点燃一根香，香烟缭绕，你的体力恢复了一些（+2），伪装提升了（+1），龙气也被压制了（-5）。');
+                        updateUI();
+                        renderChapter2();
+                    }
+                });
+            }
+
+            // 添加放弃选项，进入夜间休息
+            opts.push({
+                label: '😴 放弃恢复，直接过夜',
+                hint: '进入夜间休息',
+                tag: '休息',
+                action: function () {
+                    if (state.gameOver || state._waitingConfirm) return;
+                    enterNight();
+                }
+            });
+
+            renderOptions(opts);
+        }
         // ================================================================
         //  夜间休息（先显示场景，再获取规则）
         // ================================================================
@@ -1891,7 +1948,7 @@
         <span class="divider">· · ·</span>
         <span style="color:#d4b87a;">你可以选择：</span>
         ${hasStrawSandals ? '<span style="color:var(--text-muted);font-size:0.85rem;">👟 你有草鞋，可以摸黑赶路。</span>' : '<span style="color:#aa4a4a;font-size:0.85rem;">⚠️ 你没有草鞋，无法在夜间快速赶路。</span>'}
-        ${hasIncense ? '<span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 你有香火，可以燃香祈福。</span>' : ''}
+        ${hasIncense ? '<span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 你有香火，但此时燃香并无益处。</span>' : ''}
         ${hasAmulet || hasPeachWood ? '<span style="color:var(--text-muted);font-size:0.85rem;">🔮 你有护身符类道具，可以布置防御。</span>' : ''}
         ${isInRitual ? '<span style="color:var(--text-muted);font-size:0.85rem;">📍 你正混在社戏队伍中，休息后会回到当前位置。</span>' : ''}
         请选择：
@@ -1935,18 +1992,7 @@
                     });
                 }
 
-                // ---- 选项3：燃香祈福（需要香） ----
-                if (hasIncense) {
-                    opts.push({
-                        label: '🕯️ 燃香祈福',
-                        hint: '焚香......',
-                        tag: '注意环境！',
-                        action: function () {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            incensePrayer();
-                        }
-                    });
-                }
+
 
                 // ---- 选项4：布置防御（需要护身符或桃木吊坠） ----
                 if (hasAmulet || hasPeachWood) {
@@ -4609,9 +4655,9 @@
             // ---- 基础检查 ----
             if (state.gameOver || state._waitingConfirm) return;
 
-            // ---- 体力为0 → 进入夜间休息 ----
+            // ---- 体力为0 → 进入判断 ----
             if (state.stamina === 0) {
-                enterNight();
+                handleExhaustionCh2();
                 return;
             }
 
@@ -7098,11 +7144,17 @@
             `);
                     state.ch2.phase = 'chapter3';
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '进入第三章',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+
                             renderChapter2();
                         }
-                    }, 500);
+                    }]);
                 }
             });
 
@@ -7128,11 +7180,17 @@
                     <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1，🕯️ 香火-1</span>
                 `);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+
+                        renderOptions([{
+                            label: '⏩ 继续前进',
+                            hint: '香火护体get',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+
                                 renderTempleGate();
                             }
-                        }, 400);
+                        }]);
                     }
                 });
             }
@@ -7182,11 +7240,17 @@
             `);
                     changeDragonization(5);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver) {
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '香火护体get',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver) return;
+
                             triggerEnding('BE2_大不敬');
                         }
-                    }, 800);
+                    }]);
+
                 }
             });
 
@@ -7253,11 +7317,17 @@
                 `);
                         changeDragonization(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
-                                triggerEnding('BE4_半途而废');
+                        renderOptions([{
+                            label: '⏩ 你放弃了',
+                            hint: '同化',
+                            tag: '→ 结束',
+                            action: function () {
+                                if (state.gameOver) return;
+
+                                triggerEnding('BE7_同化');
                             }
-                        }, 800);
+                        }]);
+
                     }
                 });
             }
@@ -7287,11 +7357,17 @@
                 `);
                         changeDragonization(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '你毫无防备的闯入',
+                            hint: '陷阱',
+                            tag: '→ 结束',
+                            action: function () {
+                                if (state.gameOver) return;
+
                                 triggerEnding('BE6_自投罗网');
                             }
-                        }, 800);
+                        }]);
+
                     }
                 });
             }
