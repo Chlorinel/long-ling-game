@@ -1197,7 +1197,7 @@
             'hidden_9': { id: 'hidden_9', text: '【草木灰显影】穿景区制服、挂桃木小牌的人能帮衬解围，但别跟他们说你见过这些字，说了他们就不管你了。' },
             'folk_1': { id: 'folk_1', text: '【民俗部密语】"村西的婆娘和村东的嫂嫂不是一路人，挂着桃木牌子的自己人说话也要留三分。"' },
             'card_important_1': { id: 'card_important_1', text: '【花切·规则1】大爷说："社戏队伍里那些扮神仙的，都是观里出来的，他们走路脚后跟不着地。"' },
-            'card_important_2': { id: 'card_important_2', text: '【花切·规则1】大爷说："雷击木是龙王爷的骨头，挂符要挂北面，南面是给先生留的。"' },
+            'card_important_2': { id: 'card_important_2', text: '【花切·规则1】大爷说："托龙王爷的福，才能睡得安稳。"' },
             'card_important_3': { id: 'card_important_3', text: '【花切·规则1】大爷说："村里辈分最高的阿婆，她养的那只黑猫，眼睛是竖着的，和观里的一样。"' },
             'card_useless_1': { id: 'card_useless_1', text: '【花切·规则2】大爷说："今天天气不错，适合晒菌子。"' },
             'card_useless_2': { id: 'card_useless_2', text: '【花切·规则2】大爷说："村口那棵银杏树，听说有几百年了。"' },
@@ -1729,7 +1729,7 @@
                     setStory(`
                 <span class="title-line">🌾 新的探索地点已解锁</span>
                 <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;">💡 你隐约感到，村西那个被村民禁止靠近的地方，似乎藏着什么重要的秘密……</span>
+                <span style="color:#d4b87a;">💡 你隐约感到，村西那个被村民禁止靠近的地方，似乎藏着不可靠近的东西……</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">📌 「前往村西聚居区」已添加到探索选项中（消耗2体力）。</span>
             `);
                     // 显示一个继续按钮
@@ -1791,7 +1791,7 @@
                 opts.push({
                     label: '🌾 去村子另一头转转',
                     hint: '那边的人看人的眼神不一样',
-                    cost: '⚡2',  // 消耗2体力，去村西路途遥远且风险高
+                    cost: '⚡1',  // 消耗2体力，去村西路途遥远且风险高
                     tag: '⚠️ 危险',
                     action: () => { goToScene('explore_awakening'); }
                 });
@@ -2257,7 +2257,7 @@
                 changeDragonization(0); // 无龙化变化
                 setStory(`
             <span class="title-line">🔥 窗外人影</span>
-            你盯着那道火光，直到它完全熄灭。你默默记下了那个方向——村西，那里一定有秘密。
+            你盯着那道火光，直到它完全熄灭。你默默记下了那个方向——村西。
             <span class="divider">· · ·</span>
             <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
         `);
@@ -4311,8 +4311,8 @@
         `);
 
                 renderOptions([{
-                    label: '📖 听她讲述真相',
-                    hint: '获得重要信息',
+                    label: '📖 能听吗？？？',
+                    hint: '手册上的禁止前往！！',
 
                     action: async () => {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -4756,13 +4756,20 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">你知道，你离真相越来越近了。</span>
             `);
                     advanceRitual(10);
-                    state.ch2.phase = 'temple_gate';
+
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver && !state._waitingConfirm) {
+                    renderOptions([{
+                        label: '⏩ 继续',
+                        hint: '进入道观',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+                            state.ch2.phase = 'temple_gate';
                             renderChapter2();
+
                         }
-                    }, 400);
+                    }]);
                 }
             });
 
@@ -4813,18 +4820,26 @@
                 `);
                         // 获得暗碑线索
                         state.flags.stele.hasClue = true;
-                        state.flags.stele.found = true;
+
                         // 龙化-5（善行带来的平静）
                         changeDragonization(-5);
                         advanceRitual(20);
                         // 进入第三章（完美结局路线）
-                        state.ch2.phase = 'chapter3';
+                        state.ch2.phase = 'temple_gate';
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+                        // 不自动跳转，让玩家点击“继续”按钮，避免体力耗尽检查覆盖剧情
+                        renderOptions([{
+                            label: '⏩ 继续',
+                            hint: '面对玄清',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                                 renderChapter2();
+
                             }
-                        }, 600);
+                        }]);
                     } else {
                         // ---- 失败！触发 BE2_大不敬 ----
                         showStory(`
@@ -4839,11 +4854,19 @@
                         changeDragonization(10);
                         advanceRitual(20);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '⏩ 继续',
+                            hint: '大不敬！！！',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                                 triggerEnding('BE2_大不敬');
+
                             }
-                        }, 800);
+                        }]);
+
                     }
                 }
             });
@@ -4869,7 +4892,7 @@
                     if (hasAwakeningTrust) {
                         // ---- 信任≥2 → HE1_幸存者 ----
                         showStory(`
-                    <span class="title-line">🌾 寻找觉醒者 · 成功</span>
+                    <span class="title-line">🌾 寻找觉醒者</span>
                     <span class="divider">—— —— ——</span>
                     你用暗语联系了队伍中戴青巾的人。对方的眼神瞬间变了——
                     <span class="rule-text" style="color:#d4b87a;">「阿芹的人？跟我走，快！」</span>
@@ -4883,15 +4906,24 @@
                 `);
                         advanceRitual(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '⏩ 继续',
+                            hint: '幸存者',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                                 triggerEnding('HE1_幸存者');
+
                             }
-                        }, 800);
+                        }]);
+
+
                     } else {
                         // ---- 信任不足 → BE6_自投罗网 ----
                         showStory(`
-                    <span class="title-line">🌾 寻找觉醒者 · 陷阱</span>
+                    <span class="title-line">🌾 寻找觉醒者</span>
                     <span class="divider">—— —— ——</span>
                     你用暗语联系了队伍中戴青巾的人。对方先是一愣，然后露出了一个诡异的笑容——
                     <span class="rule-text" style="color:#aa2a2a;">「你终于来了。先生等你好久了。」</span>
@@ -4902,11 +4934,19 @@
                         changeDragonization(10);
                         advanceRitual(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '⏩ 继续',
+                            hint: '幸存者',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                                 triggerEnding('BE6_自投罗网');
+
                             }
-                        }, 800);
+                        }]);
+
                     }
                 }
             });
@@ -4944,11 +4984,18 @@
                     changeDragonization(-5);
                     advanceRitual(10);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver) {
+                    renderOptions([{
+                        label: '⏩ 继续',
+                        hint: '被解救的人',
+                        tag: '→ 继续',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                             triggerEnding('HE2_被救助');
                         }
-                    }, 800);
+                    }]);
+
                 }
             });
 
@@ -4985,11 +5032,17 @@
                         changeDragonization(-3);
                         advanceRitual(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '⏩ 继续',
+                            hint: '被解救的人',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 体力可能为0，但剧情已经显示完毕，此时再进入体力耗尽处理
+
                                 triggerEnding('HE1_幸存者');
                             }
-                        }, 800);
+                        }]);
                     } else {
                         // ---- 无觉醒者信任 → BE6 ----
                         showStory(`
@@ -5004,11 +5057,17 @@
                         changeDragonization(10);
                         advanceRitual(10);
                         updateUI();
-                        setTimeout(function () {
-                            if (!state.gameOver) {
+                        renderOptions([{
+                            label: '⏩ 你自投罗网了',
+                            hint: '慌不择路',
+                            tag: '→ 结束',
+                            action: function () {
+                                if (state.gameOver) return;
+
                                 triggerEnding('BE6_自投罗网');
                             }
-                        }, 800);
+                        }]);
+
                     }
                 }
             });
@@ -5048,11 +5107,16 @@
                     changeDragonization(10);
                     advanceRitual(20);
                     updateUI();
-                    setTimeout(function () {
-                        if (!state.gameOver) {
+                    renderOptions([{
+                        label: '⏩ 惊扰',
+                        hint: '惊扰！！！！',
+                        tag: '→ 结束',
+                        action: function () {
+                            if (state.gameOver) return;
+
                             triggerEnding('BE3_惊扰');
                         }
-                    }, 800);
+                    }]);
                 }
             });
 
@@ -6921,7 +6985,7 @@
                     state.ch2.phase = 'pure_yang';
                     state.ch2.dramaPhase = 4;
                     updateUI();
-                    renderChapter2();
+                    renderPureYangChoice();
                 }
             }]);
         }
@@ -7081,7 +7145,7 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">${entryText}</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">前方的大殿灯火通明，诵经声越来越响……</span>
             `);
-                    state.ch2.phase = 'chapter3';
+
                     updateUI();
 
                     renderOptions([{
@@ -7090,7 +7154,7 @@
                         tag: '→ 继续',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
-
+                            state.ch2.phase = 'chapter3';
                             renderChapter2();
                         }
                     }]);
@@ -7135,14 +7199,14 @@
             }
 
             // ---- 4. BE2_大不敬：硬闯道观（无香时，或伪装极低时） ----
-            var canHardEnter = !hasIncense || state.ch2.disguise <= 1;
+            var canHardEnter = !hasIncense || state.ch2.disguise <= 2;
             var hardEnterHint = '';
-            if (!hasIncense && state.ch2.disguise > 1) {
+            if (!hasIncense && state.ch2.disguise > 2) {
                 hardEnterHint = '无香硬闯，极度危险';
-            } else if (state.ch2.disguise <= 1) {
+            } else if (state.ch2.disguise <= 2) {
                 hardEnterHint = '伪装已破，唯有硬闯';
             } else {
-                hardEnterHint = '⚠️ 需要无香或伪装≤1';
+                hardEnterHint = '⚠️ 需要无香或伪装≤2';
             }
 
             opts.push({
@@ -7344,7 +7408,7 @@
             //  第一步：检查是否发现石碑（在进入第三章剧情之前）
             // ============================================================
             var steleRevealed = false;
-            if (state.flags.stele.hasClue && !state.flags.stele.found) {
+            if (state.flags.stele.hasClue) {
                 if (!state.flags.stele._revealTriggered) {
                     state.flags.stele._revealTriggered = true;
                     steleRevealed = true;
