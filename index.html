@@ -1751,8 +1751,8 @@
 
             // ---------- 计算初始伪装值（进入第二章时调用） ----------
             function calculateInitialDisguise() {
-                // ---- 基础值为 0 ----
-                let disguise = 0;
+                // ---- 基础值为 2----
+                let disguise = 2;
 
                 // ================================================================
                 //  融入加分（证明“你是这里的人”）
@@ -1781,7 +1781,7 @@
                 //  计算最终值
                 // ================================================================
                 let final = disguise + integrationBonus - exposurePenalty;
-                final = clamp(final, 0, 4);
+                final = clamp(final, 1, 5);
                 return final;
             }
 
@@ -8529,6 +8529,19 @@
             //  结局渲染（纯显示，不修改 gameOver）
             // ================================================================
             function renderEndingContent(type) {
+                if (state._waitingConfirm) {
+                    state._waitingConfirm = false;
+                    state._confirmResolve = null;
+                    document.getElementById('rule-notification').classList.remove('show');
+                    const container = document.getElementById('options-area');
+                    const confirmBtn = container.querySelector('.confirm-btn');
+                    if (confirmBtn) confirmBtn.remove();
+                    document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(btn => {
+                        btn.style.pointerEvents = '';
+                        btn.style.opacity = '';
+                    });
+                }
+
                 var title = '💀 结局';
                 var desc = '';
                 var endingClass = '';
@@ -8963,7 +8976,7 @@
                     ending: true,
                     action: function () {
                         if (state._waitingConfirm) return;
-                        resetGame();
+                        startNewGame();
                     }
                 });
 
