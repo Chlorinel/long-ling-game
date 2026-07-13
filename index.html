@@ -5880,39 +5880,70 @@
 
                     // ---- 第4次及以上：交还银锁片 + 药庐解锁 ----
                     if (visitCount >= 4) {
-                        // ---- 检查是否可以交还银锁片 ----
+                        // ============================================================
+                        //  ⭐ 优先检查药庐解锁（放在最前面，不被其他分支拦截）
+                        // ============================================================
+                        const fragments = state.medicineHut.fragmentsCollected || [];
+                        const hasEnoughFragments = fragments.length >= 3;
+                        const hasVisitedAbandonedTwice = state.flags.abandonedVisitCount >= 2;
+
+                        if (hasEnoughFragments && hasVisitedAbandonedTwice && !state.medicineHut.unlocked) {
+                            state.medicineHut.unlocked = true;
+                            setStory(`
+            <span class="title-line">🏪 小卖部 · 药庐钥匙</span>
+            你正要离开，老妪忽然叫住了你。
+            <span class="rule-text" style="color:#d4b87a;">「年轻人，你等一下。」</span>
+            她从柜台底下摸出一把锈迹斑斑的钥匙，放在柜台上，推到你面前。
+            <span class="rule-text" style="color:#d4b87a;">「后山那间药庐……是先生以前坐诊的地方。后来他不去了，但里面的东西都没动过。你要是想查清楚什么，去那里看看吧。」</span>
+            你拿起钥匙，铁质的触感冰凉而沉重。
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">📌 你获得了「后山药庐的钥匙」！</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你现在可以去后山药庐探索了。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已收集 ${fragments.length} 个碎片，访问废弃房屋 ${state.flags.abandonedVisitCount} 次。</span>
+        `);
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderOptions([{
+                                label: '🔑 收好钥匙，离开',
+                                action: () => {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    setStory('你将钥匙小心收好，走出了小卖部。后山药庐……那里也许藏着答案。');
+                                    finishSceneAndReturn();
+                                }
+                            }]);
+                            return;
+                        }
+
+                        // ============================================================
+                        //  1. 检查是否可以交还银锁片
+                        // ============================================================
                         const canComplete = state.flags.oldLadyQuest.silverFound &&
                             !state.flags.oldLadyQuest.completed &&
                             state.flags.oldLadyQuest.triggered;
 
                         if (canComplete) {
                             setStory(`
-                    <span class="title-line">🏪 小卖部 · 归还银锁片</span>
-                    你走进小卖部，老妪正坐在柜台后面发呆。你走到她面前，从怀中取出那枚银锁片。
-                    <span class="rule-text" style="color:#d4b87a;">「老人家，我找到了这个。」</span>
-                    老妪猛地抬起头，看到银锁片的瞬间，她的手开始颤抖。
-                    她接过银锁片，紧紧攥在手里，泪水从布满皱纹的眼角滑落。
-                    <span class="rule-text" style="color:#d4b87a;">「是它……真的是它……我女儿的平安锁……」</span>
-                    她抬起头，声音哽咽：<span class="rule-text" style="color:#d4b87a;">「谢谢你……年轻人。我没有什么值钱的东西，这个你拿着——」</span>
-                    她从衣襟里取出一枚用红线穿着的骨白色小牌，塞到你手里。
-                    <span class="rule-text" style="color:#d4b87a;">「这是我年轻时从一个游方道人那里求来的护身符，说是能挡一次灾。我老婆子用不上了，你留着吧。」</span>
-                    <span class="divider">· · ·</span>
-                    <span style="color:#d4b87a;">📌 你获得了「老妪的护身符」！（一次性护身道具）</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 护身符可以抵挡一次致命伤害，在关键时刻也许能救你一命。</span>
-                    ${!state.flags.awakening.unlocked ? '<span style="color:#d4b87a;">📌 老妪还低声告诉你：「村西的婆娘们，和村东的不是一路人。你要是想活命，去村西找阿芹。」</span>' : ''}
-                `);
-
+            <span class="title-line">🏪 小卖部 · 归还银锁片</span>
+            你走进小卖部，老妪正坐在柜台后面发呆。你走到她面前，从怀中取出那枚银锁片。
+            <span class="rule-text" style="color:#d4b87a;">「老人家，我找到了这个。」</span>
+            老妪猛地抬起头，看到银锁片的瞬间，她的手开始颤抖。
+            她接过银锁片，紧紧攥在手里，泪水从布满皱纹的眼角滑落。
+            <span class="rule-text" style="color:#d4b87a;">「是它……真的是它……我女儿的平安锁……」</span>
+            她抬起头，声音哽咽：<span class="rule-text" style="color:#d4b87a;">「谢谢你……年轻人。我没有什么值钱的东西，这个你拿着——」</span>
+            她从衣襟里取出一枚用红线穿着的骨白色小牌，塞到你手里。
+            <span class="rule-text" style="color:#d4b87a;">「这是我年轻时从一个游方道人那里求来的护身符，说是能挡一次灾。我老婆子用不上了，你留着吧。」</span>
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">📌 你获得了「老妪的护身符」！（一次性护身道具）</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 护身符可以抵挡一次致命伤害，在关键时刻也许能救你一命。</span>
+            ${!state.flags.awakening.unlocked ? '<span style="color:#d4b87a;">📌 老妪还低声告诉你：「村西的婆娘们，和村东的不是一路人。你要是想活命，去村西找阿芹。」</span>' : ''}
+        `);
                             state.flags.oldLadyQuest.completed = true;
                             state.flags.oldLadyQuest.hasAmulet = true;
-
                             if (!state.flags.awakening.unlocked) {
                                 state.flags.folkloreWarned = true;
                             }
-
                             if (!state.rules.includes('old_lady_reward')) {
                                 await addRule('old_lady_reward');
                             }
-
                             if (state.gameOver || state._waitingConfirm) return;
                             renderOptions([{
                                 label: '🙏 道谢，离开',
@@ -5925,16 +5956,18 @@
                             return;
                         }
 
-                        // ---- 如果任务已完成 ----
+                        // ============================================================
+                        //  2. 如果任务已完成
+                        // ============================================================
                         if (state.flags.oldLadyQuest.completed) {
                             setStory(`
-                    <span class="title-line">🏪 小卖部</span>
-                    你再次走进小卖部。老妪看到你，露出了慈祥的笑容：
-                    <span class="rule-text" style="color:#d4b87a;">「是你啊……孩子。那护身符带着还合身吗？好好收着，能保命的。」</span>
-                    她的心情看起来好了很多。
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">老妪已经没有什么新消息了。</span>
-                `);
+            <span class="title-line">🏪 小卖部</span>
+            你再次走进小卖部。老妪看到你，露出了慈祥的笑容：
+            <span class="rule-text" style="color:#d4b87a;">「是你啊……孩子。那护身符带着还合身吗？好好收着，能保命的。」</span>
+            她的心情看起来好了很多。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">老妪已经没有什么新消息了。</span>
+        `);
                             if (state.gameOver || state._waitingConfirm) return;
                             renderOptions([{
                                 label: '🚶 离开小卖部',
@@ -5947,15 +5980,17 @@
                             return;
                         }
 
-                        // ---- 任务已触发但银锁片未找到 ----
+                        // ============================================================
+                        //  3. 任务已触发但银锁片未找到
+                        // ============================================================
                         if (state.flags.oldLadyQuest.triggered && !state.flags.oldLadyQuest.silverFound) {
                             setStory(`
-                    <span class="title-line">🏪 小卖部</span>
-                    你走进小卖部，老妪看到你，眼中带着期待：
-                    <span class="rule-text" style="color:#d4b87a;">「孩子……找到了吗？那银锁片……我女儿的遗物……」</span>
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还没有找到银锁片。线索：废弃房屋的暗格里。</span>
-                `);
+            <span class="title-line">🏪 小卖部</span>
+            你走进小卖部，老妪看到你，眼中带着期待：
+            <span class="rule-text" style="color:#d4b87a;">「孩子……找到了吗？那银锁片……我女儿的遗物……」</span>
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还没有找到银锁片。线索：废弃房屋的暗格里。</span>
+        `);
                             if (state.gameOver || state._waitingConfirm) return;
                             renderOptions([{
                                 label: '🚶 离开小卖部',
@@ -5968,15 +6003,17 @@
                             return;
                         }
 
-                        // ---- 有银锁片但没有触发任务（即先找到了物品再接任务） ----
+                        // ============================================================
+                        //  4. 有银锁片但没有触发任务
+                        // ============================================================
                         if (state.flags.oldLadyQuest.silverFound && !state.flags.oldLadyQuest.triggered) {
                             state.flags.oldLadyQuest.triggered = true;
                             setStory(`
-                    <span class="title-line">🏪 小卖部</span>
-                    老妪看到你，正要说话，你突然想起了那枚银锁片。
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你身上有一枚银锁片，似乎就是老妪丢失的那枚。</span>
-                `);
+            <span class="title-line">🏪 小卖部</span>
+            老妪看到你，正要说话，你突然想起了那枚银锁片。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你身上有一枚银锁片，似乎就是老妪丢失的那枚。</span>
+        `);
                             if (state.gameOver || state._waitingConfirm) return;
                             renderOptions([{
                                 label: '📜 拿出银锁片，询问老妪',
@@ -5995,45 +6032,16 @@
                             return;
                         }
 
-                        // ---- 【药庐解锁】检查条件 ----
-                        const fragments = state.medicineHut.fragmentsCollected || [];
-                        const hasEnoughFragments = fragments.length >= 3;
-                        const hasVisitedAbandonedTwice = state.flags.abandonedVisitCount >= 2;
-
-                        if (hasEnoughFragments && hasVisitedAbandonedTwice && !state.medicineHut.unlocked) {
-                            state.medicineHut.unlocked = true;
-                            setStory(`
-                    <span class="title-line">🏪 小卖部 · 药庐钥匙</span>
-                    你正要离开，老妪忽然叫住了你。
-                    <span class="rule-text" style="color:#d4b87a;">「年轻人，你等一下。」</span>
-                    她从柜台底下摸出一把锈迹斑斑的钥匙，放在柜台上，推到你面前。
-                    <span class="rule-text" style="color:#d4b87a;">「后山那间药庐……是先生以前坐诊的地方。后来他不去了，但里面的东西都没动过。你要是想查清楚什么，去那里看看吧。」</span>
-                    你拿起钥匙，铁质的触感冰凉而沉重。
-                    <span class="divider">· · ·</span>
-                    <span style="color:#d4b87a;">📌 你获得了「后山药庐的钥匙」！</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你现在可以去后山药庐探索了。</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已收集 ${fragments.length} 个碎片，访问废弃房屋 ${state.flags.abandonedVisitCount} 次。</span>
-                `);
-                            if (state.gameOver || state._waitingConfirm) return;
-                            renderOptions([{
-                                label: '🔑 收好钥匙，离开',
-                                action: () => {
-                                    if (state.gameOver || state._waitingConfirm) return;
-                                    setStory('你将钥匙小心收好，走出了小卖部。后山药庐……那里也许藏着答案。');
-                                    finishSceneAndReturn();
-                                }
-                            }]);
-                            return;
-                        }
-
-                        // ---- 默认：老太太不再说话 ----
+                        // ============================================================
+                        //  5. 默认：老太太不再说话
+                        // ============================================================
                         setStory(`
-                <span class="title-line">🏪 小卖部</span>
-                你再次走进小卖部。老妪坐在柜台后面，不再说话，只是一动不动地盯着你。
-                她的眼神空洞而平静，像是早已看透了你的命运。
-                <span class="divider">· · ·</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">老妪不再开口，她的沉默比任何话语都更令人不安。</span>
-            `);
+        <span class="title-line">🏪 小卖部</span>
+        你再次走进小卖部。老妪坐在柜台后面，不再说话，只是一动不动地盯着你。
+        她的眼神空洞而平静，像是早已看透了你的命运。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">老妪不再开口，她的沉默比任何话语都更令人不安。</span>
+    `);
                         changeDragonization(0);
                         if (state.gameOver || state._waitingConfirm) return;
                         renderOptions([{
