@@ -3135,7 +3135,10 @@
                 if (endingClass) {
                     el.classList.add(endingClass);
                 }
-                showStory(text);
+                // 直接设置 innerHTML，不依赖 showStory
+                el.innerHTML = text.replace(/\n/g, '<br>');
+                const area = document.getElementById('story-area');
+                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
             }
             // ================================================================
             //  🎵 Web Audio 音效引擎（BGM + 铃铛音效）
