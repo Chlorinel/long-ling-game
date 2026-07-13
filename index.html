@@ -1581,11 +1581,11 @@
             }
             // ---- 辅助函数：记录碎片 ----
             function recordFragment(fragmentId) {
-                if (!state.flags.medicineHut.fragmentsCollected) {
-                    state.flags.medicineHut.fragmentsCollected = [];
+                if (!state.medicineHut.fragmentsCollected) {
+                    state.medicineHut.fragmentsCollected = [];
                 }
-                if (!state.flags.medicineHut.fragmentsCollected.includes(fragmentId)) {
-                    state.flags.medicineHut.fragmentsCollected.push(fragmentId);
+                if (!state.medicineHut.fragmentsCollected.includes(fragmentId)) {
+                    state.medicineHut.fragmentsCollected.push(fragmentId);
                 }
             }
             // ================================================================
@@ -1773,7 +1773,7 @@
                 let exposurePenalty = 0;
 
                 if (state.flags.awakening.visited) exposurePenalty += 2;
-                if (state.flags.medicineHut.visited) exposurePenalty += 1;
+                if (state.medicineHut.visited) exposurePenalty += 1;
                 if (state.flags.folkloreVisitCount >= 3) exposurePenalty += 1;
                 if (state.flags.hasDragonScale) exposurePenalty += 1;
 
@@ -2000,6 +2000,7 @@
 
             // ---------- 主菜单 ----------
             function renderMainOptions() {
+
                 // ---- 新增：早晨事件完成后的压力事件兜底检测 ----
                 if (state._morningEventProcessed && !state.flags.chapter2 && !state.gameOver && !state._waitingConfirm) {
                     state._morningEventProcessed = false; // 防止重复检测
@@ -2100,7 +2101,7 @@
                     });
                 }
                 // 改为：只要解锁了就能进，不限次数
-                if (state.flags.medicineHut.unlocked && !state.flags.chapter2 && !state.gameOver) {
+                if (state.medicineHut.unlocked && !state.flags.chapter2 && !state.gameOver) {
                     opts.push({
                         label: '🏚️ 去后山药庐看看',
                         hint: '老妪提到的那间旧屋子',
@@ -4200,7 +4201,7 @@
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             // 在退出前检查隐藏老人条件
-                            if (state.flags.medicineHutDone && state.flags.abandonedVisitCount >= 1 && !state.flags.oldManTalkTriggered) {
+                            if (state.medicineHutDone && state.flags.abandonedVisitCount >= 1 && !state.flags.oldManTalkTriggered) {
                                 triggerOldMan();
                                 return;
                             }
@@ -4721,12 +4722,12 @@
                         }
 
                         // ---- 【药庐解锁】检查条件 ----
-                        const fragments = state.flags.medicineHut.fragmentsCollected || [];
+                        const fragments = state.medicineHut.fragmentsCollected || [];
                         const hasEnoughFragments = fragments.length >= 3;
                         const hasVisitedAbandonedTwice = state.flags.abandonedVisitCount >= 2;
 
-                        if (hasEnoughFragments && hasVisitedAbandonedTwice && !state.flags.medicineHut.unlocked) {
-                            state.flags.medicineHut.unlocked = true;
+                        if (hasEnoughFragments && hasVisitedAbandonedTwice && !state.medicineHut.unlocked) {
+                            state.medicineHut.unlocked = true;
                             setStory(`
                     <span class="title-line">🏪 小卖部 · 药庐钥匙</span>
                     你正要离开，老妪忽然叫住了你。
@@ -4890,14 +4891,14 @@
                     if (state.gameOver) return;
 
                     // ---- 标记已访问 ----
-                    if (!state.flags.medicineHut.visited) {
-                        state.flags.medicineHut.visited = true;
+                    if (!state.medicineHut.visited) {
+                        state.medicineHut.visited = true;
                     }
                     // 增加探索计数
-                    state.flags.medicineHut.exploredCount = (state.flags.medicineHut.exploredCount || 0) + 1;
+                    state.medicineHut.exploredCount = (state.medicineHut.exploredCount || 0) + 1;
 
                     // ---- 获取当前状态 ----
-                    const itemsTaken = state.flags.medicineHut.itemsTaken || [];
+                    const itemsTaken = state.medicineHut.itemsTaken || [];
                     const visitedCount = itemsTaken.length; // 已查看的位置数
                     const maxVisits = 2; // 最多查看2个位置
                     const canVisitMore = visitedCount < maxVisits && state.stamina >= 1 && !state.gameOver;
@@ -4963,7 +4964,7 @@
                                 // 消耗体力
                                 changeStamina(-1);
                                 // 标记已取走
-                                state.flags.medicineHut.itemsTaken.push(pos.id);
+                                state.medicineHut.itemsTaken.push(pos.id);
                                 // 添加规则
                                 if (!state.rules.includes(pos.ruleId)) {
                                     await addRule(pos.ruleId);
@@ -5007,10 +5008,10 @@
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             // 如果至少查看了一个位置，标记药庐完成
-                            if (state.flags.medicineHut.itemsTaken.length > 0) {
-                                state.flags.medicineHutDone = true;
+                            if (state.medicineHut.itemsTaken.length > 0) {
+                                state.medicineHutDone = true;
                             }
-                            setStory(`你走出了药庐，轻轻带上了门。${state.flags.medicineHutDone ? '你带走了药庐中的线索，心中的疑云似乎有了新的方向。' : '你空手而归，但至少确认了药庐的存在。'}`);
+                            setStory(`你走出了药庐，轻轻带上了门。${state.medicineHutDone ? '你带走了药庐中的线索，心中的疑云似乎有了新的方向。' : '你空手而归，但至少确认了药庐的存在。'}`);
                             finishSceneAndReturn();
                         }
                     });
@@ -5303,9 +5304,9 @@
                 //  第一步：读取第一章完成状态
                 // ================================================================
                 var hasVillageWest = state.flags.villageWestDone || false;
-                var hasMedicineHut = state.flags.medicineHutDone || state.flags.medicineHut.visited;
-                var trustLevel = state.flags.medicineHut.trustLevel || 0;
-                var hasThirdPath = state.flags.medicineHut.itemsTaken && state.flags.medicineHut.itemsTaken.includes('letter');
+                var hasMedicineHut = state.medicineHutDone || state.medicineHut.visited;
+                var trustLevel = state.medicineHut.trustLevel || 0;
+                var hasThirdPath = state.medicineHut.itemsTaken && state.medicineHut.itemsTaken.includes('letter');
 
                 // ================================================================
                 //  第二步：重置 ch2 为初始状态（包含新字段）
@@ -6829,7 +6830,7 @@
                         state.ch2.hasMask = true;
 
                         // ---- 检查是否解锁了药庐（影响草药选项） ----
-                        var hasMedicineHut = state.flags.medicineHutDone || state.flags.medicineHut.visited;
+                        var hasMedicineHut = state.medicineHutDone || state.medicineHut.visited;
 
                         showStory(`
                 <span class="divider">· · ·</span>
@@ -9130,7 +9131,9 @@
                     hasTaoistInfo: false,          // 是否从道士处获得额外情报
                     hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
                 }
+
                 state.flags.chapter2 = true;
+
                 state.stamina = state.maxStamina;
                 state.actionsToday = 0;
                 state._waitingConfirm = false;
@@ -9156,87 +9159,94 @@
                 state.stamina = 3;
                 state.actionsToday = 0;
                 state.weekCount = 0;
-
-                // ---- 重置 flags（保留规则、龙化、桃木吊坠等关键数据） ----
-                state.flags = {
-                    hasSleptInVillage: false,
-                    folkloreWarned: state.flags.folkloreWarned || false,
-                    shopRhymeIndex: 0,
-                    chapter2: false,
-                    hasPeachWood: state.flags.hasPeachWood || false,
-                    abandonedCompleteReady: false,
-                    abandonedHiddenTriggered: false,
-                    abandonedVisitCount: 0,
-                    hidden_hasBookmark: state.flags.hidden_hasBookmark || false,
-                    hidden_hasBrand: state.flags.hidden_hasBrand || false,
-                    hidden_sleepCount: 0,
-                    hidden_teaCount: 0,
-                    hidden_answeredCode: state.flags.hidden_answeredCode || false,
-                    hidden_unlocked: state.flags.hidden_unlocked || false,
-                    morningEvents: {
-                        day2_grayLine_triggered: false,
-                        day3_code_triggered: false,
-                        day4_code_triggered: false,
-                        day5_code_triggered: false,
-                    },
-                    grayLine_choseComply: false,
-                    folkloreVisitCount: 0,
-                    shopVisitCount: 0,
-                    cardVisitCount: 0,
-                    hasYinBloodPotion: state.flags.hasYinBloodPotion || false,
-                    nightEvents: {
-                        dream: false,
-                        knock: false,
-                        window: false,
-                        dream_defense: false,  // 护玄清版嫂嫂梦话
-                    },
-                    awakening: {
-                        unlocked: state.flags.awakening.unlocked || false,
-                        visited: state.flags.awakening.visited || false,
-                        trustLevel: state.flags.awakening.trustLevel || 0,
-                        hasCharm: state.flags.awakening.hasCharm || false,
-                        greeted: state.flags.awakening.greeted || false,
-                    },
-                    stele: {
-                        found: state.flags.stele.found || false,
-                        decoded: state.flags.stele.decoded || false,
-                        piecesFound: state.flags.stele.piecesFound || 0,
-                        hasClue: state.flags.stele.hasClue || false,
-                        _revealTriggered: state.flags.stele._revealTriggered || false,
-                    },
-                    oldLadyQuest: {
-                        triggered: state.flags.oldLadyQuest.triggered || false,
-                        silverFound: state.flags.oldLadyQuest.silverFound || false,
-                        completed: state.flags.oldLadyQuest.completed || false,
-                        hasAmulet: state.flags.oldLadyQuest.hasAmulet || false,
-                    },
-                    pressure: {
-                        level: 0,
-                        dayEvents: {
-                            day3_triggered: false,
-                            day4_triggered: false,
-                            day5_triggered: false,
-                            day6_triggered: false,
+                state.medicineHut = {
+                    unlocked: false,
+                    visited: false,
+                    fragmentsCollected: [],  // 收集的碎片ID列表
+                    itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
+                    exploredCount: 0,
+                    trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+                },
+                    // ---- 重置 flags（保留规则、龙化、桃木吊坠等关键数据） ----
+                    state.flags = {
+                        hasSleptInVillage: false,
+                        folkloreWarned: state.flags.folkloreWarned || false,
+                        shopRhymeIndex: 0,
+                        chapter2: false,
+                        hasPeachWood: state.flags.hasPeachWood || false,
+                        abandonedCompleteReady: false,
+                        abandonedHiddenTriggered: false,
+                        abandonedVisitCount: 0,
+                        hidden_hasBookmark: state.flags.hidden_hasBookmark || false,
+                        hidden_hasBrand: state.flags.hidden_hasBrand || false,
+                        hidden_sleepCount: 0,
+                        hidden_teaCount: 0,
+                        hidden_answeredCode: state.flags.hidden_answeredCode || false,
+                        hidden_unlocked: state.flags.hidden_unlocked || false,
+                        morningEvents: {
+                            day2_grayLine_triggered: false,
+                            day3_code_triggered: false,
+                            day4_code_triggered: false,
+                            day5_code_triggered: false,
                         },
-                        lastWarnDay: 0,
-                        forcedAction: false,
-                        hasTempleWarning: false,
-                    },
-                    // 新增：保证觉醒者/石碑相关标记能带入第二章
-                    hasDragonScale: state.flags.hasDragonScale || false,
-                    hasShadowSecret: false,        // 是否从阴影中获得低语情报
-                    hasTaoistInfo: false,          // 是否从道士处获得额外情报
-                    hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
-                    _abandonedPositions: {
-                        wall: false,
-                        talisman: false,
-                        shrine: false,
-                        pot: false,
-                        desk: false,
-                        bedside: false,
-                        ash: false,
-                    },
-                };
+                        grayLine_choseComply: false,
+                        folkloreVisitCount: 0,
+                        shopVisitCount: 0,
+                        cardVisitCount: 0,
+                        hasYinBloodPotion: state.flags.hasYinBloodPotion || false,
+                        nightEvents: {
+                            dream: false,
+                            knock: false,
+                            window: false,
+                            dream_defense: false,  // 护玄清版嫂嫂梦话
+                        },
+                        awakening: {
+                            unlocked: state.flags.awakening.unlocked || false,
+                            visited: state.flags.awakening.visited || false,
+                            trustLevel: state.flags.awakening.trustLevel || 0,
+                            hasCharm: state.flags.awakening.hasCharm || false,
+                            greeted: state.flags.awakening.greeted || false,
+                        },
+                        stele: {
+                            found: state.flags.stele.found || false,
+                            decoded: state.flags.stele.decoded || false,
+                            piecesFound: state.flags.stele.piecesFound || 0,
+                            hasClue: state.flags.stele.hasClue || false,
+                            _revealTriggered: state.flags.stele._revealTriggered || false,
+                        },
+                        oldLadyQuest: {
+                            triggered: state.flags.oldLadyQuest.triggered || false,
+                            silverFound: state.flags.oldLadyQuest.silverFound || false,
+                            completed: state.flags.oldLadyQuest.completed || false,
+                            hasAmulet: state.flags.oldLadyQuest.hasAmulet || false,
+                        },
+                        pressure: {
+                            level: 0,
+                            dayEvents: {
+                                day3_triggered: false,
+                                day4_triggered: false,
+                                day5_triggered: false,
+                                day6_triggered: false,
+                            },
+                            lastWarnDay: 0,
+                            forcedAction: false,
+                            hasTempleWarning: false,
+                        },
+                        // 新增：保证觉醒者/石碑相关标记能带入第二章
+                        hasDragonScale: state.flags.hasDragonScale || false,
+                        hasShadowSecret: false,        // 是否从阴影中获得低语情报
+                        hasTaoistInfo: false,          // 是否从道士处获得额外情报
+                        hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+                        _abandonedPositions: {
+                            wall: false,
+                            talisman: false,
+                            shrine: false,
+                            pot: false,
+                            desk: false,
+                            bedside: false,
+                            ash: false,
+                        },
+                    };
 
                 // ---- 重置 ch2 为初始状态（所有进度清零，但保留第一章继承的标记） ----
                 state.ch2 = {
@@ -9361,86 +9371,93 @@
                 state._confirmResolve = null;
                 state._morningEventProcessed = false;
                 state._dragonEndingQueued = false;
-
-                // ---- 重置所有 flags（无保留） ----
-                state.flags = {
-                    hasSleptInVillage: false,
-                    folkloreWarned: false,
-                    shopRhymeIndex: 0,
-                    chapter2: false,
-                    hasPeachWood: false,
-                    abandonedCompleteReady: false,
-                    abandonedHiddenTriggered: false,
-                    abandonedVisitCount: 0,
-                    hidden_hasBookmark: false,
-                    hidden_hasBrand: false,
-                    hidden_sleepCount: 0,
-                    hidden_teaCount: 0,
-                    hidden_answeredCode: false,
-                    hidden_unlocked: false,
-                    morningEvents: {
-                        day2_grayLine_triggered: false,
-                        day3_code_triggered: false,
-                        day4_code_triggered: false,
-                        day5_code_triggered: false,
-                    },
-                    grayLine_choseComply: false,
-                    folkloreVisitCount: 0,
-                    shopVisitCount: 0,
-                    cardVisitCount: 0,
-                    hasYinBloodPotion: false,
-                    hasDragonScale: false,
-                    nightEvents: {
-                        dream: false,
-                        knock: false,
-                        window: false,
-                        dream_defense: false,  // 护玄清版嫂嫂梦话
-                    },
-                    awakening: {
-                        unlocked: false,
-                        visited: false,
-                        trustLevel: 0,
-                        hasCharm: false,
-                        greeted: false,
-                    },
-                    stele: {
-                        found: false,
-                        decoded: false,
-                        piecesFound: 0,
-                        hasClue: false,
-                        _revealTriggered: false,
-                    },
-                    oldLadyQuest: {
-                        triggered: false,
-                        silverFound: false,
-                        completed: false,
-                        hasAmulet: false,
-                    },
-                    pressure: {
-                        level: 0,
-                        dayEvents: {
-                            day3_triggered: false,
-                            day4_triggered: false,
-                            day5_triggered: false,
-                            day6_triggered: false,
+                state.medicineHut = {
+                    unlocked: false,
+                    visited: false,
+                    fragmentsCollected: [],  // 收集的碎片ID列表
+                    itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
+                    exploredCount: 0,
+                    trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+                },
+                    // ---- 重置所有 flags（无保留） ----
+                    state.flags = {
+                        hasSleptInVillage: false,
+                        folkloreWarned: false,
+                        shopRhymeIndex: 0,
+                        chapter2: false,
+                        hasPeachWood: false,
+                        abandonedCompleteReady: false,
+                        abandonedHiddenTriggered: false,
+                        abandonedVisitCount: 0,
+                        hidden_hasBookmark: false,
+                        hidden_hasBrand: false,
+                        hidden_sleepCount: 0,
+                        hidden_teaCount: 0,
+                        hidden_answeredCode: false,
+                        hidden_unlocked: false,
+                        morningEvents: {
+                            day2_grayLine_triggered: false,
+                            day3_code_triggered: false,
+                            day4_code_triggered: false,
+                            day5_code_triggered: false,
                         },
-                        lastWarnDay: 0,
-                        forcedAction: false,
-                        hasTempleWarning: false,
-                    },
-                    hasShadowSecret: false,        // 是否从阴影中获得低语情报
-                    hasTaoistInfo: false,          // 是否从道士处获得额外情报
-                    hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
-                    _abandonedPositions: {
-                        wall: false,
-                        talisman: false,
-                        shrine: false,
-                        pot: false,
-                        desk: false,
-                        bedside: false,
-                        ash: false,
-                    },
-                };
+                        grayLine_choseComply: false,
+                        folkloreVisitCount: 0,
+                        shopVisitCount: 0,
+                        cardVisitCount: 0,
+                        hasYinBloodPotion: false,
+                        hasDragonScale: false,
+                        nightEvents: {
+                            dream: false,
+                            knock: false,
+                            window: false,
+                            dream_defense: false,  // 护玄清版嫂嫂梦话
+                        },
+                        awakening: {
+                            unlocked: false,
+                            visited: false,
+                            trustLevel: 0,
+                            hasCharm: false,
+                            greeted: false,
+                        },
+                        stele: {
+                            found: false,
+                            decoded: false,
+                            piecesFound: 0,
+                            hasClue: false,
+                            _revealTriggered: false,
+                        },
+                        oldLadyQuest: {
+                            triggered: false,
+                            silverFound: false,
+                            completed: false,
+                            hasAmulet: false,
+                        },
+                        pressure: {
+                            level: 0,
+                            dayEvents: {
+                                day3_triggered: false,
+                                day4_triggered: false,
+                                day5_triggered: false,
+                                day6_triggered: false,
+                            },
+                            lastWarnDay: 0,
+                            forcedAction: false,
+                            hasTempleWarning: false,
+                        },
+                        hasShadowSecret: false,        // 是否从阴影中获得低语情报
+                        hasTaoistInfo: false,          // 是否从道士处获得额外情报
+                        hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+                        _abandonedPositions: {
+                            wall: false,
+                            talisman: false,
+                            shrine: false,
+                            pot: false,
+                            desk: false,
+                            bedside: false,
+                            ash: false,
+                        },
+                    };
 
                 // ---- 重置 ch2 为全新初始状态 ----
                 state.ch2 = {
