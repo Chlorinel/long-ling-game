@@ -28,7 +28,10 @@
         }
 
         body {
-            background: var(--bg-primary);
+            background:
+                linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.9) 100%),
+                url('image/container-bg.jpg') center center / cover no-repeat;
+            background-blend-mode: overlay, normal;
             color: var(--text-primary);
             font-family: var(--font-serif);
             min-height: 100vh;
@@ -36,9 +39,13 @@
             justify-content: center;
             align-items: center;
             padding: 16px;
+            /* 保留原来的径向渐变作为后备，但被图片覆盖 */
             background-image:
-                radial-gradient(ellipse at 20% 50%, rgba(60, 30, 20, 0.3) 0%, transparent 70%),
-                radial-gradient(ellipse at 80% 50%, rgba(30, 20, 50, 0.3) 0%, transparent 70%);
+                linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.9) 100%),
+                url('image/container-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay, normal;
         }
 
         #game-container {
@@ -49,7 +56,7 @@
             /* ⭐ 用图片替代深红色背景，加上暗色遮罩让内容清晰可读 */
             background:
                 linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.9) 100%),
-                url('image/container-bg.jpg') center center / cover no-repeat;
+                url('image/main1.jpg') center center / cover no-repeat;
             background-blend-mode: overlay, normal;
             border: 1px solid var(--border-gold);
             border-radius: 12px;
