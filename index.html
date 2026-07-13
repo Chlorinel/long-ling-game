@@ -3135,10 +3135,7 @@
                 if (endingClass) {
                     el.classList.add(endingClass);
                 }
-                // 直接设置 innerHTML，不依赖 showStory
-                el.innerHTML = text.replace(/\n/g, '<br>');
-                const area = document.getElementById('story-area');
-                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+                showStory(text);
             }
             // ================================================================
             //  🎵 Web Audio 音效引擎（BGM + 铃铛音效）
@@ -3619,7 +3616,9 @@
                 }
                 if (state.gameOver) return;
                 // ---- 新增：第6天白天结束时强制事件 ----
-                if (state.day === 6 && state.stamina === 1) {
+                if (state.day === 6 && state.stamina === 1 &&
+                    !state.flags.pressure.dayEvents.day6_triggered &&
+                    !state.flags.pressure.forcedAction) {
                     state.flags.pressure.dayEvents.day6_triggered = true;
                     renderPressureEvent_day6_forced();
                     return;
@@ -4934,27 +4933,8 @@
                         hint: '你手里什么也没有',
                         tag: '不！！！！！ ',
                         action: function () {
-                            // 强制清除锁定
-                            state._waitingConfirm = false;
-                            state._confirmResolve = null;
-                            document.getElementById('rule-notification').classList.remove('show');
-
-                            const container = document.getElementById('options-area');
-                            const confirmBtn = container.querySelector('.confirm-btn');
-                            if (confirmBtn) confirmBtn.remove();
-                            document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(btn => {
-                                btn.style.pointerEvents = '';
-                                btn.style.opacity = '';
-                            });
-                            container.innerHTML = '';
-
-                            // 强制结束游戏
-                            state.gameOver = true;
-                            state._endingType = 'BE5_祭品_被迫献祭';
-
-                            // 直接调用结局渲染
-                            renderEndingContent('BE5_祭品_被迫献祭');
-                            saveGame();
+                            if (state.gameOver || state._waitingConfirm) return;
+                            triggerEnding('BE5_祭品_被迫献祭');
                         }
                     }]);
                 }
@@ -10314,8 +10294,7 @@
                         btn.style.opacity = '';
                     });
                 }
-                // ---- 强制清空故事区 ----
-                document.getElementById('storyText').innerHTML = '';
+
                 var title = '💀 结局';
                 var desc = '';
                 var endingClass = '';
