@@ -10643,35 +10643,21 @@
                 }
 
                 updateUI();
-                var isSpecialEnding = (type === 'TE1_薪火相传' || type === 'HE1_幸存者' || type === 'NE2_被标记的归来');
-                var isCh2Ending = state.flags.chapter2 === true && type !== 'BE5_祭品_被迫献祭';
-                var statsHtml = '';
-                if (!readOnly) {
-                    // 第二章进度（用阶段 + 社戏进度）
-                    var ch2Progress = '';
-                    if (state.flags.chapter2) {
-                        var phaseMap = {
-                            'market': '集市准备',
-                            'path_choice': '选择路径',
-                            'ritual_events': '社戏途中',
-                            'pure_yang': '纯阳抉择',
-                            'temple_gate': '道观门前',
-                            'chapter3': '第三章'
-                        };
-                        var phaseName = phaseMap[state.ch2.phase] || state.ch2.phase;
-                        ch2Progress = `<span style="color:var(--text-muted);font-size:0.85rem;">第二章进度: ${phaseName} · 社戏 ${state.ch2.ritualProgress || 0}%</span>`;
-                    }
 
-                    statsHtml = `
+                // 判断是否为第二章结局：根据当前游戏进度标志
+                // 被迫献祭结局（BE5）虽然发生在第二章，但它是强制终结，不应提供重置选项
+                var isCh2Ending = state.flags.chapter2 === true && type !== 'BE5_祭品_被迫献祭';
+                var isSpecialEnding = (type === 'TE1_薪火相传' || type === 'HE1_幸存者' || type === 'NE2_被标记的归来'); setStory(`
+        <span class="ending-title">${title}</span>
+        <span class="divider">—— —— ——</span>
+        ${desc}
         <span class="divider">· · ·</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">你一共度过了 ${state.day} 天，收集了 ${state.rules.length} 条规则。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">最终龙化值: ${clamp(state.dragonization, 0, 100)}% · 理智值: ${100 - clamp(state.dragonization, 0, 100)}%</span>
-        ${ch2Progress}
+        ${state.flags.chapter2 ? `<span style="color:var(--text-muted);font-size:0.85rem;">第二章进度: ${state.ch2.km}km · 遇到路人 ${state.ch2.passerbyCount} 次</span>` : ''}
         ${state.flags.stele && state.flags.stele.found ? `<span style="color:var(--text-gold);font-size:0.85rem;">📜 已发现工匠暗碑，了解全部真相</span>` : ''}
         ${state.flags.awakening && state.flags.awakening.visited ? `<span style="color:var(--text-gold);font-size:0.85rem;">🌾 已接触觉醒者 · 信任度 ${state.flags.awakening.trustLevel}/5</span>` : ''}
-    `;
-                }
-
+    `, endingClass);
 
                 var options = [];
 
