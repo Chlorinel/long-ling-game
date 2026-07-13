@@ -1160,15 +1160,14 @@
 
         /* ---- 副标题 ---- */
         #main-menu .menu-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            letter-spacing: 14px;
+            color: #ffffff !important;
+            /* 白色 */
+            font-style: italic !important;
+            /* 斜体 */
             font-weight: 300;
-            margin-bottom: 36px;
-            position: relative;
-            z-index: 1;
-            opacity: 0.5;
-            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            letter-spacing: 8px;
+            opacity: 0.9;
+            transition: opacity 0.5s ease;
         }
 
         /* ---- 按钮容器 ---- */
@@ -1946,9 +1945,10 @@
                 <span class="line"></span>
             </div>
 
-            <!-- ---- 副标题 ---- -->
-            <div class="menu-subtitle">—— 第一章 · 邱龙村 ——</div>
-
+            <!-- 副标题 → 加载进度 -->
+            <div class="menu-subtitle" id="loading-status" style="color:#fff; font-style:italic;">
+                —— 请等待龙神虚影加载 0% ——
+            </div>
             <!-- ---- 按钮区 ---- -->
             <div class="menu-buttons">
                 <button id="btn-new-game" class="menu-btn">
@@ -11668,7 +11668,67 @@
                 });
 
                 // 显示主菜单
-                showMainMenu();
+
+                // ---- 预加载主菜单背景图 + 进度显示 ----
+                function loadBackgroundWithProgress() {
+                    var statusEl = document.getElementById('loading-status');
+                    if (!statusEl) return;
+
+                    var xhr = new XMLHttpRequest();
+                    var url = 'image/main1.jpg';
+
+                    xhr.open('GET', url, true);
+                    xhr.responseType = 'blob';
+
+                    xhr.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            var percent = Math.round((e.loaded / e.total) * 100);
+                            statusEl.textContent = '—— 请等待龙神虚影加载 ' + percent + '% ——';
+                        } else {
+                            // 如果无法计算总大小，显示模拟进度
+                            var fakePercent = Math.min(90, Math.round((e.loaded / (1024 * 1024 * 2)) * 100));
+                            statusEl.textContent = '—— 请等待龙神虚影加载 ' + Math.min(fakePercent, 90) + '% ——';
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            statusEl.textContent = '—— 龙神虚影已显 ——';
+                            statusEl.style.opacity = '0.9';
+                            // 可以选择 2 秒后淡出或转为正式副标题
+                            setTimeout(function () {
+                                // 如果你想让它消失，可以取消注释下面一行
+                                // statusEl.style.opacity = '0';
+                                // 或者改为正式副标题
+                                statusEl.textContent = '—— 第一章 · 邱龙村 ——';
+                                statusEl.style.color = 'var(--text-gold)';
+                                statusEl.style.fontStyle = 'normal';
+                            }, 800);
+                        } else {
+                            statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
+                            statusEl.style.color = '#d45a5a';
+                        }
+                    };
+
+                    xhr.onerror = function () {
+                        statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
+                        statusEl.style.color = '#d45a5a';
+                    };
+
+                    // 超时保护（10 秒后强制完成）
+                    var timeoutId = setTimeout(function () {
+                        if (xhr.readyState < 4) {
+                            xhr.abort();
+                            statusEl.textContent = '—— 龙神虚影加载超时，请刷新 ——';
+                            statusEl.style.color = '#d45a5a';
+                        }
+                    }, 10000);
+
+                    xhr.send();
+                }
+
+                // 调用预加载
+                loadBackgroundWithProgress();
                 // ---- 金色粒子跟随鼠标 ---- (可选)
                 let mouseX = 0, mouseY = 0;
                 document.addEventListener('mousemove', function (e) {
