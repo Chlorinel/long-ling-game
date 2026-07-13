@@ -834,10 +834,12 @@
             z-index: 10;
             padding: 30px 20px;
             overflow: hidden;
-            background: radial-gradient(ellipse at 50% 30%, #1f120c 0%, #0d0806 45%, #040201 100%);
-            /* 底纹：宣纸纹理 */
-            background-image:
-                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            /* ⭐ 图片背景 + 暗色遮罩 */
+            background:
+                linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.95) 100%),
+                url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80') center bottom / cover no-repeat;
+            background-blend-mode: overlay, normal;
+            transition: none;
         }
 
         /* ---- 龙鳞光晕（动态呼吸） ---- */
@@ -941,47 +943,75 @@
         }
 
         /* ---- 漂浮粒子（升级版：金色微尘） ---- */
+        /* ---- 金色细碎粒子（升级版） ---- */
         .menu-particle {
             position: absolute;
             border-radius: 50%;
             pointer-events: none;
-            z-index: 0;
-            background: rgba(200, 170, 120, 0.25);
-            box-shadow: 0 0 6px rgba(200, 170, 120, 0.1);
+            z-index: 1;
+            background: radial-gradient(circle at 30% 30%,
+                    rgba(220, 200, 160, 0.8),
+                    rgba(180, 150, 100, 0.2));
+            box-shadow: 0 0 8px rgba(200, 180, 150, 0.15),
+                0 0 20px rgba(200, 180, 150, 0.04);
             animation: floatParticle linear infinite;
+            will-change: transform, opacity;
         }
 
+        /* 不同尺寸的粒子（更细碎） */
         .menu-particle.p1 {
-            width: 4px;
-            height: 4px;
-            animation-duration: 14s;
+            width: 2px;
+            height: 2px;
+            animation-duration: 16s;
         }
 
         .menu-particle.p2 {
-            width: 2px;
-            height: 2px;
-            animation-duration: 18s;
-            opacity: 0.5;
+            width: 1.5px;
+            height: 1.5px;
+            animation-duration: 20s;
+            opacity: 0.6;
         }
 
         .menu-particle.p3 {
-            width: 6px;
-            height: 6px;
-            animation-duration: 12s;
-            opacity: 0.3;
+            width: 3px;
+            height: 3px;
+            animation-duration: 13s;
+            opacity: 0.5;
         }
 
         .menu-particle.p4 {
-            width: 3px;
-            height: 3px;
-            animation-duration: 22s;
+            width: 1px;
+            height: 1px;
+            animation-duration: 24s;
+            opacity: 0.7;
         }
 
         .menu-particle.p5 {
-            width: 5px;
-            height: 5px;
-            animation-duration: 16s;
+            width: 2.5px;
+            height: 2.5px;
+            animation-duration: 18s;
             opacity: 0.4;
+        }
+
+        .menu-particle.p6 {
+            width: 1.8px;
+            height: 1.8px;
+            animation-duration: 22s;
+            opacity: 0.5;
+        }
+
+        .menu-particle.p7 {
+            width: 2.2px;
+            height: 2.2px;
+            animation-duration: 15s;
+            opacity: 0.6;
+        }
+
+        .menu-particle.p8 {
+            width: 1.2px;
+            height: 1.2px;
+            animation-duration: 26s;
+            opacity: 0.7;
         }
 
         @keyframes floatParticle {
@@ -990,17 +1020,45 @@
                 opacity: 0;
             }
 
-            10% {
+            12% {
                 opacity: 1;
+                transform: translateY(-10px) translateX(4px) scale(1);
             }
 
-            90% {
+            88% {
                 opacity: 1;
             }
 
             100% {
-                transform: translateY(-100vh) translateX(60px) scale(1.2);
+                transform: translateY(-110vh) translateX(20px) scale(0.2);
                 opacity: 0;
+            }
+        }
+
+        /* 额外闪烁光晕（让粒子更有“金粉”感） */
+        .menu-particle::after {
+            content: '';
+            position: absolute;
+            top: -200%;
+            left: -200%;
+            width: 500%;
+            height: 500%;
+            background: radial-gradient(circle at 30% 30%,
+                    rgba(255, 235, 200, 0.3),
+                    transparent 70%);
+            border-radius: 50%;
+            animation: sparkle 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes sparkle {
+            0% {
+                opacity: 0.2;
+                transform: scale(0.5);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
             }
         }
 
@@ -1646,24 +1704,32 @@
         <!-- ========== 主菜单 ========== -->
         <div id="main-menu">
 
-            <!-- ---- 氛围粒子 ---- -->
-            <div class="menu-particle p1" style="left:8%; top:70%;"></div>
-            <div class="menu-particle p2" style="left:20%; top:85%;"></div>
-            <div class="menu-particle p3" style="left:75%; top:65%;"></div>
-            <div class="menu-particle p4" style="left:88%; top:90%;"></div>
-            <div class="menu-particle p5" style="left:45%; top:95%;"></div>
-            <div class="menu-particle p1" style="left:3%; top:30%; animation-delay:6s;"></div>
-            <div class="menu-particle p2" style="left:95%; top:20%; animation-delay:8s;"></div>
-            <div class="menu-particle p3" style="left:35%; top:8%; animation-delay:4s;"></div>
+            <!-- ---- 金色细碎粒子（16个） ---- -->
+            <div class="menu-particle p1" style="left:5%; top:75%; animation-delay:0s;"></div>
+            <div class="menu-particle p2" style="left:12%; top:90%; animation-delay:2s;"></div>
+            <div class="menu-particle p3" style="left:20%; top:55%; animation-delay:4s;"></div>
+            <div class="menu-particle p4" style="left:28%; top:85%; animation-delay:1s;"></div>
+            <div class="menu-particle p5" style="left:35%; top:60%; animation-delay:5s;"></div>
+            <div class="menu-particle p6" style="left:42%; top:92%; animation-delay:3s;"></div>
+            <div class="menu-particle p7" style="left:50%; top:45%; animation-delay:7s;"></div>
+            <div class="menu-particle p8" style="left:58%; top:78%; animation-delay:2.5s;"></div>
+            <div class="menu-particle p1" style="left:65%; top:50%; animation-delay:6s;"></div>
+            <div class="menu-particle p2" style="left:72%; top:88%; animation-delay:1.5s;"></div>
+            <div class="menu-particle p3" style="left:80%; top:40%; animation-delay:8s;"></div>
+            <div class="menu-particle p4" style="left:88%; top:70%; animation-delay:3.5s;"></div>
+            <div class="menu-particle p5" style="left:95%; top:55%; animation-delay:4.5s;"></div>
+            <div class="menu-particle p6" style="left:8%; top:25%; animation-delay:9s;"></div>
+            <div class="menu-particle p7" style="left:45%; top:15%; animation-delay:6.5s;"></div>
+            <div class="menu-particle p8" style="left:75%; top:12%; animation-delay:5.5s;"></div>
 
-            <!-- ---- 四角卦纹（更精致） ---- -->
+            <!-- ---- 四角符纹 ---- -->
             <span class="menu-corner tl">◈<span class="line"></span></span>
             <span class="menu-corner tr">◈<span class="line"></span></span>
             <span class="menu-corner bl">◈<span class="line"></span></span>
             <span class="menu-corner br">◈<span class="line"></span></span>
 
-            <!-- ---- 顶部徽记 ---- -->
-            <div class="menu-icon-top">⛩️</div>
+            <!-- ---- 顶部徽记（已移除⛩️） ---- -->
+            <div class="menu-icon-top"></div>
 
             <!-- ---- 主标题 ---- -->
             <div class="menu-title">龙岭观前坑</div>
@@ -10918,6 +10984,17 @@
 
                 // 显示主菜单
                 showMainMenu();
+                // ---- 金色粒子跟随鼠标 ---- (可选)
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', function (e) {
+                    const rect = document.getElementById('main-menu').getBoundingClientRect();
+                    mouseX = (e.clientX - rect.left) / rect.width - 0.5;
+                    mouseY = (e.clientY - rect.top) / rect.height - 0.5;
+                    document.querySelectorAll('.menu-particle').forEach((p, i) => {
+                        const speed = 10 + i * 2;
+                        p.style.transform = `translate(${mouseX * speed}px, ${mouseY * speed}px)`;
+                    });
+                });
             }
             window.onload = init;
         </script>
