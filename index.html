@@ -3611,14 +3611,12 @@
                                 renderMainOptions();
                             }
                         }]);
-                        return;
+                        return;//
                     }
                 }
                 if (state.gameOver) return;
-                // ---- 新增：第6天白天结束时强制事件 ----
-                if (state.day === 6 && state.stamina === 1 &&
-                    !state.flags.pressure.dayEvents.day6_triggered &&
-                    !state.flags.pressure.forcedAction) {
+                // ---- 新增：第6天白天结束时强制事件 ----///
+                if (state.day === 6 && state.stamina === 1) {
                     state.flags.pressure.dayEvents.day6_triggered = true;
                     renderPressureEvent_day6_forced();
                     return;
