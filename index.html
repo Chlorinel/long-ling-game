@@ -889,6 +889,208 @@
             letter-spacing: 1px;
         }
 
+        /* ================================================================
+   结局画廊样式
+   ================================================================ */
+
+        #gallery-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            background: radial-gradient(ellipse at 50% 40%, #1f1812 0%, #0d0a08 100%);
+            z-index: 11;
+            padding: 20px 28px 24px 28px;
+            animation: menuFadeIn 0.6s ease-out;
+            overflow-y: auto;
+        }
+
+        #gallery-view.active {
+            display: flex;
+        }
+
+        #gallery-view .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(139, 122, 74, 0.2);
+            flex-shrink: 0;
+        }
+
+        #gallery-view .gallery-header .title {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            color: var(--text-gold);
+            letter-spacing: 6px;
+            text-shadow: 0 0 30px rgba(180, 140, 80, 0.2);
+        }
+
+        #gallery-view .gallery-header .count {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        #gallery-view .gallery-header .count span {
+            color: var(--text-gold);
+            font-weight: 700;
+        }
+
+        #gallery-view .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 14px;
+            padding: 16px 0 12px 0;
+            flex: 1;
+            align-content: start;
+        }
+
+        .gallery-card {
+            background: rgba(26, 20, 16, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(139, 122, 74, 0.15);
+            border-radius: 10px;
+            padding: 16px 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gallery-card:hover:not(.locked) {
+            border-color: var(--text-gold);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(180, 140, 80, 0.12);
+        }
+
+        .gallery-card.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.8);
+        }
+
+        .gallery-card .card-icon {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .gallery-card .card-title {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .gallery-card .card-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .gallery-card .card-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .gallery-card .card-lock {
+            font-size: 1.8rem;
+            opacity: 0.5;
+            margin-bottom: 4px;
+        }
+
+        .gallery-card .card-lock-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+        }
+
+        .gallery-card .card-badge {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 0.5rem;
+            background: rgba(139, 122, 74, 0.2);
+            color: var(--text-gold);
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 1px;
+        }
+
+        .gallery-back-btn {
+            background: rgba(26, 20, 16, 0.8);
+            border: 1px solid rgba(139, 122, 74, 0.4);
+            border-radius: 8px;
+            padding: 10px 22px;
+            color: var(--text-muted);
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 3px;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .gallery-back-btn:hover {
+            border-color: var(--text-gold);
+            color: var(--text-gold);
+            background: rgba(60, 50, 40, 0.8);
+            box-shadow: 0 0 30px rgba(180, 140, 80, 0.08);
+        }
+
+        /* 画廊滚动条 */
+        #gallery-view::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #gallery-view::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #gallery-view::-webkit-scrollbar-thumb {
+            background: var(--border-gold);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 640px) {
+            #gallery-view .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .gallery-card {
+                min-height: 90px;
+                padding: 12px 10px;
+            }
+
+            .gallery-card .card-icon {
+                font-size: 1.5rem;
+            }
+
+            .gallery-card .card-title {
+                font-size: 0.85rem;
+            }
+
+            #gallery-view .gallery-header .title {
+                font-size: 1.2rem;
+            }
+        }
+
         /* 返回主菜单按钮 - 最高优先级 */
         .return-menu-btn {
             background: rgba(26, 20, 16, 0.9);
@@ -1006,12 +1208,25 @@
             <div class="menu-buttons">
                 <button id="btn-new-game" class="menu-btn">
                     <span class="btn-icon">📜</span> 开始游戏
-                    <span class="btn-hint">—— 踏上未知的旅途 ——</span>
+
                 </button>
                 <button id="btn-continue" class="menu-btn">
                     <span class="btn-icon">📂</span> 继续游戏
-                    <span class="btn-hint">—— 回到上次的轨迹 ——</span>
+
                 </button>
+                <button id="btn-gallery" class="menu-btn">
+                    <span class="btn-icon">🏆</span> 结局画廊
+
+                </button>
+            </div>
+            <!-- ========== 结局画廊视图 ========== -->
+            <div id="gallery-view">
+                <div class="gallery-header">
+                    <span class="title">🏆 结局画廊</span>
+                    <span class="count">已解锁 <span id="galleryCount">0</span> / <span id="galleryTotal">13</span></span>
+                </div>
+                <div class="gallery-grid" id="galleryGrid"></div>
+                <button id="gallery-back-btn" class="gallery-back-btn">🔙 返回主菜单</button>
             </div>
             <div class="menu-footer">
                 <span>v1.0</span>
@@ -1134,6 +1349,7 @@
                 dragonization: 0,
                 rules: [],
                 flags: {
+                    _insideAbandoned: false,
                     hasSleptInVillage: false,
                     folkloreWarned: false,
                     shopRhymeIndex: 0,
@@ -1443,7 +1659,148 @@
                 'awakening_2': { id: 'awakening_2', text: '【阿芹】玄清已经活了五百年。他靠龙气续命，靠纯阳体的血肉维持那层人皮。' },
                 'awakening_3': { id: 'awakening_3', text: '【阿芹】当年修建道观的工匠里，有人在左立柱底座下藏了一块青石碑。那上面刻着玄清真正的面目。' },
             };
+            // ================================================================
+            //  结局系统 - 元数据与存储（独立于游戏存档）
+            // ================================================================
 
+            const ENDING_STORAGE_KEY = 'longling_endings_unlocked';
+
+            // 所有结局的元数据
+            const ENDING_META = {
+                'TE1_薪火相传': {
+                    icon: '🔥',
+                    title: '薪火相传',
+                    subtitle: '⭐ 完美结局',
+                    shortDesc: '你打破了五百年的诅咒，成为真正的破局者。薪火在你手中传递，希望不灭。',
+                    color: '#d4b87a',
+                    bgClass: 'ending-he'
+                },
+                'HE1_幸存者': {
+                    icon: '🌅',
+                    title: '幸存者',
+                    subtitle: '💛 好结局',
+                    shortDesc: '你活了下来，但再也无法离开。你成为村西的守门人，为后来者指路。',
+                    color: '#8ac88a',
+                    bgClass: 'ending-he'
+                },
+                'HE2_被救助': {
+                    icon: '🏛️',
+                    title: '得救',
+                    subtitle: '💛 好结局',
+                    shortDesc: '民俗部的人认出了你。你活了下来，但你的一部分永远留在了那座山里。',
+                    color: '#8ac88a',
+                    bgClass: 'ending-he'
+                },
+                'NE1_老实人_新': {
+                    icon: '🏁',
+                    title: '老实人',
+                    subtitle: '📖 普通结局',
+                    shortDesc: '你按部就班地活了六天，然后忘记了为什么要离开。你成了村庄里最安静的一把椅子。',
+                    color: '#5a8a5a',
+                    bgClass: 'ending-normal'
+                },
+                'NE2_被标记的归来': {
+                    icon: '🏁',
+                    title: '被标记的归来',
+                    subtitle: '📖 普通结局',
+                    shortDesc: '你离开了，但门从未真正关上。你无法确定自己是离开了，还是从未离开过。',
+                    color: '#5a8a5a',
+                    bgClass: 'ending-normal'
+                },
+                'BE1_龙化值过高': {
+                    icon: '🐉',
+                    title: '龙吟',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '龙气彻底吞噬了你。你成为龙王爷的又一个侍从，在菌菇与鳞片中永恒沉睡。',
+                    color: '#cc3a2a',
+                    bgClass: 'ending-dragon'
+                },
+                'BE2_大不敬': {
+                    icon: '⛩️',
+                    title: '大不敬',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你触怒了龙神。在香灰与烟雾中，你成为了他们中的一员，再也回不去了。',
+                    color: '#aa2a2a',
+                    bgClass: 'ending-be2'
+                },
+                'BE3_惊扰': {
+                    icon: '🌲',
+                    title: '惊扰',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你慌不择路地逃入山林，却惊醒了不该惊醒的东西。你成了菌菇林的一部分。',
+                    color: '#aa2a8a',
+                    bgClass: 'ending-be3'
+                },
+                'BE4_半途而废': {
+                    icon: '🚶',
+                    title: '半途而废',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你选择了放弃。你带着残缺的灵魂离开，但那条路一直在你梦里，一遍遍地等着你。',
+                    color: '#7a7a7a',
+                    bgClass: 'ending-be4'
+                },
+                'BE5_祭品_被迫献祭': {
+                    icon: '🕯️',
+                    title: '献祭者',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你被村民簇拥着献给了龙神。社戏的锣鼓声在你耳边永远回响。',
+                    color: '#ccaa3a',
+                    bgClass: 'ending-corrupted'
+                },
+                'BE6_自投罗网': {
+                    icon: '🌾',
+                    title: '自投罗网',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你在觉醒者和道观之间被碾成了碎片。夹缝之中，无处可逃。',
+                    color: '#aa2a2a',
+                    bgClass: 'ending-be2'
+                },
+                'BE7_同化': {
+                    icon: '🏯',
+                    title: '同化',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你放弃了抵抗。你跪在蒲团上，合上双眼，成为了道观的一部分。无我无念。',
+                    color: '#ccaa3a',
+                    bgClass: 'ending-corrupted'
+                },
+                'BE8_被吞没': {
+                    icon: '🌫️',
+                    title: '被吞没',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你站在那里，直到青灰色的烟漫过你的视线。有些进来的人，从来不被承认。',
+                    color: '#7a9a9a',
+                    bgClass: 'ending-be8'
+                }
+            };
+
+            // ----- 结局存储工具函数 -----
+
+            function getUnlockedEndings() {
+                try {
+                    const data = localStorage.getItem(ENDING_STORAGE_KEY);
+                    return data ? JSON.parse(data) : [];
+                } catch { return []; }
+            }
+
+            function saveUnlockedEnding(type) {
+                const list = getUnlockedEndings();
+                if (!list.includes(type)) {
+                    list.push(type);
+                    localStorage.setItem(ENDING_STORAGE_KEY, JSON.stringify(list));
+                }
+            }
+
+            function hasEnding(type) {
+                return getUnlockedEndings().includes(type);
+            }
+
+            function getUnlockedEndingsCount() {
+                return getUnlockedEndings().length;
+            }
+
+            function getTotalEndingsCount() {
+                return Object.keys(ENDING_META).length;
+            }
             // ---------- 工具函数 ----------
             function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
@@ -3915,9 +4272,15 @@
                     if (state._waitingConfirm) return;
                     if (state.gameOver) return;
 
-                    // ---- 增加访问计数 ----
-                    state.flags.abandonedVisitCount++;
-                    const visitCount = state.flags.abandonedVisitCount;
+                    // ============================================================
+                    //  【修复】进入废弃房屋时计数 +1（仅首次进入时触发）
+                    // ============================================================
+                    if (!state.flags._insideAbandoned) {
+                        state.flags._insideAbandoned = true;
+                        state.flags.abandonedVisitCount = (state.flags.abandonedVisitCount || 0) + 1;
+                    }
+
+                    const visitCount = state.flags.abandonedVisitCount || 0;
 
                     // ---- 定义各位置的状态标记（存储在 flags 中，防止重置） ----
                     if (!state.flags._abandonedPositions) {
@@ -3927,7 +4290,7 @@
                             shrine: false,    // 神龛
                             pot: false,       // 陶罐
                             desk: false,      // 旧桌子（银锁片）
-                            bedside: false,   // 床头柜（银杏叶书签）← 新增
+                            bedside: false,   // 床头柜（银杏叶书签）
                             ash: false,       // 草木灰堆
                         };
                     }
@@ -3943,7 +4306,7 @@
                     const hasShrineClue = !state.rules.includes('abandoned_3');
                     const hasPotClue = !state.rules.includes('temple_defense_5') && visitCount >= 2;
                     const hasDeskClue = !hasSilver && visitCount >= 3;
-                    const hasBedsideClue = !hasBookmark && visitCount >= 2;  // 第二次访问可获得书签
+                    const hasBedsideClue = !hasBookmark && visitCount >= 2;
 
                     // ---- 检查是否集齐三条废弃房屋规则（用于草木灰显影） ----
                     const hasAllAbandonedRules = state.rules.includes('abandoned_1') &&
@@ -4007,7 +4370,7 @@
                         }
                     }
 
-                    // 5. 床头柜（银杏叶书签）← 新增
+                    // 5. 床头柜（银杏叶书签）
                     if (!pos.bedside) {
                         storyText += `• <span style="color:#d4b87a;">床头柜的抽屉似乎没有完全合上</span>（未查看）\n`;
                     } else {
@@ -4079,7 +4442,7 @@
                         return false;
                     }
 
-                    // ---- 查看各个位置 ----
+                    // ---- 查看各个位置（通用逻辑，用于墙上暗痕、墙角符纸、神龛、陶罐、草木灰堆） ----
                     const checkPosition = (posKey, label, action) => {
                         const isViewed = pos[posKey];
                         const hasClue = hasRemaining(posKey);
@@ -4092,10 +4455,9 @@
                             label: isExhausted ? `🔍 ${label}（无新发现）` : isViewed && !isAshWithRemaining ? `✅ ${label}（已查看）` : `🔍 ${label}`,
                             hint: isExhausted ? '没有更多线索了' : isViewed && !isAshWithRemaining ? '已查看' : '仔细看看',
                             tag: isExhausted ? '已空' : isViewed && !isAshWithRemaining ? '已读' : '未读',
-                            disabled: isViewed && !isAshWithRemaining, // 已查看或已空不可再次点击，但草木灰堆可重复查看
+                            disabled: isViewed && !isAshWithRemaining,
                             action: async function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                // 标记已查看（草木灰堆不在此处标记，由其内部逻辑控制）
                                 if (posKey !== 'ash') {
                                     pos[posKey] = true;
                                 }
@@ -4155,39 +4517,115 @@
                         changeDragonization(1);
                     });
 
-                    // ---- 床头柜（银杏叶书签）- 新增 ----
-                    checkPosition('bedside', '床头柜抽屉', async function () {
-                        if (visitCount >= 2 && !state.flags.hidden_hasBookmark) {
-                            state.flags.hidden_hasBookmark = true;
-                            showStory(`
-                    <span class="divider">· · ·</span>
-                    你拉开抽屉，发现一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
-                    你拿起书签，发现背面刻着一行小字：
-                    <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
-                    <span class="divider">· · ·</span>
-                    <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
-                `);
-                            changeDragonization(5);
-                        } else if (state.flags.hidden_hasBookmark) {
-                            showStory(`<span class="divider">· · ·</span>床头柜已经空了，书签你已经拿到了。`);
-                        } else {
-                            showStory(`<span class="divider">· · ·</span>床头柜抽屉里什么都没有。`);
-                        }
-                    });
+                    // =============================================================
+                    //  【修复】床头柜（银杏叶书签）- 独立选项
+                    //  不会在第一次访问时错误标记为已查看
+                    // =============================================================
+                    const bedsideViewed = pos.bedside;
 
-                    // ---- 旧桌子（银锁片） ----
-                    checkPosition('desk', '旧桌子抽屉', async function () {
-                        if (visitCount >= 3 && !state.flags.oldLadyQuest.silverFound) {
-                            state.flags.oldLadyQuest.silverFound = true;
-                            showStory(`<span class="divider">· · ·</span>你拉开抽屉，发现一枚银锁片，刻着"平安"二字。你小心收好。`);
-                            changeDragonization(-2);
-                        } else if (state.flags.oldLadyQuest.silverFound) {
-                            showStory(`<span class="divider">· · ·</span>抽屉已经空了，银锁片你已经拿到了。`);
-                        } else {
-                            showStory(`<span class="divider">· · ·</span>抽屉里什么也没有。`);
-                        }
-                    });
+                    if (!bedsideViewed || (!hasBookmark && visitCount < 2)) {
+                        // 未查看过，或者查看过但条件未满足（需要重新尝试）
+                        opts.push({
+                            label: bedsideViewed ? `🔍 床头柜抽屉（再试试）` : `🔍 床头柜抽屉`,
+                            hint: hasBookmark ? '已经拿到了' : (visitCount >= 2 ? '你闻到一股淡淡的银杏叶香气……' : '抽屉里似乎没什么东西'),
+                            tag: hasBookmark ? '已拿' : (visitCount >= 2 ? '⭐ 书签' : '📭'),
+                            disabled: hasBookmark || state.gameOver,
+                            action: async function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+
+                                if (state.flags.hidden_hasBookmark) {
+                                    showStory(`<span class="divider">· · ·</span>床头柜已经空了，书签你已经拿到了。`);
+                                    pos.bedside = true;
+                                    SCENES['explore_abandoned'].render();
+                                    return;
+                                }
+
+                                if (visitCount < 2) {
+                                    showStory(`<span class="divider">· · ·</span>你拉开抽屉，里面空空荡荡，只有一层薄薄的灰。也许你需要多来几次，才能发现什么？`);
+                                    // 不标记为已查看，让玩家可以下次再来
+                                    SCENES['explore_abandoned'].render();
+                                    return;
+                                }
+
+                                // ---- 条件满足，获得书签 ----
+                                state.flags.hidden_hasBookmark = true;
+                                pos.bedside = true;
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你拉开抽屉，发现一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
+                        你拿起书签，发现背面刻着一行小字：
+                        <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
+                        <span class="divider">· · ·</span>
+                        <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
+                    `);
+                                changeDragonization(5);
+                                updateUI();
+                                SCENES['explore_abandoned'].render();
+                            }
+                        });
+                    } else if (state.flags.hidden_hasBookmark) {
+                        opts.push({
+                            label: `✅ 床头柜抽屉（已查看）`,
+                            hint: '书签你已经拿到了',
+                            tag: '已读',
+                            disabled: true,
+                            action: function () { }
+                        });
+                    }
+
+                    // =============================================================
+                    //  【修复】旧桌子（银锁片/平安扣）- 独立选项
+                    //  不会在第一次访问时错误标记为已查看
+                    // =============================================================
+                    const deskViewed = pos.desk;
+
+                    if (!deskViewed || (!hasSilver && visitCount < 3)) {
+                        opts.push({
+                            label: deskViewed ? `🔍 旧桌子抽屉（再试试）` : `🔍 旧桌子抽屉`,
+                            hint: hasSilver ? '已经拿到了' : (visitCount >= 3 ? '抽屉似乎被什么东西卡住了……' : '抽屉里散落着一些旧纸片'),
+                            tag: hasSilver ? '已拿' : (visitCount >= 3 ? '⭐ 银锁片' : '📭'),
+                            disabled: hasSilver || state.gameOver,
+                            action: async function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+
+                                if (state.flags.oldLadyQuest.silverFound) {
+                                    showStory(`<span class="divider">· · ·</span>抽屉已经空了，银锁片你已经拿到了。`);
+                                    pos.desk = true;
+                                    SCENES['explore_abandoned'].render();
+                                    return;
+                                }
+
+                                if (visitCount < 3) {
+                                    showStory(`<span class="divider">· · ·</span>你拉开抽屉，里面只有几张发黄的旧纸，上面写着一些模糊不清的字迹。也许你需要多来几次，才能发现什么？`);
+                                    SCENES['explore_abandoned'].render();
+                                    return;
+                                }
+
+                                // ---- 条件满足，获得银锁片 ----
+                                state.flags.oldLadyQuest.silverFound = true;
+                                pos.desk = true;
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你用力拉开卡住的抽屉，在底部发现了一枚银锁片，刻着"平安"二字。
+                        锁片虽然有些发黑，但做工精致，看得出是有些年头的老物件了。
+                        <span style="color:#d4b87a;">📌 你获得了「银锁片」！</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">这应该就是小卖部老妪丢失的那枚……</span>
+                    `);
+                                changeDragonization(-2);
+                                updateUI();
+                                SCENES['explore_abandoned'].render();
+                            }
+                        });
+                    } else if (state.flags.oldLadyQuest.silverFound) {
+                        opts.push({
+                            label: `✅ 旧桌子抽屉（已查看）`,
+                            hint: '银锁片你已经拿到了',
+                            tag: '已读',
+                            disabled: true,
+                            action: function () { }
+                        });
+                    }
 
                     // ---- 草木灰堆 ----
                     if (hasAllAbandonedRules) {
@@ -4198,14 +4636,12 @@
                                 pos.ash = true;
                                 return;
                             }
-                            // 标记已查看
                             pos.ash = true;
                             state.flags.abandonedHiddenTriggered = true;
                             await triggerAshesReveal();
-                            // 如果还有剩余规则，重新显示草木灰堆为可查看
                             const remaining = state.rules.filter(r => r.startsWith('hidden_')).length;
                             if (remaining < 9) {
-                                pos.ash = false; // 允许再次查看
+                                pos.ash = false;
                             }
                         });
                     }
@@ -4217,6 +4653,12 @@
                         cost: '⚡1',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
+
+                            // ============================================================
+                            //  【修复】重置内部标志，下次进入时重新计数
+                            // ============================================================
+                            state.flags._insideAbandoned = false;
+
                             // 在退出前检查隐藏老人条件
                             if (state.medicineHutDone && state.flags.abandonedVisitCount >= 1 && !state.flags.oldManTalkTriggered) {
                                 triggerOldMan();
@@ -4229,9 +4671,7 @@
                     renderOptions(opts);
                     updateUI();
 
-
-
-                    // ---- 草木灰显影函数 ----
+                    // ---- 内部函数：草木灰显影 ----
                     async function triggerAshesReveal() {
                         const hasBookmark = state.flags.hidden_hasBookmark;
                         const hasBrand = state.flags.hidden_hasBrand;
@@ -4303,7 +4743,7 @@
                         updateUI();
                     }
 
-                    // ---- 触发隐藏老人对话 ----
+                    // ---- 内部函数：触发隐藏老人对话 ----
                     function triggerOldMan() {
                         state.flags.oldManTalkTriggered = true;
                         setStory(`
@@ -8545,7 +8985,7 @@
             // ================================================================
             //  结局渲染（纯显示，不修改 gameOver）
             // ================================================================
-            function renderEndingContent(type) {
+            function renderEndingContent(type, readOnly) {
                 if (state._waitingConfirm) {
                     state._waitingConfirm = false;
                     state._confirmResolve = null;
@@ -8925,6 +9365,22 @@
 
                 var options = [];
 
+                // ---- 只读模式：仅显示返回按钮 ----
+                if (readOnly) {
+                    options.push({
+                        label: '🔙 返回画廊',
+                        ending: true,
+                        action: function () {
+                            if (state._waitingConfirm) return;
+                            renderEndingGallery();
+                        }
+                    });
+                    renderOptions(options);
+                    updateUI();
+                    return;
+                }
+
+                // ---- 非只读模式：显示所有操作按钮 ----
                 if (isSpecialEnding) {
                     options.push({
                         label: '🏆 查看成就',
@@ -8968,13 +9424,13 @@
                             toggleRulesPanel();
                         }
                         setStory(`
-                <span class="title-line">📜 规则回顾</span>
-                <span class="divider">—— —— ——</span>
-                你一共收集了 ${state.rules.length} 条规则。
-                这些规则编织成了你在邱龙村的全部经历。
-                <span class="divider">· · ·</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
-            `);
+            <span class="title-line">📜 规则回顾</span>
+            <span class="divider">—— —— ——</span>
+            你一共收集了 ${state.rules.length} 条规则。
+            这些规则编织成了你在邱龙村的全部经历。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">点击下方按钮返回结局。</span>
+        `);
                         renderOptions([{
                             label: '🔙 返回结局',
                             ending: true,
@@ -9005,6 +9461,7 @@
             //  触发结局（设置 gameOver 状态 + 调用渲染）
             // ================================================================
             function triggerEnding(type) {
+                saveUnlockedEnding(type);
                 if (state.gameOver) {
                     renderEndingContent(type);
                     return;
@@ -9199,6 +9656,7 @@
                 },
                     // ---- 重置 flags（保留规则、龙化、桃木吊坠等关键数据） ----
                     state.flags = {
+                        _insideAbandoned: false,
                         hasSleptInVillage: false,
                         folkloreWarned: state.flags.folkloreWarned || false,
                         shopRhymeIndex: 0,
@@ -9411,6 +9869,7 @@
                 },
                     // ---- 重置所有 flags（无保留） ----
                     state.flags = {
+                        _insideAbandoned: false,
                         hasSleptInVillage: false,
                         folkloreWarned: false,
                         shopRhymeIndex: 0,
@@ -9712,7 +10171,115 @@
                     updateUI();
                 }
             }
+            // ================================================================
+            //  结局画廊 - 渲染与交互
+            // ================================================================
 
+            function renderEndingGallery() {
+                // 关闭规则面板
+                if (rulesPanelOpen) {
+                    rulesPanelOpen = false;
+                    document.getElementById('rules-panel').classList.remove('open');
+                }
+
+                const grid = document.getElementById('galleryGrid');
+                const unlocked = getUnlockedEndings();
+                const total = getTotalEndingsCount();
+
+                // 更新计数
+                document.getElementById('galleryCount').textContent = unlocked.length;
+                document.getElementById('galleryTotal').textContent = total;
+                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${total} ——`;
+
+                // 清空网格
+                grid.innerHTML = '';
+
+                // 按顺序渲染所有结局
+                const allTypes = Object.keys(ENDING_META);
+                allTypes.forEach(type => {
+                    const meta = ENDING_META[type];
+                    const isUnlocked = unlocked.includes(type);
+                    const card = document.createElement('div');
+                    card.className = 'gallery-card' + (isUnlocked ? '' : ' locked');
+
+                    if (isUnlocked) {
+                        card.innerHTML = `
+                <div class="card-icon">${meta.icon}</div>
+                <div class="card-title">${meta.title}</div>
+                <div class="card-subtitle">${meta.subtitle}</div>
+                <div class="card-desc">${meta.shortDesc}</div>
+                <div class="card-badge">已解锁</div>
+            `;
+                        card.addEventListener('click', function () {
+                            if (state._waitingConfirm) return;
+                            // 以只读模式显示结局详情
+                            renderEndingContent(type, true);
+                        });
+                    } else {
+                        card.innerHTML = `
+                <div class="card-lock">🔒</div>
+                <div class="card-lock-label">未解锁</div>
+            `;
+                    }
+
+                    grid.appendChild(card);
+                });
+
+                // 显示画廊，隐藏主菜单
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('gallery-view').classList.add('active');
+
+                // 强制解除确认状态，防止按钮被锁定
+                if (state._waitingConfirm) {
+                    state._waitingConfirm = false;
+                    state._confirmResolve = null;
+                    document.getElementById('rule-notification').classList.remove('show');
+                }
+            }
+
+            function closeGallery() {
+                document.getElementById('gallery-view').classList.remove('active');
+                document.getElementById('main-menu').style.display = 'flex';
+                // 更新主菜单中的计数
+                const unlocked = getUnlockedEndings();
+                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+            }
+
+            // ---- 绑定画廊按钮 ----
+            document.getElementById('btn-gallery').addEventListener('click', function (e) {
+                e.stopPropagation();
+                renderEndingGallery();
+            });
+
+            document.getElementById('gallery-back-btn').addEventListener('click', function () {
+                closeGallery();
+            });
+
+            // ---- 修改 showMainMenu 函数，确保画廊关闭 ----
+            // 找到原有的 showMainMenu 函数，替换为以下版本
+            function showMainMenu() {
+                // 如果画廊是打开的，关闭它
+                if (document.getElementById('gallery-view').classList.contains('active')) {
+                    document.getElementById('gallery-view').classList.remove('active');
+                }
+                document.getElementById('main-menu').style.display = 'flex';
+                document.getElementById('game-content').style.display = 'none';
+
+                const continueBtn = document.getElementById('btn-continue');
+                if (hasSave()) {
+                    continueBtn.style.opacity = '1';
+                    continueBtn.style.pointerEvents = 'auto';
+                    continueBtn.textContent = '📂 继续游戏';
+                } else {
+                    continueBtn.style.opacity = '0.5';
+                    continueBtn.style.pointerEvents = 'none';
+                    continueBtn.textContent = '📂 没有存档';
+                }
+
+                // 更新结局计数
+                const unlocked = getUnlockedEndings();
+                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+            }
             // ---------- 初始化 ----------
             function init() {
                 // 绑定主菜单按钮
