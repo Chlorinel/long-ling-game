@@ -821,6 +821,10 @@
    主菜单 - 道观秘卷 · 重制版
    ================================================================ */
 
+        /* ================================================================
+   主菜单 - 水墨黑白 · 重制版
+   ================================================================ */
+
         #main-menu {
             position: absolute;
             top: 0;
@@ -834,44 +838,16 @@
             z-index: 10;
             padding: 30px 20px;
             overflow: hidden;
-            /* ⭐ 只有图片 + 暗色遮罩（去掉原来的深红渐变） */
+            /* ⭐ 只用图片 + 轻微暗色遮罩（保留黑白质感） */
             background:
-                linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%),
-                url('image/main.png') center center / cover no-repeat;
+                linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.8) 100%),
+                url('image/main1.png') center center / cover no-repeat;
             background-blend-mode: overlay, normal;
             transition: none;
         }
 
-        /* ---- 龙鳞光晕（动态呼吸） ---- */
-        #main-menu::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 35% 50%, rgba(180, 100, 60, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(160, 120, 80, 0.04) 0%, transparent 40%);
-            animation: menuAura 10s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes menuAura {
-            0% {
-                transform: scale(1) rotate(-3deg);
-                opacity: 0.5;
-            }
-
-            100% {
-                transform: scale(1.15) rotate(3deg);
-                opacity: 1;
-            }
-        }
-
-        /* ---- 龙鳞暗纹（旋转） ---- */
-        #main-menu::after {
-            content: '';
+        /* ---- 暗纹（极淡旋转纹理，用白色线条） ---- */
+        #main-menu .bg-texture {
             position: absolute;
             top: 0;
             left: 0;
@@ -879,342 +855,290 @@
             bottom: 0;
             background: repeating-conic-gradient(from 0deg at 50% 80%,
                     transparent 0deg,
-                    rgba(139, 122, 74, 0.012) 2deg,
+                    rgba(255, 255, 255, 0.015) 2deg,
                     transparent 4deg,
                     transparent 6deg);
             pointer-events: none;
             z-index: 0;
-            animation: scaleRotate 30s linear infinite;
+            animation: scaleRotateDark 40s linear infinite;
         }
 
-        @keyframes scaleRotate {
+        @keyframes scaleRotateDark {
             0% {
                 transform: scale(1) rotate(0deg);
             }
 
             100% {
-                transform: scale(1.5) rotate(360deg);
+                transform: scale(1.8) rotate(360deg);
             }
         }
 
-        /* ---- 四角卦纹装饰（更精致） ---- */
+        /* ---- 呼吸光晕（用白色代替金色） ---- */
+        #main-menu::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at 70% 80%, rgba(200, 200, 200, 0.03) 0%, transparent 40%);
+            animation: menuAuraDark 14s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes menuAuraDark {
+            0% {
+                transform: scale(1) rotate(-2deg);
+                opacity: 0.4;
+            }
+
+            100% {
+                transform: scale(1.12) rotate(2deg);
+                opacity: 0.8;
+            }
+        }
+
+        /* ---- 四角装饰（更克制，用细线） ---- */
         .menu-corner {
             position: absolute;
             pointer-events: none;
             z-index: 1;
-            color: var(--border-gold);
-            font-size: 1.4rem;
-            opacity: 0.15;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 1rem;
+            opacity: 0.3;
             font-family: var(--font-title);
-            letter-spacing: 4px;
+            letter-spacing: 3px;
+        }
+
+        .menu-corner .line {
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+            opacity: 0.3;
+            margin: 3px auto;
         }
 
         .menu-corner.tl {
-            top: 20px;
-            left: 28px;
+            top: 18px;
+            left: 24px;
         }
 
         .menu-corner.tr {
-            top: 20px;
-            right: 28px;
+            top: 18px;
+            right: 24px;
             transform: scaleX(-1);
         }
 
         .menu-corner.bl {
-            bottom: 20px;
-            left: 28px;
+            bottom: 18px;
+            left: 24px;
             transform: scaleY(-1);
         }
 
         .menu-corner.br {
-            bottom: 20px;
-            right: 28px;
+            bottom: 18px;
+            right: 24px;
             transform: scale(-1, -1);
         }
 
-        /* 内圈细线（更高级） */
-        .menu-corner .line {
-            display: block;
-            width: 30px;
-            height: 1px;
-            background: var(--border-gold);
-            opacity: 0.3;
-            margin: 4px auto;
-        }
-
-        /* ---- 漂浮粒子（升级版：金色微尘） ---- */
-        /* ---- 金色细碎粒子（升级版） ---- */
+        /* ---- 白色粒子（保留浮动效果） ---- */
         .menu-particle {
             position: absolute;
             border-radius: 50%;
             pointer-events: none;
             z-index: 1;
             background: radial-gradient(circle at 30% 30%,
-                    rgba(220, 200, 160, 0.8),
-                    rgba(180, 150, 100, 0.2));
-            box-shadow: 0 0 8px rgba(200, 180, 150, 0.15),
-                0 0 20px rgba(200, 180, 150, 0.04);
-            animation: floatParticle linear infinite;
+                    rgba(255, 255, 255, 0.6),
+                    rgba(200, 200, 200, 0.1));
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+            animation: floatParticleWhite linear infinite;
             will-change: transform, opacity;
         }
 
-        /* 不同尺寸的粒子（更细碎） */
         .menu-particle.p1 {
             width: 2px;
             height: 2px;
-            animation-duration: 16s;
+            animation-duration: 18s;
         }
 
         .menu-particle.p2 {
             width: 1.5px;
             height: 1.5px;
-            animation-duration: 20s;
-            opacity: 0.6;
+            animation-duration: 22s;
+            opacity: 0.5;
         }
 
         .menu-particle.p3 {
             width: 3px;
             height: 3px;
-            animation-duration: 13s;
-            opacity: 0.5;
+            animation-duration: 14s;
+            opacity: 0.4;
         }
 
         .menu-particle.p4 {
             width: 1px;
             height: 1px;
-            animation-duration: 24s;
-            opacity: 0.7;
+            animation-duration: 26s;
+            opacity: 0.6;
         }
 
         .menu-particle.p5 {
             width: 2.5px;
             height: 2.5px;
-            animation-duration: 18s;
-            opacity: 0.4;
+            animation-duration: 20s;
+            opacity: 0.35;
         }
 
         .menu-particle.p6 {
             width: 1.8px;
             height: 1.8px;
-            animation-duration: 22s;
-            opacity: 0.5;
+            animation-duration: 24s;
+            opacity: 0.45;
         }
 
         .menu-particle.p7 {
             width: 2.2px;
             height: 2.2px;
-            animation-duration: 15s;
-            opacity: 0.6;
+            animation-duration: 16s;
+            opacity: 0.5;
         }
 
         .menu-particle.p8 {
             width: 1.2px;
             height: 1.2px;
-            animation-duration: 26s;
-            opacity: 0.7;
+            animation-duration: 28s;
+            opacity: 0.55;
         }
 
-        @keyframes floatParticle {
+        @keyframes floatParticleWhite {
             0% {
                 transform: translateY(0) translateX(0) scale(0);
                 opacity: 0;
             }
 
-            12% {
+            15% {
                 opacity: 1;
-                transform: translateY(-10px) translateX(4px) scale(1);
+                transform: translateY(-8px) translateX(3px) scale(1);
             }
 
-            88% {
+            85% {
                 opacity: 1;
             }
 
             100% {
-                transform: translateY(-110vh) translateX(20px) scale(0.2);
+                transform: translateY(-110vh) translateX(15px) scale(0.1);
                 opacity: 0;
             }
         }
 
-        /* 额外闪烁光晕（让粒子更有“金粉”感） */
-        .menu-particle::after {
-            content: '';
-            position: absolute;
-            top: -200%;
-            left: -200%;
-            width: 500%;
-            height: 500%;
-            background: radial-gradient(circle at 30% 30%,
-                    rgba(255, 235, 200, 0.3),
-                    transparent 70%);
-            border-radius: 50%;
-            animation: sparkle 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes sparkle {
-            0% {
-                opacity: 0.2;
-                transform: scale(0.5);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-        }
-
-        /* ---- 顶部徽记 ---- */
+        /* ---- 顶部装饰（极简） ---- */
         #main-menu .menu-icon-top {
-            font-size: 2.8rem;
-            margin-bottom: 6px;
-            opacity: 0.6;
-            text-shadow: 0 0 80px rgba(180, 80, 40, 0.25);
-            animation: iconPulse 4s ease-in-out infinite;
+            height: 2px;
+            width: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            margin-bottom: 8px;
             z-index: 1;
-            letter-spacing: 12px;
         }
 
-        @keyframes iconPulse {
-
-            0%,
-            100% {
-                opacity: 0.5;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.9;
-                transform: scale(1.05);
-            }
-        }
-
-        /* ---- 主标题（金箔浮雕） ---- */
+        /* ---- 主标题（黑色毛笔字效果） ---- */
         #main-menu .menu-title {
             font-family: var(--font-title);
             font-size: 4.6rem;
-            color: #d4b87a;
+            color: rgba(255, 255, 255, 0.85);
             text-shadow:
-                0 0 20px rgba(180, 140, 80, 0.2),
-                0 0 60px rgba(180, 140, 80, 0.08),
-                0 4px 30px rgba(0, 0, 0, 0.9),
-                inset 0 -4px 10px rgba(180, 140, 80, 0.1);
+                0 2px 40px rgba(0, 0, 0, 0.9),
+                0 0 60px rgba(0, 0, 0, 0.3);
             letter-spacing: 20px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             position: relative;
             z-index: 1;
-            animation: titleGlow 5s ease-in-out infinite alternate;
+            font-weight: 400;
         }
 
-        @keyframes titleGlow {
-            0% {
-                text-shadow: 0 0 20px rgba(180, 140, 80, 0.2), 0 0 60px rgba(180, 140, 80, 0.05);
-            }
-
-            100% {
-                text-shadow: 0 0 40px rgba(200, 160, 100, 0.35), 0 0 100px rgba(200, 160, 100, 0.1);
-            }
-        }
-
-        /* ---- 分隔线（带龙纹） ---- */
+        /* ---- 分隔线（灰白） ---- */
         #main-menu .menu-divider {
             display: flex;
             align-items: center;
-            gap: 18px;
-            margin: 8px 0 16px 0;
-            opacity: 0.5;
-            width: 220px;
+            gap: 16px;
+            margin: 6px 0 14px 0;
+            opacity: 0.25;
+            width: 180px;
             z-index: 1;
         }
 
         #main-menu .menu-divider .line {
             flex: 1;
             height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
         }
 
         #main-menu .menu-divider .diamond {
-            color: var(--border-gold);
-            font-size: 0.7rem;
-            animation: spinDiamond 4s linear infinite;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.6rem;
+            animation: spinDiamondDark 6s linear infinite;
         }
 
-        @keyframes spinDiamond {
+        @keyframes spinDiamondDark {
             0% {
                 transform: rotate(0deg);
-                opacity: 0.4;
+                opacity: 0.3;
             }
 
             50% {
                 transform: rotate(180deg);
-                opacity: 1;
+                opacity: 0.8;
             }
 
             100% {
                 transform: rotate(360deg);
-                opacity: 0.4;
+                opacity: 0.3;
             }
         }
 
         /* ---- 副标题 ---- */
         #main-menu .menu-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            letter-spacing: 14px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.85rem;
+            letter-spacing: 12px;
             font-weight: 300;
-            margin-bottom: 36px;
+            margin-bottom: 32px;
             position: relative;
             z-index: 1;
-            opacity: 0.5;
-            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
         }
 
         /* ---- 按钮容器 ---- */
         #main-menu .menu-buttons {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            width: 300px;
+            gap: 12px;
+            width: 280px;
             position: relative;
             z-index: 2;
         }
 
-        /* ---- 按钮样式（古木令牌 + 悬停点亮） ---- */
+        /* ---- 按钮样式（毛玻璃灰白） ---- */
         .menu-btn {
-            background: rgba(10, 6, 4, 0.75);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border: 1px solid rgba(139, 122, 74, 0.25);
-            border-left: 3px solid rgba(139, 122, 74, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 6px;
             padding: 18px 28px;
-            color: var(--text-primary);
+            color: rgba(255, 255, 255, 0.7);
             font-family: var(--font-serif);
             font-size: 1.05rem;
             cursor: pointer;
             transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             letter-spacing: 6px;
             text-align: left;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
             position: relative;
             overflow: hidden;
-        }
-
-        /* 按钮底部高光线 */
-        .menu-btn::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            right: 10%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(180, 140, 80, 0.15), transparent);
-            transition: all 0.4s ease;
-        }
-
-        .menu-btn:hover::after {
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--text-gold), transparent);
         }
 
         .menu-btn .btn-glow {
@@ -1223,20 +1147,19 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle at 30% 50%, rgba(180, 140, 80, 0.04), transparent 60%);
+            background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.03), transparent 60%);
             opacity: 0;
             transition: opacity 0.6s ease;
             pointer-events: none;
         }
 
-        /* 悬停效果：左边界点亮 + 上浮 + 光晕 */
+        /* 悬停效果：白色边框 + 上浮 */
         .menu-btn:hover {
-            background: rgba(26, 18, 12, 0.9);
-            border-color: rgba(180, 140, 80, 0.4);
-            border-left-color: var(--text-gold);
+            background: rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-4px) translateX(6px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(180, 140, 80, 0.06);
-            color: var(--text-gold);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.95);
         }
 
         .menu-btn:hover .btn-glow {
@@ -1247,15 +1170,15 @@
             transform: scale(0.97) translateY(0);
         }
 
-        /* 按钮图标和文字 */
         .menu-btn .btn-icon {
             margin-right: 14px;
-            opacity: 0.5;
+            opacity: 0.4;
             font-size: 1.1rem;
+            filter: grayscale(1) brightness(1.2);
         }
 
         .menu-btn:hover .btn-icon {
-            opacity: 0.9;
+            opacity: 0.8;
         }
 
         .menu-btn .btn-hint {
@@ -1265,32 +1188,32 @@
             opacity: 0.2;
             margin-top: 6px;
             font-weight: 300;
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.6);
             transition: opacity 0.3s ease;
             padding-left: 2px;
         }
 
         .menu-btn:hover .btn-hint {
             opacity: 0.5;
-            color: var(--text-gold);
+            color: rgba(255, 255, 255, 0.8);
         }
 
-        /* 清除缓存按钮特殊样式（保留红边提示，但更协调） */
+        /* 清除缓存按钮特殊样式 */
         #btn-clear-cache {
-            border-left-color: rgba(180, 80, 80, 0.2);
+            border-color: rgba(255, 255, 255, 0.05);
         }
 
         #btn-clear-cache:hover {
-            border-left-color: #b05a5a;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(180, 80, 80, 0.08);
+            border-color: rgba(255, 100, 100, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 80, 80, 0.04);
         }
 
         #btn-clear-cache .btn-icon {
-            opacity: 0.4;
+            opacity: 0.3;
         }
 
         #btn-clear-cache:hover .btn-icon {
-            opacity: 0.8;
+            opacity: 0.7;
         }
 
         .menu-btn.disabled {
@@ -1300,16 +1223,16 @@
             filter: grayscale(0.7);
         }
 
-        /* ---- 底部龙纹脚注 ---- */
+        /* ---- 底部脚注（灰度） ---- */
         #main-menu .menu-footer {
             position: absolute;
             bottom: 24px;
             display: flex;
             align-items: center;
             gap: 16px;
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.15);
             font-size: 0.6rem;
-            opacity: 0.2;
+            opacity: 0.3;
             letter-spacing: 4px;
             z-index: 1;
         }
@@ -1318,14 +1241,15 @@
             width: 2px;
             height: 2px;
             border-radius: 50%;
-            background: var(--border-gold);
+            background: rgba(255, 255, 255, 0.3);
             opacity: 0.5;
         }
 
         #main-menu .menu-footer .dragon-icon {
             font-size: 0.7rem;
-            opacity: 0.3;
+            opacity: 0.2;
             animation: footerDragon 5s ease-in-out infinite;
+            filter: grayscale(1);
         }
 
         @keyframes footerDragon {
@@ -1333,12 +1257,12 @@
             0%,
             100% {
                 transform: translateX(0);
-                opacity: 0.3;
+                opacity: 0.2;
             }
 
             50% {
                 transform: translateX(4px);
-                opacity: 0.7;
+                opacity: 0.5;
             }
         }
 
@@ -1367,7 +1291,7 @@
             }
 
             .menu-corner {
-                font-size: 1rem;
+                font-size: 0.8rem;
             }
 
             .menu-corner.tl {
