@@ -11670,61 +11670,80 @@
                 // 显示主菜单
 
                 // ---- 预加载主菜单背景图 + 进度显示 ----
+                // ---- 预加载主菜单背景图（模拟平滑进度） ----
                 function loadBackgroundWithProgress() {
                     var statusEl = document.getElementById('loading-status');
                     if (!statusEl) return;
 
-                    var xhr = new XMLHttpRequest();
-                    var url = 'image/main1.jpg';
+                    var img = new Image();
+                    var progress = 0;
+                    var timer = null;
+                    var isCompleted = false;
 
-                    xhr.open('GET', url, true);
-                    xhr.responseType = 'blob';
+                    // 更新进度显示
+                    function updateProgress(value) {
+                        if (isCompleted) return;
+                        progress = Math.min(value, 95);
+                        statusEl.textContent = '—— 请等待龙神虚影加载 ' + progress + '% ——';
+                    }
 
-                    xhr.onprogress = function (e) {
-                        if (e.lengthComputable) {
-                            var percent = Math.round((e.loaded / e.total) * 100);
-                            statusEl.textContent = '—— 请等待龙神虚影加载 ' + percent + '% ——';
-                        } else {
-                            // 如果无法计算总大小，显示模拟进度
-                            var fakePercent = Math.min(90, Math.round((e.loaded / (1024 * 1024 * 2)) * 100));
-                            statusEl.textContent = '—— 请等待龙神虚影加载 ' + Math.min(fakePercent, 90) + '% ——';
+                    // 开始模拟进度（从 1% 平滑到 90%）
+                    var currentStep = 0;
+                    timer = setInterval(function () {
+                        if (isCompleted) return;
+                        // 每次增加 1~4%，速度逐渐放缓
+                        var step = 1 + Math.floor(Math.random() * 3);
+                        var newProgress = Math.min(progress + step, 90);
+                        updateProgress(newProgress);
+                        // 如果到了 90%，减慢速度等待真实加载
+                        if (progress >= 90) {
+                            clearInterval(timer);
+                            timer = setInterval(function () {
+                                if (isCompleted) return;
+                                // 在 90~95 之间缓慢波动
+                                var random = 90 + Math.floor(Math.random() * 5);
+                                updateProgress(random);
+                            }, 300);
                         }
+                    }, 80);
+
+                    // ---- 真实图片加载完成 ----
+                    img.onload = function () {
+                        isCompleted = true;
+                        clearInterval(timer);
+                        statusEl.textContent = '—— 龙神虚影已显 ——';
+                        // 0.6 秒后切换为正式副标题
+                        setTimeout(function () {
+                            statusEl.textContent = '—— 第一章 · 邱龙村 ——';
+                            statusEl.style.color = 'var(--text-gold)';
+                            statusEl.style.fontStyle = 'normal';
+                            statusEl.style.opacity = '0.8';
+                        }, 600);
                     };
 
-                    xhr.onload = function () {
-                        if (xhr.status === 200) {
-                            statusEl.textContent = '—— 龙神虚影已显 ——';
-                            statusEl.style.opacity = '0.9';
-                            // 可以选择 2 秒后淡出或转为正式副标题
-                            setTimeout(function () {
-                                // 如果你想让它消失，可以取消注释下面一行
-                                // statusEl.style.opacity = '0';
-                                // 或者改为正式副标题
-                                statusEl.textContent = '—— 第一章 · 邱龙村 ——';
-                                statusEl.style.color = 'var(--text-gold)';
-                                statusEl.style.fontStyle = 'normal';
-                            }, 800);
-                        } else {
-                            statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
-                            statusEl.style.color = '#d45a5a';
-                        }
-                    };
-
-                    xhr.onerror = function () {
+                    img.onerror = function () {
+                        clearInterval(timer);
+                        isCompleted = true;
                         statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
                         statusEl.style.color = '#d45a5a';
                     };
 
-                    // 超时保护（10 秒后强制完成）
+                    // 超时保护（8 秒后强制显示完成）
                     var timeoutId = setTimeout(function () {
-                        if (xhr.readyState < 4) {
-                            xhr.abort();
-                            statusEl.textContent = '—— 龙神虚影加载超时，请刷新 ——';
-                            statusEl.style.color = '#d45a5a';
+                        if (!isCompleted) {
+                            clearInterval(timer);
+                            isCompleted = true;
+                            statusEl.textContent = '—— 龙神虚影已显 ——';
+                            setTimeout(function () {
+                                statusEl.textContent = '—— 第一章 · 邱龙村 ——';
+                                statusEl.style.color = 'var(--text-gold)';
+                                statusEl.style.fontStyle = 'normal';
+                            }, 400);
                         }
-                    }, 10000);
+                    }, 8000);
 
-                    xhr.send();
+                    // 开始加载图片
+                    img.src = 'image/main1.jpg';
                 }
 
                 // 调用预加载
