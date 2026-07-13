@@ -2335,6 +2335,7 @@
                     itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
                     exploredCount: 0,
                     trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+                    viewedThisVisit: 0,   // ⭐ 新增：记录本轮进入已查看的数量
                 },
 
                 // ----- 支线完成标记 -----
@@ -6227,30 +6228,38 @@
                     if (!state.medicineHut.visited) {
                         state.medicineHut.visited = true;
                     }
-                    // 增加探索计数
+
+                    // ---- 检查是否为首次进入药庐 ----
+                    // 如果是首次进入，重置本轮查看计数
+                    if (state.medicineHut.viewedThisVisit === undefined) {
+                        state.medicineHut.viewedThisVisit = 0;
+                    }
+
+                    // ---- 增加探索计数（总进入次数） ----
                     state.medicineHut.exploredCount = (state.medicineHut.exploredCount || 0) + 1;
 
                     // ---- 获取当前状态 ----
                     const itemsTaken = state.medicineHut.itemsTaken || [];
-                    const visitedCount = itemsTaken.length; // 已查看的位置数
-                    const maxVisits = 2; // 最多查看2个位置
-                    const canVisitMore = visitedCount < maxVisits && state.stamina >= 1 && !state.gameOver;
+                    const viewedThisVisit = state.medicineHut.viewedThisVisit || 0;
+                    const maxPerVisit = 2;  // 每次进入最多查看2个
+                    const totalItems = 4;   // 总共4个可查看位置
 
-                    // ---- 检查是否已完成药庐探索 ----
-                    // 当已经查看过至少一个位置时，标记为已完成（但可以在离开时再标记）
-                    // 我们将在离开时检查 itemsTaken.length > 0 来设置 medicineHutDone
+                    // 计算剩余可查看数量（本轮）
+                    const canViewMoreThisVisit = viewedThisVisit < maxPerVisit && state.stamina >= 1;
+                    // 计算是否所有物品都已拿完
+                    const allItemsTaken = itemsTaken.length >= totalItems;
 
                     // ---- 构建场景描述 ----
                     let storyText = `
             <span class="title-line">🏚️ 后山药庐</span>
             <span class="divider">—— —— ——</span>
-            后山的路比前面的路窄很多。两边的草长得很高，像是很少有人走过。你走了一段，看到一间旧木屋，门被一条锈锁链拴着。
-            你低头看到门框的边沿上刻着一行小字，字迹很浅，像是很久以前用指甲划上去的：
-            <span class="rule-text" style="color:#d4b87a;">「玄清先生在此看诊。如无人应答，请稍候。」</span>
-            你推开吱呀作响的木门，一股陈年草药的气味扑面而来。屋内光线昏暗，陈设简单——一张旧桌、一个药柜、墙角堆着几摞旧纸。
+            你再次推开吱呀作响的木门，一股陈年草药的气味扑面而来。
             <span class="divider">· · ·</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">你已经查看了 ${visitedCount}/${maxVisits} 个位置。</span>
-            ${canVisitMore ? '<span style="color:#6ab06a;">⚡ 你还可以继续查看。</span>' : '<span style="color:#aa4a4a;">⚠️ 你已经查看了足够多的位置，该离开了。</span>'}
+            <span style="color:var(--text-muted);font-size:0.85rem;">你已经进入药庐 ${state.medicineHut.exploredCount} 次。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">本轮已查看 ${viewedThisVisit}/${maxPerVisit} 个位置。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">已获得 ${itemsTaken.length}/${totalItems} 件物品。</span>
+            ${allItemsTaken ? '<span style="color:#6ab06a;">✅ 你已经带走了药庐中所有有价值的东西。</span>' : ''}
+            ${!canViewMoreThisVisit && !allItemsTaken && state.stamina >= 1 ? '<span style="color:#aa4a4a;">⚠️ 本轮已查看满 ' + maxPerVisit + ' 个位置，下次再来吧。</span>' : ''}
             ${state.stamina === 0 ? '<span style="color:#d45a5a;">⚠️ 你体力耗尽，无法继续查看。</span>' : ''}
             <span class="divider">· · ·</span>
         `;
@@ -6267,7 +6276,7 @@
                     positions.forEach(pos => {
                         const taken = itemsTaken.includes(pos.id);
                         if (taken) {
-                            storyText += `• ✅ ${pos.label}（已查看）\n`;
+                            storyText += `• ✅ ${pos.label}（已拿走）\n`;
                         } else {
                             storyText += `• <span style="color:#d4b87a;">${pos.label}</span>（未查看）\n`;
                         }
@@ -6281,12 +6290,12 @@
                     // ---- 查看位置的选项 ----
                     positions.forEach(pos => {
                         const taken = itemsTaken.includes(pos.id);
-                        const canTake = !taken && canVisitMore;
+                        const canTake = !taken && canViewMoreThisVisit && !allItemsTaken;
 
                         opts.push({
-                            label: taken ? `✅ ${pos.label}（已查看）` : `🔍 ${pos.label}`,
-                            hint: taken ? '已查看' : pos.hint,
-                            tag: taken ? '已读' : (canTake ? '可查看' : '不可用'),
+                            label: taken ? `✅ ${pos.label}（已拿走）` : `🔍 ${pos.label}`,
+                            hint: taken ? '已拿走' : pos.hint,
+                            tag: taken ? '已读' : (canTake ? '可查看' : (allItemsTaken ? '已拿完' : '本轮已满')),
                             disabled: !canTake,
                             action: async function () {
                                 if (state.gameOver || state._waitingConfirm) return;
@@ -6298,11 +6307,13 @@
                                 changeStamina(-1);
                                 // 标记已取走
                                 state.medicineHut.itemsTaken.push(pos.id);
+                                // ⭐ 增加本轮查看计数
+                                state.medicineHut.viewedThisVisit = (state.medicineHut.viewedThisVisit || 0) + 1;
                                 // 添加规则
                                 if (!state.rules.includes(pos.ruleId)) {
                                     await addRule(pos.ruleId);
                                 }
-                                // 记录碎片（如果有对应的碎片ID）
+                                // 记录碎片
                                 if (pos.fragment) {
                                     recordFragment(pos.fragment);
                                 }
@@ -6326,6 +6337,7 @@
                         <span class="divider">· · ·</span>
                         <span style="color:#d4b87a;">📌 ${feedback}</span>
                         <span style="color:var(--text-muted);font-size:0.85rem;">⚡ 体力-1</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">本轮已查看 ${state.medicineHut.viewedThisVisit}/${maxPerVisit}</span>
                     `);
                                 updateUI();
                                 // 重新渲染场景
@@ -6340,6 +6352,8 @@
                         hint: '你在这里已经没什么可看的了',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
+                            // ⭐ 离开时重置本轮查看计数，方便下次进入
+                            state.medicineHut.viewedThisVisit = 0;
                             // 如果至少查看了一个位置，标记药庐完成
                             if (state.medicineHut.itemsTaken.length > 0) {
                                 state.medicineHutDone = true;
@@ -10537,6 +10551,7 @@
                     itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
                     exploredCount: 0,
                     trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+                    viewedThisVisit: 0,   // ⭐ 新增：记录本轮进入已查看的数量
                 },
                     // ---- 重置 flags（保留规则、龙化、桃木吊坠等关键数据） ----
                     state.flags = {
@@ -10750,6 +10765,7 @@
                     itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
                     exploredCount: 0,
                     trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+                    viewedThisVisit: 0,   // ⭐ 新增：记录本轮进入已查看的数量
                 },
                     // ---- 重置所有 flags（无保留） ----
                     state.flags = {
