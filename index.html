@@ -2017,6 +2017,15 @@
                                 style="width:0%"></span></span>
                         <span class="value" id="dragonVal">0%</span>
                     </div>
+                    <!-- ============ 药庐碎片进度（第一章） ============ -->
+                    <div class="status-item" id="fragmentProgressDisplay" style="display:none;">
+                        <span class="label">📜</span>
+                        <span class="bar-track" style="width:60px;height:6px;">
+                            <span class="bar-fill" id="fragmentProgressBar"
+                                style="width:0%;background:linear-gradient(90deg, #5a7a5a, #d4b87a, #aa7a5a);border-radius:4px;"></span>
+                        </span>
+                        <span class="value" id="fragmentProgressText" style="min-width:32px;">0/5</span>
+                    </div>
                     <div class="status-item bar-wrap">
                         <span class="label" style="color:#6a8aaa;">🧠</span>
                         <span class="bar-track"><span class="bar-fill sanity" id="sanityBar"
@@ -2050,15 +2059,7 @@
                     </div>
 
                     <div class="status-item" id="ch2RitualDisplay" style="display:none;">
-                        <!-- ============ 药庐碎片进度（第一章） ============ -->
-                        <div class="status-item" id="fragmentProgressDisplay" style="display:none;">
-                            <span class="label">📜</span>
-                            <span class="bar-track" style="width:60px;height:6px;">
-                                <span class="bar-fill" id="fragmentProgressBar"
-                                    style="width:0%;background:linear-gradient(90deg, #5a7a5a, #d4b87a, #aa7a5a);border-radius:4px;"></span>
-                            </span>
-                            <span class="value" id="fragmentProgressText" style="min-width:32px;">0/5</span>
-                        </div>
+
                         <span class="label">⏳</span>
                         <span class="bar-track" style="width:50px;height:6px;">
                             <span class="bar-fill" id="ritualBar"
@@ -5060,7 +5061,12 @@
                     if (state.gameOver) return;
 
                     // ============================================================
-                    //  【修复】进入废弃房屋时计数 +1（仅首次进入时触发）
+                    //  反馈暂存（避免被 setStory 覆盖）
+                    // ============================================================
+                    let feedback = '';
+
+                    // ============================================================
+                    //  废弃房屋访问计数
                     // ============================================================
                     if (!state.flags._insideAbandoned) {
                         state.flags._insideAbandoned = true;
@@ -5069,16 +5075,16 @@
 
                     const visitCount = state.flags.abandonedVisitCount || 0;
 
-                    // ---- 定义各位置的状态标记（存储在 flags 中，防止重置） ----
+                    // ---- 定义各位置的状态标记 ----
                     if (!state.flags._abandonedPositions) {
                         state.flags._abandonedPositions = {
-                            wall: false,      // 墙上暗痕
-                            talisman: false,  // 墙角符纸
-                            shrine: false,    // 神龛
-                            pot: false,       // 陶罐
-                            desk: false,      // 旧桌子（银锁片）
-                            bedside: false,   // 床头柜（银杏叶书签）
-                            ash: false,       // 草木灰堆
+                            wall: false,
+                            talisman: false,
+                            shrine: false,
+                            pot: false,
+                            desk: false,
+                            bedside: false,
+                            ash: false,
                         };
                     }
                     const pos = state.flags._abandonedPositions;
@@ -5148,12 +5154,10 @@
                     if (!pos.pot) {
                         storyText += `• <span style="color:#d4b87a;">地上有一个陶罐，看起来有些年头了</span>（未查看）\n`;
                     } else {
-                        if (hasPotClue) {
-                            storyText += `• 陶罐内壁有些痕迹，但还看不太清。\n`;
-                        } else if (state.rules.includes('temple_defense_5')) {
+                        if (state.rules.includes('temple_defense_5')) {
                             storyText += `• 陶罐内壁的刻字你已经记下了，没有新的发现。\n`;
                         } else {
-                            storyText += `• 陶罐已经看过了，没有新的发现。\n`;
+                            storyText += `• 陶罐已经看过了，但光线太暗，还没看清里面的刻字。\n`;
                         }
                     }
 
@@ -5161,12 +5165,10 @@
                     if (!pos.bedside) {
                         storyText += `• <span style="color:#d4b87a;">床头柜的抽屉似乎没有完全合上</span>（未查看）\n`;
                     } else {
-                        if (hasBedsideClue) {
-                            storyText += `• 你拉开抽屉，里面有一片压得平整的银杏叶，散发着淡淡的香气。\n`;
-                        } else if (hasBookmark) {
+                        if (hasBookmark) {
                             storyText += `• 床头柜已经空了，书签你已经拿到了。\n`;
                         } else {
-                            storyText += `• 床头柜已经看过了，没有新的发现。\n`;
+                            storyText += `• 床头柜已经看过了，但里面空空荡荡。\n`;
                         }
                     }
 
@@ -5174,12 +5176,10 @@
                     if (!pos.desk) {
                         storyText += `• <span style="color:#d4b87a;">一张旧桌子，抽屉半开着</span>（未查看）\n`;
                     } else {
-                        if (hasDeskClue) {
-                            storyText += `• 你拉开抽屉，里面有一枚银锁片，刻着"平安"二字。\n`;
-                        } else if (hasSilver) {
+                        if (hasSilver) {
                             storyText += `• 抽屉已经空了，银锁片你已经拿到了。\n`;
                         } else {
-                            storyText += `• 旧桌子已经看过了，没有新的发现。\n`;
+                            storyText += `• 旧桌子已经看过了，但抽屉卡住了打不开。\n`;
                         }
                     }
 
@@ -5212,7 +5212,14 @@
             <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已来过 ${visitCount} 次。</span>
         `;
 
+                    // ---- 先显示场景文本 ----
                     setStory(storyText);
+
+                    // ---- 如果之前有暂存的反馈，显示出来 ----
+                    if (feedback) {
+                        showStory(feedback);
+                        feedback = ''; // 清空，防止重复显示
+                    }
 
                     // ---- 构建选项 ----
                     let opts = [];
@@ -5255,10 +5262,10 @@
                     checkPosition('wall', '墙上暗痕', async function () {
                         if (!state.rules.includes('abandoned_1')) {
                             await addRule('abandoned_1');
-                            showStory(`<span class="divider">· · ·</span>你凑近墙上的暗痕，辨认出几个字：「别信嫂嫂的笑，超过十秒就要跑。」`);
+                            feedback = '<span class="divider">· · ·</span>你凑近墙上的暗痕，辨认出几个字：「别信嫂嫂的笑，超过十秒就要跑。」';
                             changeDragonization(2);
                         } else {
-                            showStory(`<span class="divider">· · ·</span>墙上的暗痕已经模糊了，你什么也看不清。`);
+                            feedback = '<span class="divider">· · ·</span>墙上的暗痕已经模糊了，你什么也看不清。';
                         }
                     });
 
@@ -5266,10 +5273,10 @@
                     checkPosition('talisman', '墙角符纸', async function () {
                         if (!state.rules.includes('abandoned_2')) {
                             await addRule('abandoned_2');
-                            showStory(`<span class="divider">· · ·</span>你捡起一张符纸，上面写着：「青纹现，速归还；龙气缠，命难全。」`);
+                            feedback = '<span class="divider">· · ·</span>你捡起一张符纸，上面写着：「青纹现，速归还；龙气缠，命难全。」';
                             changeDragonization(2);
                         } else {
-                            showStory(`<span class="divider">· · ·</span>符纸已经腐朽了，一碰就碎。`);
+                            feedback = '<span class="divider">· · ·</span>符纸已经腐朽了，一碰就碎。';
                         }
                     });
 
@@ -5277,103 +5284,96 @@
                     checkPosition('shrine', '破旧神龛', async function () {
                         if (!state.rules.includes('abandoned_3')) {
                             await addRule('abandoned_3');
-                            showStory(`<span class="divider">· · ·</span>你在神龛下找到一张泛黄照片，背后写着：「观中弟子皆无影，重阳登高莫回头。」`);
+                            feedback = '<span class="divider">· · ·</span>你在神龛下找到一张泛黄照片，背后写着：「观中弟子皆无影，重阳登高莫回头。」';
                             changeDragonization(2);
                         } else {
-                            showStory(`<span class="divider">· · ·</span>神龛里空荡荡的，什么也没有。`);
+                            feedback = '<span class="divider">· · ·</span>神龛里空荡荡的，什么也没有。';
                         }
                     });
 
                     // =============================================================
                     //  【修复】陶罐（temple_defense_5）- 独立选项
-                    //  不会在第一次访问时错误标记为已查看
+                    //  显示剩余访问次数
                     // =============================================================
-                    const potViewed = pos.pot;
                     const potAlreadyGot = state.rules.includes('temple_defense_5');
+                    const potNeeded = 2;
+                    const potRemaining = Math.max(0, potNeeded - visitCount);
 
-                    if (!potViewed || (!potAlreadyGot && visitCount < 2)) {
-                        // 未查看过，或者查看过但条件未满足（需要重新尝试）
+                    if (!potAlreadyGot) {
+                        const hint = visitCount >= potNeeded ? '罐壁内似乎有刻痕……' : `还需探索 ${potRemaining} 次`;
+                        const tag = visitCount >= potNeeded ? '⭐ 刻字' : `📭 ${potRemaining}次后`;
                         opts.push({
-                            label: potViewed ? `🔍 地上的陶罐（再试试）` : `🔍 地上的陶罐`,
-                            hint: potAlreadyGot ? '已经解读过了' : (visitCount >= 2 ? '罐壁内似乎有刻痕……' : '光线太暗，看不太清'),
-                            tag: potAlreadyGot ? '已读' : (visitCount >= 2 ? '⭐ 刻字' : '📭'),
-                            disabled: potAlreadyGot || state.gameOver,
+                            label: `🔍 地上的陶罐${visitCount >= potNeeded ? '' : '（再等等）'}`,
+                            hint: hint,
+                            tag: tag,
+                            disabled: false,
                             action: async function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-
                                 if (state.rules.includes('temple_defense_5')) {
-                                    showStory(`<span class="divider">· · ·</span>陶罐内壁的刻字你已经记下了，没有新的发现。`);
-                                    pos.pot = true;
+                                    feedback = '陶罐内壁的刻字你已经记下了。';
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                if (visitCount < 2) {
-                                    showStory(`<span class="divider">· · ·</span>你拿起陶罐，里面是空的。罐壁内似乎有些刻痕，但光线太暗，你暂时看不清。也许你需要多来几次，才能看清？`);
+                                if (visitCount < potNeeded) {
+                                    feedback = `你凑近陶罐，光线太暗，只能看到一些模糊的痕迹。也许你还需要多来几次（当前 ${visitCount}/${potNeeded}）才能看清。`;
                                     recordFragment('fragment_temple_defense_5');
-                                    // 不标记为已查看，让玩家可以下次再来
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                // ---- 条件满足，获得陶罐线索 ----
+                                // 条件满足，获得线索
                                 pos.pot = true;
                                 await addRule('temple_defense_5');
                                 recordFragment('fragment_temple_defense_5');
-                                showStory(`
+                                feedback = `
                         <span class="divider">· · ·</span>
                         你凑近陶罐内壁，借着微弱的亮光辨认出罐壁上刻着一行小字：
                         <span class="rule-text" style="color:#d4b87a;">「后山药庐，柜子第三格，白布包着的是治咳嗽的方子。先生走之前留的。」</span>
                         <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
-                    `);
+                    `;
                                 changeDragonization(1);
                                 updateUI();
                                 SCENES['explore_abandoned'].render();
                             }
                         });
-                    } else if (state.rules.includes('temple_defense_5')) {
+                    } else {
                         opts.push({
-                            label: `✅ 地上的陶罐（已查看）`,
+                            label: '✅ 地上的陶罐（已解读）',
                             hint: '刻字你已经记下了',
                             tag: '已读',
-                            disabled: true,
-                            action: function () { }
+                            disabled: true
                         });
                     }
 
                     // =============================================================
                     //  【修复】床头柜（银杏叶书签）- 独立选项
-                    //  不会在第一次访问时错误标记为已查看
+                    //  显示剩余访问次数
                     // =============================================================
-                    const bedsideViewed = pos.bedside;
+                    const bedsideNeeded = 2;
+                    const bedsideRemaining = Math.max(0, bedsideNeeded - visitCount);
 
-                    if (!bedsideViewed || (!hasBookmark && visitCount < 2)) {
+                    if (!hasBookmark) {
+                        const hint = visitCount >= bedsideNeeded ? '你闻到一股淡淡的银杏叶香气……' : `还需探索 ${bedsideRemaining} 次`;
+                        const tag = visitCount >= bedsideNeeded ? '⭐ 书签' : `📭 ${bedsideRemaining}次后`;
                         opts.push({
-                            label: bedsideViewed ? `🔍 床头柜抽屉（再试试）` : `🔍 床头柜抽屉`,
-                            hint: hasBookmark ? '已经拿到了' : (visitCount >= 2 ? '你闻到一股淡淡的银杏叶香气……' : '抽屉里似乎没什么东西'),
-                            tag: hasBookmark ? '已拿' : (visitCount >= 2 ? '⭐ 书签' : '📭'),
-                            disabled: hasBookmark || state.gameOver,
+                            label: `🔍 床头柜抽屉${visitCount >= bedsideNeeded ? '' : '（再等等）'}`,
+                            hint: hint,
+                            tag: tag,
+                            disabled: false,
                             action: async function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-
                                 if (state.flags.hidden_hasBookmark) {
-                                    showStory(`<span class="divider">· · ·</span>床头柜已经空了，书签你已经拿到了。`);
-                                    pos.bedside = true;
+                                    feedback = '书签你已经拿到了。';
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                if (visitCount < 2) {
-                                    showStory(`<span class="divider">· · ·</span>你拉开抽屉，里面空空荡荡，只有一层薄薄的灰。也许你需要多来几次，才能发现什么？`);
-                                    // 不标记为已查看，让玩家可以下次再来
+                                if (visitCount < bedsideNeeded) {
+                                    feedback = `你拉开抽屉，里面空空荡荡，只有一层薄薄的灰。也许你需要多来几次（当前 ${visitCount}/${bedsideNeeded}）才能发现什么。`;
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                // ---- 条件满足，获得书签 ----
                                 state.flags.hidden_hasBookmark = true;
                                 pos.bedside = true;
-                                showStory(`
+                                feedback = `
                         <span class="divider">· · ·</span>
                         你拉开抽屉，发现一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
                         你拿起书签，发现背面刻着一行小字：
@@ -5381,72 +5381,68 @@
                         <span class="divider">· · ·</span>
                         <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
                         <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
-                    `);
+                    `;
                                 changeDragonization(5);
                                 updateUI();
                                 SCENES['explore_abandoned'].render();
                             }
                         });
-                    } else if (state.flags.hidden_hasBookmark) {
+                    } else {
                         opts.push({
-                            label: `✅ 床头柜抽屉（已查看）`,
-                            hint: '书签你已经拿到了',
+                            label: '✅ 床头柜抽屉（已拿书签）',
+                            hint: '书签已经拿到了',
                             tag: '已读',
-                            disabled: true,
-                            action: function () { }
+                            disabled: true
                         });
                     }
 
                     // =============================================================
-                    //  【修复】旧桌子（银锁片/平安扣）- 独立选项
-                    //  不会在第一次访问时错误标记为已查看
+                    //  【修复】旧桌子（银锁片）- 独立选项
+                    //  显示剩余访问次数
                     // =============================================================
-                    const deskViewed = pos.desk;
+                    const deskNeeded = 3;
+                    const deskRemaining = Math.max(0, deskNeeded - visitCount);
 
-                    if (!deskViewed || (!hasSilver && visitCount < 3)) {
+                    if (!hasSilver) {
+                        const hint = visitCount >= deskNeeded ? '抽屉似乎被什么东西卡住了……' : `还需探索 ${deskRemaining} 次`;
+                        const tag = visitCount >= deskNeeded ? '⭐ 银锁片' : `📭 ${deskRemaining}次后`;
                         opts.push({
-                            label: deskViewed ? `🔍 旧桌子抽屉（再试试）` : `🔍 旧桌子抽屉`,
-                            hint: hasSilver ? '已经拿到了' : (visitCount >= 3 ? '抽屉似乎被什么东西卡住了……' : '抽屉里散落着一些旧纸片'),
-                            tag: hasSilver ? '已拿' : (visitCount >= 3 ? '⭐ 银锁片' : '📭'),
-                            disabled: hasSilver || state.gameOver,
+                            label: `🔍 旧桌子抽屉${visitCount >= deskNeeded ? '' : '（再等等）'}`,
+                            hint: hint,
+                            tag: tag,
+                            disabled: false,
                             action: async function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-
                                 if (state.flags.oldLadyQuest.silverFound) {
-                                    showStory(`<span class="divider">· · ·</span>抽屉已经空了，银锁片你已经拿到了。`);
-                                    pos.desk = true;
+                                    feedback = '银锁片你已经拿到了。';
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                if (visitCount < 3) {
-                                    showStory(`<span class="divider">· · ·</span>你拉开抽屉，里面只有几张发黄的旧纸，上面写着一些模糊不清的字迹。也许你需要多来几次，才能发现什么？`);
+                                if (visitCount < deskNeeded) {
+                                    feedback = `你拉开抽屉，里面只有几张发黄的旧纸，上面写着一些模糊不清的字迹。也许你需要多来几次（当前 ${visitCount}/${deskNeeded}）才能发现什么。`;
                                     SCENES['explore_abandoned'].render();
                                     return;
                                 }
-
-                                // ---- 条件满足，获得银锁片 ----
                                 state.flags.oldLadyQuest.silverFound = true;
                                 pos.desk = true;
-                                showStory(`
+                                feedback = `
                         <span class="divider">· · ·</span>
                         你用力拉开卡住的抽屉，在底部发现了一枚银锁片，刻着"平安"二字。
                         锁片虽然有些发黑，但做工精致，看得出是有些年头的老物件了。
                         <span style="color:#d4b87a;">📌 你获得了「银锁片」！</span>
                         <span style="color:var(--text-muted);font-size:0.85rem;">这应该就是小卖部老妪丢失的那枚……</span>
-                    `);
+                    `;
                                 changeDragonization(-2);
                                 updateUI();
                                 SCENES['explore_abandoned'].render();
                             }
                         });
-                    } else if (state.flags.oldLadyQuest.silverFound) {
+                    } else {
                         opts.push({
-                            label: `✅ 旧桌子抽屉（已查看）`,
-                            hint: '银锁片你已经拿到了',
+                            label: '✅ 旧桌子抽屉（已拿银锁片）',
+                            hint: '银锁片已经拿到了',
                             tag: '已读',
-                            disabled: true,
-                            action: function () { }
+                            disabled: true
                         });
                     }
 
@@ -5455,7 +5451,7 @@
                         const hasAllHidden = state.rules.filter(r => r.startsWith('hidden_')).length >= 9;
                         checkPosition('ash', '草木灰堆', async function () {
                             if (hasAllHidden) {
-                                showStory(`<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>`);
+                                feedback = '<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>';
                                 pos.ash = true;
                                 return;
                             }
@@ -5504,7 +5500,7 @@
                         const remaining = allHiddenIds.filter(id => !state.rules.includes(id));
 
                         if (remaining.length === 0) {
-                            showStory(`<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>`);
+                            feedback = '<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>';
                             return;
                         }
 
@@ -5523,42 +5519,42 @@
                         }
 
                         if (unlockCount === 0) {
-                            showStory(`
+                            feedback = `
                     <span class="divider">· · ·</span>
                     <span style="color:var(--text-muted);">你在草木灰上洒了一些水，隐约看到一些字迹，但它们太模糊了，无法辨认。</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你还需要收集更多的线索……</span>
-                `);
+                `;
                             return;
                         }
 
-                        showStory(`
+                        feedback = `
                 <span class="divider">· · ·</span>
                 <span style="color:#d4b87a;">🔥 你用水润湿了草木灰，灰烬渐渐显露出字迹……</span>
                 你屏住呼吸，一字一句地辨认着灰中浮现的文字。
-            `);
+            `;
 
                         const toUnlock = remaining.slice(0, unlockCount);
                         for (const id of toUnlock) {
                             await addRule(id);
                             const rule = RULES_DB[id];
                             if (rule) {
-                                showStory(`<span class="rule-text" style="color:#d4b87a;">📜 ${rule.text}</span>`);
+                                feedback += `<span class="rule-text" style="color:#d4b87a;">📜 ${rule.text}</span>`;
                             }
                         }
 
                         const newRemaining = allHiddenIds.filter(id => !state.rules.includes(id));
                         if (conditionsMet === 5 && newRemaining.length === 0) {
                             state.flags.hidden_unlocked = true;
-                            showStory(`
+                            feedback += `
                     <span class="divider">· · ·</span>
                     <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部草木灰显影规则！</span>
                     灰烬中的文字完全显现，你终于看清了隐藏在游客守则之下的真相。
-                `);
+                `;
                         } else if (toUnlock.length > 0) {
-                            showStory(`
+                            feedback += `
                     <span class="divider">· · ·</span>
                     <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未显现，也许你还需要满足更多条件……（剩余 ${newRemaining.length} 条）</span>
-                `);
+                `;
                         }
 
                         updateUI();
