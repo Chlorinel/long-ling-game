@@ -3166,30 +3166,52 @@
 
             // ---- 生成阴森中式 BGM（五声音阶 + 低频嗡鸣 + 随机敲击） ----
             // ---- 生成古琴旋律 BGM（完整旋律循环 + 钟铃） ----
+            // ---- 生成笛子旋律 BGM（完整旋律循环 + 钟铃） ----
             function startBGM() {
                 if (!initAudio()) return;
                 if (bgmPlaying) return;
 
+                // ---- 主音量（调大） ----
                 const masterGain = audioCtx.createGain();
-                masterGain.gain.value = 0.25;
+                masterGain.gain.value = 0.45;   // 调大，清晰可闻
                 masterGain.connect(audioCtx.destination);
 
-                // ---- 低通滤波（古琴木质音色） ----
+                // ---- 带通滤波器（突出笛子的中高频） ----
                 const filter = audioCtx.createBiquadFilter();
-                filter.type = 'lowpass';
+                filter.type = 'bandpass';
                 filter.frequency.value = 1200;
-                filter.Q.value = 1.5;
+                filter.Q.value = 1.2;
                 filter.connect(masterGain);
 
-                // ---- 主音色振荡器 ----
-                const guqinOsc = audioCtx.createOscillator();
-                const guqinGain = audioCtx.createGain();
-                guqinOsc.type = 'square';
-                guqinOsc.frequency.value = 220;
-                guqinGain.gain.value = 0;
-                guqinOsc.connect(guqinGain);
-                guqinGain.connect(filter);
-                guqinOsc.start();
+                // ---- 笛子主音（正弦波 + 轻微锯齿，增加明亮感） ----
+                const fluteOsc = audioCtx.createOscillator();
+                const fluteGain = audioCtx.createGain();
+                fluteOsc.type = 'sine';          // 正弦波为主
+                fluteOsc.frequency.value = 440;
+                fluteGain.gain.value = 0;
+                fluteOsc.connect(fluteGain);
+                fluteGain.connect(filter);
+                fluteOsc.start();
+
+                // ---- 泛音振荡器（增加高频色彩） ----
+                const harmonicOsc = audioCtx.createOscillator();
+                const harmonicGain = audioCtx.createGain();
+                harmonicOsc.type = 'sine';
+                harmonicOsc.frequency.value = 880;
+                harmonicGain.gain.value = 0;
+                harmonicOsc.connect(harmonicGain);
+                harmonicGain.connect(filter);
+                harmonicOsc.start();
+
+                // ---- 颤音 LFO（模拟笛子的气息波动） ----
+                const vibratoLFO = audioCtx.createOscillator();
+                const vibratoGain = audioCtx.createGain();
+                vibratoLFO.type = 'sine';
+                vibratoLFO.frequency.value = 5.5; // 颤音频率 5.5Hz
+                vibratoGain.gain.value = 6;       // 颤音幅度（音分偏移）
+                vibratoLFO.connect(vibratoGain);
+                vibratoGain.connect(fluteOsc.frequency);
+                vibratoLFO.start();
 
                 // ---- 钟铃 ----
                 const bellGain = audioCtx.createGain();
@@ -3219,29 +3241,21 @@
                 const firstBellDelay = 4000 + Math.random() * 6000;
                 bgmInterval = setTimeout(playRandomBell, firstBellDelay);
 
-                bgmNodes = { masterGain, guqinOsc, guqinGain, filter, bellGain };
+                bgmNodes = { masterGain, fluteOsc, fluteGain, harmonicOsc, harmonicGain, vibratoLFO, vibratoGain, filter, bellGain };
                 bgmPlaying = true;
 
-                // ---- 五声音阶（完整音阶，含高八度） ----
+                // ---- 五声音阶 ----
                 const scale = [
                     196, 220, 247, 294, 330, 392, 440, 494, 587, 659, 784, 880
                 ];
-                // 音名对照：G3 A3 B3 D4 E4 G4 A4 B4 D5 E5 G5 A5
 
-                // ---- 旋律数据库（用音阶索引表示） ----
-                // 每条旋律是一个音符索引序列，-1 表示休止
+                // ---- 旋律数据库 ----
                 const melodies = [
-                    // 旋律1：1 3 5 6 5 3 2 1（上行后回落）
                     [0, 2, 4, 5, 4, 2, 1, 0],
-                    // 旋律2：5 6 1' 2' 1' 6 5 3（高音区下行）
                     [4, 5, 7, 8, 7, 5, 4, 2],
-                    // 旋律3：6 5 3 2 3 5 6 5（起伏）
                     [5, 4, 2, 1, 2, 4, 5, 4],
-                    // 旋律4：3 5 6 1' 6 5 3 5（跨八度）
                     [2, 4, 5, 7, 5, 4, 2, 4],
-                    // 旋律5：1 2 3 5 6 5 3 2（平稳上行回落）
                     [0, 1, 2, 4, 5, 4, 2, 1],
-                    // 旋律6：5 3 2 1 2 3 5 6（反向）
                     [4, 2, 1, 0, 1, 2, 4, 5],
                 ];
 
@@ -3262,61 +3276,64 @@
                     const now = audioCtx.currentTime;
 
                     if (idx === -1) {
-                        // 休止：静音
-                        guqinGain.gain.setTargetAtTime(0, now, 0.02);
-                        currentNoteDuration = 100 + Math.random() * 150;
+                        // 休止
+                        fluteGain.gain.setTargetAtTime(0, now, 0.02);
+                        harmonicGain.gain.setTargetAtTime(0, now, 0.02);
+                        currentNoteDuration = 120 + Math.random() * 150;
                     } else {
                         const freq = scale[idx % scale.length];
-                        const currentFreq = guqinOsc.frequency.value;
+                        const currentFreq = fluteOsc.frequency.value;
 
-                        // ---- 滑音（从前一个音滑到目标音） ----
+                        // 滑音（笛子可以快速滑音）
                         if (Math.abs(currentFreq - freq) > 3) {
-                            guqinOsc.frequency.setTargetAtTime(freq, now, 0.08);
+                            fluteOsc.frequency.setTargetAtTime(freq, now, 0.06);
                         } else {
-                            guqinOsc.frequency.setValueAtTime(freq, now);
+                            fluteOsc.frequency.setValueAtTime(freq, now);
                         }
+                        // 泛音跟随主音
+                        harmonicOsc.frequency.setValueAtTime(freq * 2, now);
 
-                        // ---- 古琴拨弦包络 ----
-                        const peak = 0.06 + Math.random() * 0.04;
-                        guqinGain.gain.setValueAtTime(0, now);
-                        guqinGain.gain.linearRampToValueAtTime(peak, now + 0.012);
-                        guqinGain.gain.exponentialRampToValueAtTime(peak * 0.5, now + 0.1);
-                        guqinGain.gain.exponentialRampToValueAtTime(peak * 0.15, now + 0.4);
-                        guqinGain.gain.exponentialRampToValueAtTime(0.003, now + 0.9);
+                        // ---- 笛子包络（起吹、稳定、收尾） ----
+                        const peak = 0.12;          // 笛子音量调大
+                        const harmonicPeak = 0.035;
+                        // 主音
+                        fluteGain.gain.setValueAtTime(0, now);
+                        fluteGain.gain.linearRampToValueAtTime(peak * 0.9, now + 0.02);
+                        fluteGain.gain.linearRampToValueAtTime(peak, now + 0.06);
+                        fluteGain.gain.exponentialRampToValueAtTime(peak * 0.6, now + 0.3);
+                        fluteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                        // 泛音
+                        harmonicGain.gain.setValueAtTime(0, now);
+                        harmonicGain.gain.linearRampToValueAtTime(harmonicPeak * 0.8, now + 0.04);
+                        harmonicGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
-                        currentNoteDuration = 400 + Math.random() * 250;
+                        currentNoteDuration = 500 + Math.random() * 300;
                     }
 
                     noteIdx++;
 
-                    // 如果当前旋律播完，切换到下一条
                     if (noteIdx >= melody.length) {
                         noteIdx = 0;
                         currentMelodyIdx = (currentMelodyIdx + 1) % melodies.length;
                     }
 
-                    // 音符结束后播放下一个
                     nextNoteTimer = setTimeout(() => {
                         isPlaying = false;
                         if (bgmPlaying) {
-                            // 音符之间的间隙（古琴的“留白”）
-                            const gap = 120 + Math.random() * 300;
+                            const gap = 150 + Math.random() * 350;
                             setTimeout(playNextMelodyNote, gap);
                         }
                     }, currentNoteDuration + 50);
                 }
 
-                // 延迟 0.5 秒开始播放旋律
+                // 启动旋律
                 setTimeout(playNextMelodyNote, 500);
 
-                // ---- 旋律切换时微调滤波器 ----
-                let filterInterval = setInterval(() => {
-                    if (!bgmPlaying) {
-                        clearInterval(filterInterval);
-                        return;
-                    }
-                    const newFreq = 900 + Math.random() * 500;
-                    filter.frequency.setTargetAtTime(newFreq, audioCtx.currentTime, 0.6);
+                // ---- 定期微调滤波器，模拟笛子音色变化 ----
+                setInterval(() => {
+                    if (!bgmPlaying) return;
+                    const newFreq = 1000 + Math.random() * 600;
+                    filter.frequency.setTargetAtTime(newFreq, audioCtx.currentTime, 0.5);
                 }, 4000);
             }
 
