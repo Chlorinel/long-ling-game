@@ -10380,9 +10380,30 @@
             // ================================================================
 
             // ---- 显示主菜单 ----
+            // ---- 显示主菜单 ----
             function showMainMenu() {
+                // 如果画廊是打开的，关闭它
+                if (document.getElementById('gallery-view').classList.contains('active')) {
+                    document.getElementById('gallery-view').classList.remove('active');
+                }
+
+                // 显示主菜单，隐藏游戏内容
                 document.getElementById('main-menu').style.display = 'flex';
                 document.getElementById('game-content').style.display = 'none';
+
+                // 重置确认状态，防止按钮被锁定
+                state._waitingConfirm = false;
+                state._confirmResolve = null;
+                document.getElementById('rule-notification').classList.remove('show');
+                const container = document.getElementById('options-area');
+                const confirmBtn = container.querySelector('.confirm-btn');
+                if (confirmBtn) confirmBtn.remove();
+                document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(btn => {
+                    btn.style.pointerEvents = '';
+                    btn.style.opacity = '';
+                });
+
+                // 更新继续按钮状态
                 const continueBtn = document.getElementById('btn-continue');
                 if (hasSave()) {
                     continueBtn.style.opacity = '1';
@@ -10392,6 +10413,13 @@
                     continueBtn.style.opacity = '0.5';
                     continueBtn.style.pointerEvents = 'none';
                     continueBtn.textContent = '📂 没有存档';
+                }
+
+                // 更新结局计数
+                const unlocked = getUnlockedEndings();
+                const galleryHint = document.getElementById('galleryHint');
+                if (galleryHint) {
+                    galleryHint.textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
                 }
             }
 
@@ -10511,6 +10539,11 @@
                 }
 
                 const grid = document.getElementById('galleryGrid');
+                if (!grid) {
+                    console.warn('galleryGrid 元素不存在');
+                    return;
+                }
+
                 let unlocked = [];
                 try {
                     unlocked = getUnlockedEndings();
@@ -10521,8 +10554,11 @@
                 const total = getTotalEndingsCount();
 
                 // 更新计数
-                document.getElementById('galleryCount').textContent = unlocked.length;
-                document.getElementById('galleryTotal').textContent = total;
+                const galleryCount = document.getElementById('galleryCount');
+                const galleryTotal = document.getElementById('galleryTotal');
+                if (galleryCount) galleryCount.textContent = unlocked.length;
+                if (galleryTotal) galleryTotal.textContent = total;
+
                 const galleryHint = document.getElementById('galleryHint');
                 if (galleryHint) {
                     galleryHint.textContent = `—— 已解锁 ${unlocked.length} / ${total} ——`;
@@ -10582,9 +10618,11 @@
                 document.getElementById('main-menu').style.display = 'flex';
                 // 更新主菜单中的计数
                 const unlocked = getUnlockedEndings();
-                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+                const galleryHint = document.getElementById('galleryHint');
+                if (galleryHint) {
+                    galleryHint.textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+                }
             }
-
             // ---- 绑定画廊按钮 ----
             document.getElementById('btn-gallery').addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -10621,15 +10659,29 @@
                 document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
             }
             // ---------- 初始化 ----------
+            // ---------- 初始化 ----------
             function init() {
-                // 绑定主菜单按钮
-                var newGameBtn = document.getElementById('btn-new-game');
-                if (newGameBtn) newGameBtn.addEventListener('click', startNewGame);
+                // 先确保主菜单可见
+                showMainMenu();
 
-                var continueBtn = document.getElementById('btn-continue');
-                if (continueBtn) continueBtn.addEventListener('click', continueGame);
+                // ---- 安全绑定按钮事件 ----
+                const newGameBtn = document.getElementById('btn-new-game');
+                if (newGameBtn) {
+                    newGameBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        startNewGame();
+                    });
+                }
 
-                var galleryBtn = document.getElementById('btn-gallery');
+                const continueBtn = document.getElementById('btn-continue');
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        continueGame();
+                    });
+                }
+
+                const galleryBtn = document.getElementById('btn-gallery');
                 if (galleryBtn) {
                     galleryBtn.addEventListener('click', function (e) {
                         e.stopPropagation();
@@ -10637,19 +10689,29 @@
                     });
                 }
 
-                var galleryBackBtn = document.getElementById('gallery-back-btn');
+                const galleryBackBtn = document.getElementById('gallery-back-btn');
                 if (galleryBackBtn) {
                     galleryBackBtn.addEventListener('click', function () {
                         closeGallery();
                     });
                 }
 
-                var returnBtn = document.getElementById('btn-return-menu');
+                const returnBtn = document.getElementById('btn-return-menu');
                 if (returnBtn) {
                     returnBtn.addEventListener('click', function (e) {
                         e.stopPropagation();
                         returnToMenu();
                     });
+                }
+
+                // 规则面板切换
+                const rulesToggle = document.getElementById('rulesToggle');
+                if (rulesToggle) {
+                    rulesToggle.addEventListener('click', toggleRulesPanel);
+                }
+                const rulesToggleBtn = document.getElementById('rulesToggleBtn');
+                if (rulesToggleBtn) {
+                    rulesToggleBtn.addEventListener('click', toggleRulesPanel);
                 }
 
                 // 页面关闭自动保存
@@ -10658,9 +10720,6 @@
                         saveGame();
                     }
                 });
-
-                // 显示主菜单
-                showMainMenu();
             }
             window.onload = init;
         </script>
