@@ -1019,6 +1019,7 @@
                     dream: false,   // 梦呓低语是否已触发
                     knock: false,   // 敲门事件是否已触发
                     window: false,  // 窗外人影是否已触发
+                    dream_defense: false,  // 护玄清版嫂嫂梦话
                 },
                 // 觉醒者支线状态
                 awakening: {
@@ -1052,6 +1053,15 @@
                     lastWarnDay: 0,        // 上次警告的天数
                     forcedAction: false,   // 是否已被强制行动
                     hasTempleWarning: false,  // 新增：是否获得了道观诵经声警告
+                },
+                _abandonedPositions: {
+                    wall: false,
+                    talisman: false,
+                    shrine: false,
+                    pot: false,
+                    desk: false,
+                    bedside: false,
+                    ash: false,
                 },
             },
             actionsToday: 0,
@@ -1190,6 +1200,22 @@
             hasShadowSecret: false,        // 是否从阴影中获得低语情报
             hasTaoistInfo: false,          // 是否从道士处获得额外情报
             hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+            // ----- 药庐支线（新增） -----
+            medicineHut: {
+                unlocked: false,
+                visited: false,
+                fragmentsCollected: [],  // 收集的碎片ID列表
+                itemsTaken: [],         // 从药庐带走的物品 ['prescription','warning','list','letter']
+                exploredCount: 0,
+                trustLevel: 0,          // -5 ~ 5，对玄清的信任值
+            },
+
+            // ----- 支线完成标记 -----
+            villageWestDone: false,     // 村西支线是否完成（至少见过阿芹并拿到线索）
+            medicineHutDone: false,     // 药庐支线是否完成（去过药庐并拿到至少一件物品）
+
+            // ----- 隐藏护玄清规则触发 -----
+            oldManTalkTriggered: false, // 废弃屋外老人对话是否已触发
             _confirmResolve: null,
             _waitingConfirm: false,
             _morningEventProcessed: false,  // 标记早晨事件是否已处理
@@ -1223,7 +1249,7 @@
             'folk_1': { id: 'folk_1', text: '【民俗部密语】"村西的婆娘和村东的嫂嫂不是一路人，挂着桃木牌子的自己人说话也要留三分。"' },
             'card_important_1': { id: 'card_important_1', text: '【花切·规则1】大爷说："社戏队伍里那些扮神仙的，都是观里出来的，他们走路脚后跟不着地。"' },
             'card_important_2': { id: 'card_important_2', text: '【花切·规则1】大爷说："托龙王爷的福，才能睡得安稳。"' },
-            'card_important_3': { id: 'card_important_3', text: '【花切·规则1】大爷说："村里辈分最高的阿婆，她养的那只黑猫，眼睛是竖着的，和观里的一样。"' },
+            'card_important_3': { id: 'card_important_3', text: '【花切·规则1】大爷说："你知道为什么旧童满离观之后，都不愿提观里的事吗？不是不能说，是不敢。"' },
             'card_useless_1': { id: 'card_useless_1', text: '【花切·规则2】大爷说："今天天气不错，适合晒菌子。"' },
             'card_useless_2': { id: 'card_useless_2', text: '【花切·规则2】大爷说："村口那棵银杏树，听说有几百年了。"' },
             'card_useless_3': { id: 'card_useless_3', text: '【花切·规则2】大爷说："我家孙子在城里念书，老叫我搬去住，我舍不得这山。"' },
@@ -1253,6 +1279,26 @@
             'temple_1': { id: 'temple_1', text: '【祭坛遗址】旧纸上写着："每年重阳，以童阳祭龙，可得长生。慎之。"' },
             'diary_1': { id: 'diary_1', text: '【道士日记】"玄清已死，披着人皮的龙在说话。观里那些弟子，早就被龙神吃掉了灵魂。"' },
             'cliff_1': { id: 'cliff_1', text: '【观景台】石头上刻着："阴血之阵，以人养龙。"——整个邱龙村就是一个巨大的祭坛。' },
+            // ================================================================
+            //  护玄清规则（新增）
+            // ================================================================
+            'temple_defense_1': { id: 'temple_defense_1', text: '【小卖部老妪】那年道观塌了一堵墙。就塌了三天，村里死了七个人。先生把墙补上了之后，那些人就没再死了。' },
+            'temple_defense_2': { id: 'temple_defense_2', text: '【小卖部老妪】社戏不是先生让你们办的。是你们自己办的。从老早之前就开始唱了，那时候还没有先生。' },
+            'temple_defense_3': { id: 'temple_defense_3', text: '【民俗部工作人员】你见过被龙气缠上的人吗？我见过。那天早上醒来，他已经不会说话了。眼睛还是睁着的，但是人已经不在了。先生把他带走的时候，他还在呼吸。' },
+            'temple_defense_4': { id: 'temple_defense_4', text: '【民俗部工作人员】北岭那边，以前有人进去过。出来之后什么都不记得了，只记得一句话："先生说那里不能去。"' },
+            'temple_defense_5': { id: 'temple_defense_5', text: '【废弃房屋·陶罐】陶罐内壁刻着："后山药庐，柜子第三格，白布包着的是治咳嗽的方子。先生走之前留的。"' },
+            'temple_defense_6': { id: 'temple_defense_6', text: '【花切大爷】后山那间药庐，以前有人住。那个人后来不在了，药庐就空了。但水到现在还是清的——你说奇不奇怪？空了那么多年，管子没锈，水还在流。' },
+            'temple_defense_7': { id: 'temple_defense_7', text: '【嫂嫂·梦呓】嫂嫂在梦中喃喃自语："那个孩子入观之前……手背上已经泛青了……他那时候就不太说话了……"' },
+            'temple_defense_8': { id: 'temple_defense_8', text: '【玄清药方】周家幼子，年七岁。手足青冷，舌苔灰白，不能言语。开方：桂枝、独活、茯神……七日后青退，十日可食粥。' },
+            'temple_defense_9': { id: 'temple_defense_9', text: '【北岭老林警告】北岭老林不可入。入者三日内必发。此非药石可解。' },
+            'temple_defense_10': { id: 'temple_defense_10', text: '【已愈者名录】戊戌年谢氏、壬寅年周氏、癸卯年刘氏……共二十余人，皆标注"已愈"。' },
+            'temple_defense_11': { id: 'temple_defense_11', text: '【废弃屋外老人】我喝过那张方子。咳了半年，以为活不过那年秋天。先生开了三个月药，我现在还活着。' },
+            'temple_defense_12': { id: 'temple_defense_12', text: '【旧信】"龙气并非不可控，只是无人敢试。若有人愿意走第三条路，他需要三样东西：药方、北岭的地图、还有一个人愿意信他。"' },
+            'temple_defense_13': { id: 'temple_defense_13', text: '【民俗部工作人员】那边庙里的先生，前些年救过村里不少人。这话我不该说，你自己琢磨。' },
+            // ---- 村西阿芹（反玄清核心叙事） ----
+            'awakening_1': { id: 'awakening_1', text: '【阿芹】村东那些嫂嫂，已经被龙王爷吃掉了心。她们笑着，热情着，但她们的眼睛在看你的阳原。' },
+            'awakening_2': { id: 'awakening_2', text: '【阿芹】玄清已经活了五百年。他靠龙气续命，靠纯阳体的血肉维持那层人皮。' },
+            'awakening_3': { id: 'awakening_3', text: '【阿芹】当年修建道观的工匠里，有人在左立柱底座下藏了一块青石碑。那上面刻着玄清真正的面目。' },
         };
 
         // ---------- 工具函数 ----------
@@ -1406,7 +1452,15 @@
             });
             container.innerHTML = html;
         }
-
+        // ---- 辅助函数：记录碎片 ----
+        function recordFragment(fragmentId) {
+            if (!state.flags.medicineHut.fragmentsCollected) {
+                state.flags.medicineHut.fragmentsCollected = [];
+            }
+            if (!state.flags.medicineHut.fragmentsCollected.includes(fragmentId)) {
+                state.flags.medicineHut.fragmentsCollected.push(fragmentId);
+            }
+        }
         // ================================================================
         //  【核心】规则确认机制 - 非侵入式
         // ================================================================
@@ -1502,14 +1556,38 @@
 
         // ---------- 计算初始伪装值（进入第二章时调用） ----------
         function calculateInitialDisguise() {
-            let base = 0;
-            if (state.flags.hidden_hasBrand) base += 1;
-            if (state.flags.hidden_answeredCode) base += 1;
-            if (state.flags.awakening.visited) base += 2;
+            // ---- 基础值为 0 ----
+            let disguise = 0;
 
-            if (state.flags.hasPeachWood) base += 1;
-            // 上限改为4，让玩家始终有紧张感
-            return clamp(base, 2, 4);
+            // ================================================================
+            //  融入加分（证明“你是这里的人”）
+            // ================================================================
+            let integrationBonus = 0;
+
+            // 草木灰显影解锁（综合性最强条件）
+            if (state.flags.hidden_unlocked) integrationBonus += 2;
+
+            // 独立于草木灰解锁之外的融入行为
+            if (state.flags.hasPeachWood) integrationBonus += 1;
+            if (state.flags.oldLadyQuest.completed) integrationBonus += 1;
+            if (state.flags.abandonedVisitCount >= 3) integrationBonus += 1;
+
+            // ================================================================
+            //  暴露减分（证明“你在调查”）
+            // ================================================================
+            let exposurePenalty = 0;
+
+            if (state.flags.awakening.visited) exposurePenalty += 2;
+            if (state.flags.medicineHut.visited) exposurePenalty += 1;
+            if (state.flags.folkloreVisitCount >= 3) exposurePenalty += 1;
+            if (state.flags.hasDragonScale) exposurePenalty += 1;
+
+            // ================================================================
+            //  计算最终值
+            // ================================================================
+            let final = disguise + integrationBonus - exposurePenalty;
+            final = clamp(final, 0, 4);
+            return final;
         }
 
         // ---------- 伪装值调整 ----------
@@ -1821,6 +1899,15 @@
                     action: () => { goToScene('explore_awakening'); }
                 });
             }
+            // ---- 新增：如果已解锁药庐，添加该选项 ----
+            if (state.flags.medicineHut.unlocked && !state.flags.medicineHut.visited && !state.flags.chapter2 && !state.gameOver) {
+                opts.push({
+                    label: '🏚️ 去后山药庐看看',
+                    hint: '老妪提到的那间旧屋子',
+                    cost: '⚡1',
+                    action: () => { goToScene('explore_medicine_hut'); }
+                });
+            }
             renderOptions(opts);
         }
         // ================================================================
@@ -2113,11 +2200,12 @@
                     return;
                 }
 
-                // 各事件概率（百分比）
+                // ---- 各事件概率（百分比） ----
                 const events = [
                     { id: 'knock', prob: 15, flag: 'knock', name: '半夜敲门声' },
                     { id: 'dream', prob: 20, flag: 'dream', name: '梦呓低语' },
                     { id: 'window', prob: 10, flag: 'window', name: '窗外人影' },
+                    { id: 'dream_defense', prob: 15, flag: 'dream_defense', name: '嫂嫂梦话（护玄清）' }, // 新增
                 ];
 
                 // 计算总概率（已触发的事件不再参与）
@@ -2127,10 +2215,7 @@
                     return;
                 }
 
-                // 随机决定是否触发（先决定是否触发事件，概率为45%，即15+20+10）
-                const totalProb = available.reduce((sum, e) => sum + e.prob, 0);
-                // 但我们希望总触发概率为45%左右，但每个事件概率固定，所以直接按权重随机选择事件
-                // 生成0~100随机数，落在哪个事件区间就触发哪个
+                // 按权重随机选择一个事件
                 let randVal = rand(0, 100);
                 let cumulative = 0;
                 let chosen = null;
@@ -2141,7 +2226,6 @@
                         break;
                     }
                 }
-                // 如果没有选到（可能randVal > 总概率），则不触发
                 if (!chosen) {
                     resolve(null);
                     return;
@@ -2161,12 +2245,14 @@
                     case 'window':
                         renderWindowEvent(resolve);
                         break;
+                    case 'dream_defense':
+                        renderDreamDefenseEvent(resolve); // 新增
+                        break;
                     default:
                         resolve(null);
                 }
             });
         }
-
         // ---- 各事件具体渲染函数 ----
 
         function renderKnockEvent(resolve) {
@@ -2312,7 +2398,43 @@
             }
             finishRest('车里', eventText);
         }
+        // ================================================================
+        //  护玄清版嫂嫂梦话
+        // ================================================================
+        function renderDreamDefenseEvent(resolve) {
+            setStory(`
+        <span class="title-line">💤 嫂嫂梦话</span>
+        <span class="divider">· · ·</span>
+        你睡得迷迷糊糊，突然听到隔壁传来嫂嫂的翻身声，她的声音含混、低哑，像在说梦话：
+        <span class="rule-text" style="color:#d4b87a;">「那个孩子……入观之前……手背上已经泛青了……他那时候就不太说话了……」</span>
+        你愣了一下。她翻了翻身，不再出声了。
+        <span class="divider">· · ·</span>
+        <span style="color:#6a8aaa;">📌 你似乎听到了什么重要的信息……</span>
+    `);
 
+            // 添加规则并记录碎片
+            (async () => {
+                if (!state.rules.includes('temple_defense_7')) {
+                    await addRule('temple_defense_7');
+                }
+                recordFragment('fragment_temple_defense_7');
+                changeDragonization(2);
+
+                setStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-gold);">📜 你获得了一条新规则！</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你记住了嫂嫂梦话中的每一个字。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">（龙化 +2）</span>
+        `);
+
+                renderOptions([{
+                    label: '🔙 继续睡觉',
+                    action: () => {
+                        resolve({ extraText: ' 半夜你听到嫂嫂的梦话，提到了一个入观前手背泛青的孩子……' });
+                    }
+                }]);
+            })();
+        }
 
 
         // ================================================================
@@ -3449,11 +3571,15 @@
                 setStory(`
                     <span class="title-line">🌙 龙岭观前坑 · 第一章</span>
                     <span class="divider">—— —— ——</span>
-                    你带着一份朦胧的期待，来到了邱龙村。村口立着一块斑驳的木牌，上面写着：
+                    你带着一份 你站在村口，木牌已经斑驳了。你辨认出几段文字：
+            <span class="rule-text">「……寄宿村民家……早餐……菌菇炒蛋……少量食用……不可追问种类……」</span>
+            <span class="rule-text">「……踩坏灰线……找嫂嫂带去土地庙……」</span>
+            <span class="rule-text">「……社戏烟雾中若见……低头默念"龙佑平安"……」</span>
+            你发现这是一份游客守则，但上面的字已经不全了。有些句子像是被人刻意刮掉了。你试着记住那些还能看清楚的句子——它们已经自动收录到你的规则库中了。朦胧的期待，来到了邱龙村。村口立着一块斑驳的木牌，上面写着：
                     <span class="rule-text">「欢迎来到龙岭观前坑景区 · 请遵守游客守则」</span>
                     墙上贴着一张纸，边角卷起，上面的字有些模糊了，你停下来看了一会儿。
                     <span class="divider">· · ·</span>
-                    <span style="color:var(--text-gold);">📜 你记住了纸上写的东西。：</span>
+                   
                 `);
                 const allBaseIds = ['base_1', 'base_2', 'base_3', 'base_4', 'base_5', 'base_6', 'base_7', 'base_8', 'base_9',
                     'base_10', 'base_11'
@@ -3482,239 +3608,513 @@
                 updateUI();
             }
         };
+        async function triggerAshesReveal() {
+            // ---- 检查五个条件 ----
+            const hasBookmark = state.flags.hidden_hasBookmark;
+            const hasBrand = state.flags.hidden_hasBrand;
+            const hasSleptEnough = state.flags.hidden_sleepCount >= 3;
+            const hasTeaEnough = state.flags.hidden_teaCount >= 2;
+            const hasAnsweredCode = state.flags.hidden_answeredCode;
 
-        SCENES['explore_abandoned'] = {
-            render: async () => {
-                if (state._waitingConfirm) return;
-                const abandonedIds = ['abandoned_1', 'abandoned_2', 'abandoned_3'];
-                const hiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5',
-                    'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'
-                ];
+            // ---- 计算可解锁的hidden规则 ----
+            const allHiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
+            const alreadyHave = state.rules.filter(id => allHiddenIds.includes(id));
+            const remaining = allHiddenIds.filter(id => !state.rules.includes(id));
 
-                // 增加访问计数
-                state.flags.abandonedVisitCount++;
-                const visitCount = state.flags.abandonedVisitCount;
-                // ---- 第3次访问：暗格残纸 + 银锁片（支线任务） ----
-                if (visitCount === 3 && !state.flags.abandonedHiddenTriggered) {
-                    var hasQuest = state.flags.oldLadyQuest.triggered;
-                    var alreadyFound = state.flags.oldLadyQuest.silverFound;
+            // 如果已经全部获得，直接提示
+            if (remaining.length === 0) {
+                showStory(`<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>`);
+                return;
+            }
 
-                    var extraText = '';
-                    if (hasQuest && !alreadyFound) {
-                        extraText = `
+            // ---- 根据已满足条件决定解锁数量 ----
+            let conditionsMet = 0;
+            if (hasBookmark) conditionsMet++;
+            if (hasBrand) conditionsMet++;
+            if (hasSleptEnough) conditionsMet++;
+            if (hasTeaEnough) conditionsMet++;
+            if (hasAnsweredCode) conditionsMet++;
+
+            // 如果全部五个条件都满足，一次性解锁全部剩余规则
+            let unlockCount = 0;
+            if (conditionsMet === 5) {
+                unlockCount = remaining.length;
+            } else {
+                // 否则根据条件数量解锁 1~3 条
+                unlockCount = Math.min(conditionsMet, 3);
+            }
+
+            // 如果条件太少，只显示部分内容
+            if (unlockCount === 0) {
+                showStory(`
             <span class="divider">· · ·</span>
-            你正要离开，突然注意到暗格角落里还有一个硬硬的东西。
-            你伸手一摸——是一枚银锁片！上面刻着"平安"二字，边缘已经磨损。
-            <span style="color:#d4b87a;">📌 你找到了「老妪的银锁片」！</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 这应该就是小卖部老妪丢失的遗物。拿去还给她吧。</span>
-        `;
-                        state.flags.oldLadyQuest.silverFound = true;
-                        // 可以加一点理智提升
-                        changeDragonization(-2);
-                    } else if (hasQuest && alreadyFound) {
-                        extraText = `银锁片已经找到了，你把它收好，准备还给老妪。`;
-                    } else if (!hasQuest) {
-                        extraText = `
-            <span class="divider">· · ·</span>
-            你在暗格角落发现了一枚银锁片，上面刻着"平安"二字。
-            这似乎是什么人遗失的遗物……也许村里有人正在找它。
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 小卖部的老妪似乎丢失过一件类似的物品。</span>
-        `;
-                        state.flags.oldLadyQuest.silverFound = true;
-                        // 虽然没有接任务，但可以先拿到物品
-                    }
+            <span style="color:var(--text-muted);">你在草木灰上洒了一些水，隐约看到一些字迹，但它们太模糊了，无法辨认。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你还需要收集更多的线索……</span>
+        `);
+                return;
+            }
 
-                    setStory(`
-        <span class="title-line">🏚️ 废弃房屋</span>
-        你再次来到这间废弃房屋，这一次你注意到书架后面似乎有一个暗格。
-        你移开几本发霉的书，发现暗格里藏着一张泛黄的残纸：
-        <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
-        ${extraText}
+            // ---- 显示显影过程 ----
+            showStory(`
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">📌 你获得了一条重要线索！</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">这句话似乎与草木灰有关……也许你需要某种"条件"才能让灰烬中的文字完全显现。</span>
-        ${state.flags.abandonedCompleteReady ? '<span style="color:var(--text-muted);font-size:0.85rem;">💡 或许这里还有什么东西。</span>' : '<span style="color:var(--text-muted);font-size:0.85rem;">💡 你还需要收集更多废弃房屋的规则才能触发草木灰显影。</span>'}
+        <span style="color:#d4b87a;">🔥 你用水润湿了草木灰，灰烬渐渐显露出字迹……</span>
+        你屏住呼吸，一字一句地辨认着灰中浮现的文字。
     `);
 
-                    // 不给任何规则，只给提示
-                    changeDragonization(0);
-                    if (state.gameOver || state._waitingConfirm) return;
-                    renderOptions([{
-                        label: '🚪 离开房屋',
-                        action: () => {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            var msg = '你将残纸小心收好，走出了废弃房屋。';
-                            if (state.flags.oldLadyQuest.silverFound) {
-                                msg += ' 银锁片在你怀中沉甸甸的。';
-                            }
-                            setStory(msg);
-                            finishSceneAndReturn();
-                        }
-                    }]);
-                    return;
+            // ---- 解锁规则 ----
+            const toUnlock = remaining.slice(0, unlockCount);
+            for (const id of toUnlock) {
+                await addRule(id);
+                // 添加碎片化提示（显示规则片段，完整内容在规则列表中）
+                const rule = RULES_DB[id];
+                if (rule) {
+                    showStory(`<span class="rule-text" style="color:#d4b87a;">📜 ${rule.text}</span>`);
                 }
-                // ---- 第2次访问且未获得书签：给予书签 ----
-                if (visitCount === 2 && !state.flags.hidden_hasBookmark) {
-                    setStory(`
-                <span class="title-line">🏚️ 废弃房屋</span>
-                你再次走进这间废弃房屋，这一次你注意到床头柜的抽屉似乎没有完全合上。
-                你走过去，拉开抽屉——里面有一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
-                你拿起书签，发现背面刻着一行小字：
-                <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
+            }
+
+            // ---- 全部解锁完成标记 ----
+            if (conditionsMet === 5 && remaining.length <= unlockCount) {
+                state.flags.hidden_unlocked = true;
+                showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部草木灰显影规则！</span>
+            灰烬中的文字完全显现，你终于看清了隐藏在游客守则之下的真相。
+        `);
+            } else if (toUnlock.length > 0) {
+                const remainingCount = remaining.length - toUnlock.length;
+                showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未显现，也许你还需要满足更多条件……（剩余 ${remainingCount} 条）</span>
+        `);
+            }
+
+            updateUI();
+        }
+        SCENES['explore_abandoned'] = {
+            render: async function () {
+                if (state._waitingConfirm) return;
+                if (state.gameOver) return;
+
+                // ---- 增加访问计数 ----
+                state.flags.abandonedVisitCount++;
+                const visitCount = state.flags.abandonedVisitCount;
+
+                // ---- 定义各位置的状态标记（存储在 flags 中，防止重置） ----
+                if (!state.flags._abandonedPositions) {
+                    state.flags._abandonedPositions = {
+                        wall: false,      // 墙上暗痕
+                        talisman: false,  // 墙角符纸
+                        shrine: false,    // 神龛
+                        pot: false,       // 陶罐
+                        desk: false,      // 旧桌子（银锁片）
+                        bedside: false,   // 床头柜（银杏叶书签）← 新增
+                        ash: false,       // 草木灰堆
+                    };
+                }
+                const pos = state.flags._abandonedPositions;
+
+                // ---- 检测特殊事件状态 ----
+                const hasSilver = state.flags.oldLadyQuest.silverFound;
+                const hasBookmark = state.flags.hidden_hasBookmark;
+
+                // ---- 判断每个位置是否还有未获得的线索 ----
+                const hasWallClue = !state.rules.includes('abandoned_1');
+                const hasTalismanClue = !state.rules.includes('abandoned_2');
+                const hasShrineClue = !state.rules.includes('abandoned_3');
+                const hasPotClue = !state.rules.includes('temple_defense_5') && visitCount >= 2;
+                const hasDeskClue = !hasSilver && visitCount >= 3;
+                const hasBedsideClue = !hasBookmark && visitCount >= 2;  // 第二次访问可获得书签
+
+                // ---- 检查是否集齐三条废弃房屋规则（用于草木灰显影） ----
+                const hasAllAbandonedRules = state.rules.includes('abandoned_1') &&
+                    state.rules.includes('abandoned_2') &&
+                    state.rules.includes('abandoned_3');
+                const hasTriggeredHidden = state.flags.abandonedHiddenTriggered;
+
+                // ---- 构建场景描述 ----
+                let storyText = `
+            <span class="title-line">🏚️ 废弃房屋</span>
+            <span class="divider">—— —— ——</span>
+            你推开吱呀作响的木门，一股霉味扑面而来。屋内光线昏暗，灰尘在光束中飞舞。
+            你扫视了一圈，发现几个值得查看的地方：
+            <span class="divider">· · ·</span>
+        `;
+
+                // ---- 各位置描述 ----
+                // 1. 墙上暗痕
+                if (!pos.wall) {
+                    storyText += `• <span style="color:#d4b87a;">墙上似乎有暗红色的痕迹</span>（未查看）\n`;
+                } else {
+                    if (hasWallClue) {
+                        storyText += `• 墙上暗痕已经模糊了，你什么也看不清。\n`;
+                    } else {
+                        storyText += `• 墙上暗痕已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 2. 墙角符纸
+                if (!pos.talisman) {
+                    storyText += `• <span style="color:#d4b87a;">墙角散落着几片旧符纸</span>（未查看）\n`;
+                } else {
+                    if (hasTalismanClue) {
+                        storyText += `• 符纸已经腐朽了，看不出原来的字。\n`;
+                    } else {
+                        storyText += `• 符纸已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 3. 神龛
+                if (!pos.shrine) {
+                    storyText += `• <span style="color:#d4b87a;">破旧的神龛里似乎藏着什么</span>（未查看）\n`;
+                } else {
+                    if (hasShrineClue) {
+                        storyText += `• 神龛里空荡荡的，什么也没有。\n`;
+                    } else {
+                        storyText += `• 神龛已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 4. 陶罐
+                if (!pos.pot) {
+                    storyText += `• <span style="color:#d4b87a;">地上有一个陶罐，看起来有些年头了</span>（未查看）\n`;
+                } else {
+                    if (hasPotClue) {
+                        storyText += `• 陶罐内壁有些痕迹，但还看不太清。\n`;
+                    } else if (state.rules.includes('temple_defense_5')) {
+                        storyText += `• 陶罐内壁的刻字你已经记下了，没有新的发现。\n`;
+                    } else {
+                        storyText += `• 陶罐已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 5. 床头柜（银杏叶书签）← 新增
+                if (!pos.bedside) {
+                    storyText += `• <span style="color:#d4b87a;">床头柜的抽屉似乎没有完全合上</span>（未查看）\n`;
+                } else {
+                    if (hasBedsideClue) {
+                        storyText += `• 你拉开抽屉，里面有一片压得平整的银杏叶，散发着淡淡的香气。\n`;
+                    } else if (hasBookmark) {
+                        storyText += `• 床头柜已经空了，书签你已经拿到了。\n`;
+                    } else {
+                        storyText += `• 床头柜已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 6. 旧桌子（银锁片）
+                if (!pos.desk) {
+                    storyText += `• <span style="color:#d4b87a;">一张旧桌子，抽屉半开着</span>（未查看）\n`;
+                } else {
+                    if (hasDeskClue) {
+                        storyText += `• 你拉开抽屉，里面有一枚银锁片，刻着"平安"二字。\n`;
+                    } else if (hasSilver) {
+                        storyText += `• 抽屉已经空了，银锁片你已经拿到了。\n`;
+                    } else {
+                        storyText += `• 旧桌子已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // 7. 草木灰堆（仅在集齐三条废弃规则后显示）
+                if (hasAllAbandonedRules) {
+                    if (!pos.ash && !hasTriggeredHidden) {
+                        storyText += `• <span style="color:#d4b87a;">墙角有一堆草木灰，似乎有字迹若隐若现</span>（未查看）\n`;
+                    } else if (pos.ash && !state.flags.hidden_unlocked && state.rules.filter(r => r.startsWith('hidden_')).length < 9) {
+                        const hiddenCount = state.rules.filter(r => r.startsWith('hidden_')).length;
+                        storyText += `• 草木灰堆上还有一些字迹尚未完全显现（已解锁 ${hiddenCount}/9）\n`;
+                    } else if (state.flags.hidden_unlocked || state.rules.filter(r => r.startsWith('hidden_')).length >= 9) {
+                        storyText += `• 草木灰堆上的字迹你已经全部解读了，没有新的发现。\n`;
+                    } else {
+                        storyText += `• 草木灰堆已经看过了，没有新的发现。\n`;
+                    }
+                }
+
+                // ---- 检查是否所有位置都已查看 ----
+                const allViewed = pos.wall && pos.talisman && pos.shrine && pos.pot && pos.bedside && pos.desk && (pos.ash || !hasAllAbandonedRules);
+                if (allViewed) {
+                    storyText += `
                 <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
-            `);
-                    state.flags.hidden_hasBookmark = true;
-                    // 同时，如果还有普通规则未获得，给1条
-                    const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
-                    if (availableAbandoned.length > 0) {
-                        const picked = pick(availableAbandoned);
-                        await addRule(picked);
-                        showStory(`你还在屋内发现了其他线索，获得了一条规则。`);
-                    }
-                    changeDragonization(5);
-                    if (!state.gameOver) showStory('龙气微微涌动（龙化 +5）');
-                    // 检查是否集齐3条，若是则设置 ready
-                    const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
-                    if (nowHasAll && !state.flags.abandonedCompleteReady) {
-                        state.flags.abandonedCompleteReady = true;
-                        showStory('你总觉得自己漏掉了什么，但又说不上来，或许下次再来会有新的发现……');
-                    }
-                    if (state.gameOver || state._waitingConfirm) return;
-                    renderOptions([{
-                        label: '🚪 离开房屋',
-                        action: () => {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            setStory('你将银杏叶书签小心收好，走出了废弃房屋。');
-                            finishSceneAndReturn();
-                        }
-                    }]);
-                    return;
+                <span style="color:var(--text-muted);">你已经仔细检查过这里的每一个角落，再也没有其他发现了。</span>
+            `;
                 }
 
-                // ---- 如果已经触发过隐藏（或者已经显影过），继续给隐藏规则（但检查是否已全部获得） ----
-                if (state.flags.abandonedHiddenTriggered) {
-                    const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
-                    if (availableHidden.length > 0) {
-                        setStory(`
-                    <span class="title-line">🏚️ 废弃房屋</span>
-                    你再次来到这间废弃房屋，在草木灰中又发现了一些模糊的字迹……
-                    <span class="divider">· · ·</span>
-                `);
-                        const count = Math.min(rand(1, 2), availableHidden.length);
-                        const shuffled = shuffleArray(availableHidden);
-                        for (let i = 0; i < count; i++) {
-                            await addRule(shuffled[i]);
-                        }
-                        showStory(`<span style="color:var(--text-gold);">📜 你获得了新的草木灰显影规则！</span>`);
-                        changeDragonization(1);
-                        if (!state.gameOver) showStory('龙气微微涌动');
-                    } else {
-                        setStory(`
-                    <span class="title-line">🏚️ 废弃房屋</span>
-                    你再次来到这间废弃房屋，但这里已经没有任何值得探索的东西了。
-                    你决定离开。
-                `);
-                    }
-                    if (state.gameOver || state._waitingConfirm) return;
-                    renderOptions([{
-                        label: '🚪 离开房屋',
-                        action: () => {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            setStory('你快步走出废弃房屋。');
-                            finishSceneAndReturn();
-                        }
-                    }]);
-                    return;
+                storyText += `
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📌 查看位置不消耗体力。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已来过 ${visitCount} 次。</span>
+        `;
+
+                setStory(storyText);
+
+                // ---- 构建选项 ----
+                let opts = [];
+
+                // ---- 辅助函数：检查位置是否还有内容 ----
+                function hasRemaining(posKey) {
+                    if (posKey === 'wall') return hasWallClue;
+                    if (posKey === 'talisman') return hasTalismanClue;
+                    if (posKey === 'shrine') return hasShrineClue;
+                    if (posKey === 'pot') return hasPotClue;
+                    if (posKey === 'bedside') return hasBedsideClue;
+                    if (posKey === 'desk') return hasDeskClue;
+                    if (posKey === 'ash') return hasAllAbandonedRules && !state.flags.abandonedHiddenTriggered;
+                    return false;
                 }
 
-                // ---- 未触发隐藏：检查是否已集齐3条普通规则 ----
-                const hasAllAbandoned = abandonedIds.every(id => state.rules.includes(id));
-                if (hasAllAbandoned) {
-                    // 触发草木灰显影（但只给部分，除非5条件已满足）
-                    state.flags.abandonedHiddenTriggered = true;
-                    // 检查5条件是否满足
-                    const allConditions = state.flags.hidden_hasBookmark &&
-                        state.flags.hidden_hasBrand &&
-                        state.flags.hidden_sleepCount >= 3 &&
-                        state.flags.hidden_teaCount >= 2 &&
-                        state.flags.hidden_answeredCode;
-                    if (allConditions && !state.flags.hidden_unlocked) {
-                        // 直接解锁全部隐藏规则（通过异步函数）
-                        unlockHiddenRulesAsync();
-                        // 由于异步解锁会覆盖界面，我们这里不再继续渲染，直接返回
-                        return;
-                    } else {
-                        // 只给1-2条隐藏规则
-                        setStory(`
-                    <span class="title-line">🏚️ 废弃房屋 · 草木灰显影</span>
-                    你再次走进这间废弃房屋，这一次，你注意到墙角有一堆灰烬，似乎是草木灰。
-                    你用清水涂抹，灰烬下渐渐显露出一行行字迹……
-                    <span class="divider">· · ·</span>
-                    你仔细辨认，获得了一些隐藏规则：
-                `);
-                        const availableHidden = hiddenIds.filter(id => !state.rules.includes(id));
-                        const count = Math.min(rand(1, 2), availableHidden.length);
-                        const shuffled = shuffleArray(availableHidden);
-                        for (let i = 0; i < count; i++) {
-                            await addRule(shuffled[i]);
+                // ---- 查看各个位置 ----
+                const checkPosition = (posKey, label, action) => {
+                    const isViewed = pos[posKey];
+                    const hasClue = hasRemaining(posKey);
+                    const isExhausted = isViewed && !hasClue;
+
+                    // 如果是草木灰堆且有剩余hidden规则但已查看过，仍可再次查看
+                    const isAshWithRemaining = posKey === 'ash' && isViewed && state.rules.filter(r => r.startsWith('hidden_')).length < 9;
+
+                    opts.push({
+                        label: isExhausted ? `🔍 ${label}（无新发现）` : isViewed && !isAshWithRemaining ? `✅ ${label}（已查看）` : `🔍 ${label}`,
+                        hint: isExhausted ? '没有更多线索了' : isViewed && !isAshWithRemaining ? '已查看' : '仔细看看',
+                        tag: isExhausted ? '已空' : isViewed && !isAshWithRemaining ? '已读' : '未读',
+                        disabled: isViewed && !isAshWithRemaining, // 已查看或已空不可再次点击，但草木灰堆可重复查看
+                        action: async function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            // 标记已查看（草木灰堆不在此处标记，由其内部逻辑控制）
+                            if (posKey !== 'ash') {
+                                pos[posKey] = true;
+                            }
+                            await action();
+                            SCENES['explore_abandoned'].render();
                         }
-                        showStory(`<span style="color:var(--text-gold);">📜 你获得了一些草木灰显影规则！</span><span style="color:var(--text-muted);font-size:0.85rem;">还有更多的规则隐藏在灰烬深处，但似乎需要某种"条件"才能完全显现……</span>`);
-                        changeDragonization(3);
-                        if (!state.gameOver) showStory('龙气微微涌动（龙化 +3）');
+                    });
+                };
+
+                // ---- 墙上暗痕 ----
+                checkPosition('wall', '墙上暗痕', async function () {
+                    if (!state.rules.includes('abandoned_1')) {
+                        await addRule('abandoned_1');
+                        showStory(`<span class="divider">· · ·</span>你凑近墙上的暗痕，辨认出几个字：「别信嫂嫂的笑，超过十秒就要跑。」`);
+                        changeDragonization(2);
+                    } else {
+                        showStory(`<span class="divider">· · ·</span>墙上的暗痕已经模糊了，你什么也看不清。`);
+                    }
+                });
+
+                // ---- 墙角符纸 ----
+                checkPosition('talisman', '墙角符纸', async function () {
+                    if (!state.rules.includes('abandoned_2')) {
+                        await addRule('abandoned_2');
+                        showStory(`<span class="divider">· · ·</span>你捡起一张符纸，上面写着：「青纹现，速归还；龙气缠，命难全。」`);
+                        changeDragonization(2);
+                    } else {
+                        showStory(`<span class="divider">· · ·</span>符纸已经腐朽了，一碰就碎。`);
+                    }
+                });
+
+                // ---- 神龛 ----
+                checkPosition('shrine', '破旧神龛', async function () {
+                    if (!state.rules.includes('abandoned_3')) {
+                        await addRule('abandoned_3');
+                        showStory(`<span class="divider">· · ·</span>你在神龛下找到一张泛黄照片，背后写着：「观中弟子皆无影，重阳登高莫回头。」`);
+                        changeDragonization(2);
+                    } else {
+                        showStory(`<span class="divider">· · ·</span>神龛里空荡荡的，什么也没有。`);
+                    }
+                });
+
+                // ---- 陶罐 ----
+                checkPosition('pot', '地上的陶罐', async function () {
+                    if (visitCount < 2) {
+                        showStory(`<span class="divider">· · ·</span>你拿起陶罐，里面是空的。罐壁内似乎有些刻痕，但光线太暗，你暂时看不清。`);
+                        recordFragment('fragment_temple_defense_5');
+                    } else {
+                        if (!state.rules.includes('temple_defense_5')) {
+                            await addRule('temple_defense_5');
+                            showStory(`<span class="divider">· · ·</span>你凑近陶罐内壁，辨认出刻字：「后山药庐，柜子第三格，白布包着的是治咳嗽的方子。先生走之前留的。」`);
+                            recordFragment('fragment_temple_defense_5');
+                        } else {
+                            showStory(`<span class="divider">· · ·</span>陶罐内壁的刻字你已经记下了，没有新的发现。`);
+                        }
+                    }
+                    changeDragonization(1);
+                });
+
+                // ---- 床头柜（银杏叶书签）- 新增 ----
+                checkPosition('bedside', '床头柜抽屉', async function () {
+                    if (visitCount >= 2 && !state.flags.hidden_hasBookmark) {
+                        state.flags.hidden_hasBookmark = true;
+                        showStory(`
+                    <span class="divider">· · ·</span>
+                    你拉开抽屉，发现一片压得平整的银杏叶书签，叶脉清晰，散发着淡淡的香气。
+                    你拿起书签，发现背面刻着一行小字：
+                    <span class="rule-text" style="color:#d4b87a;">「以血引之，以灰显之——观前坑的规矩，写在灰里。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">📌 你获得了「银杏叶书签」！</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是某种仪式用品，也许和村里的秘密有关。</span>
+                `);
+                        changeDragonization(5);
+                    } else if (state.flags.hidden_hasBookmark) {
+                        showStory(`<span class="divider">· · ·</span>床头柜已经空了，书签你已经拿到了。`);
+                    } else {
+                        showStory(`<span class="divider">· · ·</span>床头柜抽屉里什么都没有。`);
+                    }
+                });
+
+                // ---- 旧桌子（银锁片） ----
+                checkPosition('desk', '旧桌子抽屉', async function () {
+                    if (visitCount >= 3 && !state.flags.oldLadyQuest.silverFound) {
+                        state.flags.oldLadyQuest.silverFound = true;
+                        showStory(`<span class="divider">· · ·</span>你拉开抽屉，发现一枚银锁片，刻着"平安"二字。你小心收好。`);
+                        changeDragonization(-2);
+                    } else if (state.flags.oldLadyQuest.silverFound) {
+                        showStory(`<span class="divider">· · ·</span>抽屉已经空了，银锁片你已经拿到了。`);
+                    } else {
+                        showStory(`<span class="divider">· · ·</span>抽屉里什么也没有。`);
+                    }
+                });
+
+                // ---- 草木灰堆 ----
+                if (hasAllAbandonedRules) {
+                    const hasAllHidden = state.rules.filter(r => r.startsWith('hidden_')).length >= 9;
+                    checkPosition('ash', '草木灰堆', async function () {
+                        if (hasAllHidden) {
+                            showStory(`<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>`);
+                            pos.ash = true;
+                            return;
+                        }
+                        // 标记已查看
+                        pos.ash = true;
+                        state.flags.abandonedHiddenTriggered = true;
+                        await triggerAshesReveal();
+                        // 如果还有剩余规则，重新显示草木灰堆为可查看
+                        const remaining = state.rules.filter(r => r.startsWith('hidden_')).length;
+                        if (remaining < 9) {
+                            pos.ash = false; // 允许再次查看
+                        }
+                    });
+                }
+
+                // ---- 离开选项 ----
+                opts.push({
+                    label: '🚪 离开废弃房屋',
+                    hint: '你在这里已经没什么可看的了',
+                    cost: '⚡1',
+                    action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
+                        // 在退出前检查隐藏老人条件
+                        if (state.flags.medicineHutDone && state.flags.abandonedVisitCount >= 1 && !state.flags.oldManTalkTriggered) {
+                            triggerOldMan();
+                            return;
+                        }
+                        finishSceneAndReturn();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+
+
+
+                // ---- 草木灰显影函数 ----
+                async function triggerAshesReveal() {
+                    const hasBookmark = state.flags.hidden_hasBookmark;
+                    const hasBrand = state.flags.hidden_hasBrand;
+                    const hasSleptEnough = state.flags.hidden_sleepCount >= 3;
+                    const hasTeaEnough = state.flags.hidden_teaCount >= 2;
+                    const hasAnsweredCode = state.flags.hidden_answeredCode;
+
+                    const allHiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
+                    const remaining = allHiddenIds.filter(id => !state.rules.includes(id));
+
+                    if (remaining.length === 0) {
+                        showStory(`<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>`);
+                        return;
+                    }
+
+                    let conditionsMet = 0;
+                    if (hasBookmark) conditionsMet++;
+                    if (hasBrand) conditionsMet++;
+                    if (hasSleptEnough) conditionsMet++;
+                    if (hasTeaEnough) conditionsMet++;
+                    if (hasAnsweredCode) conditionsMet++;
+
+                    let unlockCount = 0;
+                    if (conditionsMet === 5) {
+                        unlockCount = remaining.length;
+                    } else {
+                        unlockCount = Math.min(conditionsMet, 3);
+                    }
+
+                    if (unlockCount === 0) {
+                        showStory(`
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);">你在草木灰上洒了一些水，隐约看到一些字迹，但它们太模糊了，无法辨认。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你还需要收集更多的线索……</span>
+                `);
+                        return;
+                    }
+
+                    showStory(`
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">🔥 你用水润湿了草木灰，灰烬渐渐显露出字迹……</span>
+                你屏住呼吸，一字一句地辨认着灰中浮现的文字。
+            `);
+
+                    const toUnlock = remaining.slice(0, unlockCount);
+                    for (const id of toUnlock) {
+                        await addRule(id);
+                        const rule = RULES_DB[id];
+                        if (rule) {
+                            showStory(`<span class="rule-text" style="color:#d4b87a;">📜 ${rule.text}</span>`);
+                        }
+                    }
+
+                    const newRemaining = allHiddenIds.filter(id => !state.rules.includes(id));
+                    if (conditionsMet === 5 && newRemaining.length === 0) {
+                        state.flags.hidden_unlocked = true;
+                        showStory(`
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部草木灰显影规则！</span>
+                    灰烬中的文字完全显现，你终于看清了隐藏在游客守则之下的真相。
+                `);
+                    } else if (toUnlock.length > 0) {
+                        showStory(`
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未显现，也许你还需要满足更多条件……（剩余 ${newRemaining.length} 条）</span>
+                `);
+                    }
+
+                    updateUI();
+                }
+
+                // ---- 触发隐藏老人对话 ----
+                function triggerOldMan() {
+                    state.flags.oldManTalkTriggered = true;
+                    setStory(`
+                <span class="title-line">🌳 废弃屋外 · 老人</span>
+                <span class="divider">—— —— ——</span>
+                你从废弃房屋出来的时候，看到一个人坐在屋外的石头上。他看起来年纪很大了，身上的衣服洗得发白，手里没有拿东西。
+                <span class="divider">· · ·</span>
+                他看见你，像是早就知道你会出来一样。他说：
+                <span class="rule-text" style="color:#d4b87a;">「你去了后山药庐。你看到了那些药方、那些瓶子、那些名字……你一定在想，那个人到底是个什么样的人？」</span>
+                你没有回答。他继续说：
+                <span class="rule-text" style="color:#d4b87a;">「那间药庐里有一张方子，是治咳嗽的。我喝过那药。当时咳了半年，以为活不过那年秋天。先生给我开了那张方子，我喝了三个月，好了。」</span>
+                他站起来，拍了拍衣摆：
+                <span class="rule-text" style="color:#d4b87a;">「我知道你听了很多不一样的话。但那张方子还在药庐的抽屉里。你看到了吗？」</span>
+                你点头。他看了你一眼，然后转身走了。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-gold);">📜 你获得了一条新的规则！</span>
+            `);
+                    (async () => {
+                        if (!state.rules.includes('temple_defense_11')) {
+                            await addRule('temple_defense_11');
+                        }
+                        updateUI();
                         renderOptions([{
-                            label: '🚪 离开房屋',
-                            action: () => {
+                            label: '🚶 离开',
+                            action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                setStory('你带着新的线索离开了废弃房屋。');
                                 finishSceneAndReturn();
                             }
                         }]);
-                        return;
-                    }
+                    })();
                 }
-
-                // ---- 普通探索（未集齐3条） ----
-                const availableAbandoned = abandonedIds.filter(id => !state.rules.includes(id));
-                if (availableAbandoned.length === 0) {
-                    // 理论上不会发生，但以防万一
-                    setStory('你搜索了房屋，但似乎已经没有新的发现了。');
-                    renderOptions([{ label: '🚪 离开', action: () => { finishSceneAndReturn(); } }]);
-                    return;
-                }
-                setStory(`
-            <span class="title-line">🏚️ 废弃房屋</span>
-            你推开吱呀作响的木门，一股霉味扑面而来。屋内光线昏暗，灰尘在光束中飞舞。
-            你仔细搜索，发现了以下物品：
-            <span class="divider">· · ·</span>
-        `);
-                const count = Math.min(rand(1, 2), availableAbandoned.length);
-                const shuffled = shuffleArray(availableAbandoned);
-                let gained = [];
-                for (let i = 0; i < count; i++) {
-                    const ok = await addRule(shuffled[i]);
-                    if (ok) gained.push(shuffled[i]);
-                }
-                showStory(`<span style="color:var(--text-gold);">📜 你获得了 ${gained.length} 条废弃房屋规则！</span>`);
-                changeDragonization(2);
-                if (!state.gameOver) showStory(`龙气微微涌动（龙化 +2）`);
-                // 检查是否集齐
-                const nowHasAll = abandonedIds.every(id => state.rules.includes(id));
-                if (nowHasAll) {
-                    state.flags.abandonedCompleteReady = true;
-                    showStory('你感觉这栋房屋还有秘密没有揭开，或许下次再来会有新的发现……');
-                }
-                if (state.gameOver || state._waitingConfirm) return;
-                renderOptions([{
-                    label: '🚪 离开房屋',
-                    action: () => {
-                        if (state.gameOver || state._waitingConfirm) return;
-                        setStory('你快步走出废弃房屋，阳光照在身上，却驱不散那股寒意。你回到村中。');
-                        finishSceneAndReturn();
-                    }
-                }]);
             }
         };
 
@@ -3722,22 +4122,26 @@
             render: async () => {
                 if (state._waitingConfirm) return;
                 // 增加访问计数
-                state.flags.folkloreVisitCount++;
+                state.flags.folkloreVisitCount = (state.flags.folkloreVisitCount || 0) + 1;
                 const visitCount = state.flags.folkloreVisitCount;
 
-                // ---- 第1次：劝你下山，暗示村西有问题 ----
+                // ---- 第1次：劝你下山，暗示村西有问题 + 护玄清低语 ----
                 if (visitCount === 1) {
                     state.flags.folkloreWarned = true;
                     setStory(`
                 <span class="title-line">🏛️ 民俗部 · 第一次拜访</span>
                 你走进民俗部，一位穿着景区制服的工作人员正在整理文件。他抬头看了你一眼，放下手中的东西：
-                <span class="rule-text" style="color:#d4b87a;">「你是来参加社戏的吧？最近村里不太平，他想了想，说了句“这两天不太平”，又补了一句“你非要上去的话，最好先看看北边那座庙”。」</span>
+                <span class="rule-text" style="color:#d4b87a;">「你是来参加社戏的吧？最近村里不太平，他想了想，说了句"这两天不太平"，又补了一句"你非要上去的话，最好先看看北边那座庙"。」</span>
                 你正想追问，他却摆了摆手：<span class="rule-text" style="color:#d4b87a;">「别多问，听我一句劝。实在想了解什么，去村西看看，那边的婆娘比村东的嫂嫂知道得多。」</span>
                 说完，他低头继续整理文件，不再理你。
                 <span class="divider">· · ·</span>
                 <span style="color:#6a8aaa;">他的话说得含含糊糊，你不太确定是什么意思。</span>
-            `);
-                    // 不获得任何规则
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">工作人员低头收拾文件时补了一句："那边庙里的先生，前些年救过村里不少人。这话我不该说，你自己琢磨。"</span>
+                
+            `); if (!state.rules.includes('temple_defense_13')) {
+                        await addRule('temple_defense_13');
+                    }
                     changeDragonization(0);
                     if (state.gameOver || state._waitingConfirm) return;
                     renderOptions([{
@@ -3751,7 +4155,7 @@
                     return;
                 }
 
-                // ---- 第2次：获得桃木吊坠 + 民俗部密语规则 ----
+                // ---- 第2次：获得桃木吊坠 + 民俗部密语规则 + 护玄清低语 ----
                 if (visitCount === 2) {
                     setStory(`
                 <span class="title-line">🏛️ 民俗部 · 第二次拜访</span>
@@ -3761,8 +4165,12 @@
                 <span class="divider">· · ·</span>
                 <span style="color:#d4b87a;">📌 你获得了「桃木吊坠」！</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">这似乎是一件能辟邪的护身符。</span>
-            `);
-                    // 给桃木吊坠 + 规则
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">工作人员又低声说了一句："不过你要是在道观里看到有人身上带着药味……那个人不是先生，是被先生治过的人。"</span>
+            `);// 在 setStory 之后添加
+                    if (!state.rules.includes('temple_defense_3')) {
+                        await addRule('temple_defense_3');
+                    }
                     if (!state.flags.hasPeachWood) {
                         state.flags.hasPeachWood = true;
                     }
@@ -3770,6 +4178,9 @@
                     if (!state.rules.includes(folkRuleId)) {
                         await addRule(folkRuleId);
                     }
+                    // ---- 记录护玄清碎片 ----
+                    recordFragment('fragment_temple_defense_3');
+
                     changeDragonization(-2);
                     if (!state.gameOver) showStory('你感到一丝安心，龙气稍有减退（龙化 -2）');
                     if (state.gameOver || state._waitingConfirm) return;
@@ -3784,7 +4195,7 @@
                     return;
                 }
 
-                // ---- 第3次：获得阴血汤药（龙化-10，仅一次） ----
+                // ---- 第3次：获得阴血汤药 + 护玄清低语 ----
                 if (visitCount === 3) {
                     setStory(`
                 <span class="title-line">🏛️ 民俗部 · 第三次拜访</span>
@@ -3795,12 +4206,15 @@
                 <span class="divider">· · ·</span>
                 <span style="color:#d4b87a;">📌 你获得了「阴血汤药」！（龙化 -10）</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">这碗药散发着奇怪的气味，但似乎真的能驱散龙气。</span>
-            `);
-                    // 阴血汤药效果：龙化-10，并记录已获得
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你正要离开，他又补了一句："你听说过北岭老林吗？以前有人进去过，出来之后什么都没记住。唯一记得的是一句：'先生说那里不能去。'"</span>
+            `);// 在 setStory 之后添加
+                    if (!state.rules.includes('temple_defense_4')) {
+                        await addRule('temple_defense_4');
+                    }
                     changeDragonization(-10);
                     if (!state.gameOver) showStory('你喝下汤药，一股暖流在体内散开，龙气被压制了不少（龙化 -10）。');
-                    // 记录已获得阴血汤药（用于后续判定）
-                    state.flags.hasYinBloodPotion = true; // 需要先在 flags 中添加此字段
+                    state.flags.hasYinBloodPotion = true;
                     if (state.gameOver || state._waitingConfirm) return;
                     renderOptions([{
                         label: '🙏 道谢，离开',
@@ -3838,7 +4252,7 @@
             render: async () => {
                 if (state._waitingConfirm) return;
                 // 增加访问计数
-                state.flags.shopVisitCount++;
+                state.flags.shopVisitCount = (state.flags.shopVisitCount || 0) + 1;
                 const visitCount = state.flags.shopVisitCount;
 
                 const rhymes = [
@@ -3899,52 +4313,60 @@
                     return;
                 }
 
-                // ---- 第3次：龙鳞碎片 + 触发支线任务 ----
+                // ---- 第3次：龙鳞碎片 + 老妪任务 + 护玄清低语 ----
                 if (visitCount === 3) {
                     setStory(`
-        <span class="title-line">🏪 小卖部 · 第三次拜访</span>
-        你第三次走进小卖部。老妪这次没有哼歌，而是静静地坐在柜台后面，手里拿着一块东西。
-        看到你进来，她将那块东西放在柜台上，缓缓推到你面前——那是一块巴掌大的鳞片，泛着青黑色的光泽，边缘带着细小的菌丝。
-        <span class="rule-text" style="color:#d4b87a;">「拿着吧，你以后用得上。这东西……是龙王爷身上掉下来的。」</span>
-        你犹豫了一下，伸手触碰——<span style="color:#d45a5a;">一阵冰凉的刺痛传来，龙气猛地涌入你的体内！</span>
-        <span class="divider">· · ·</span>
-        <span style="color:#d45a5a;">⚠️ 你触碰了「龙鳞碎片」！（龙化 +10）</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 你获得了「龙鳞碎片」——这似乎是对抗道士的关键道具。</span>
-        <span class="divider">· · ·</span>
-        你正要离开，老妪突然叫住你，声音沙哑：
-        <span class="rule-text" style="color:#d4b87a;">「等等……年轻人，我有一件事想求你。」</span>
-        她犹豫了一下，从衣襟里掏出一张泛黄的纸片，上面画着一枚银锁片的图案。
-        <span class="rule-text" style="color:#d4b87a;">「这是我女儿的遗物……当年被一个赌鬼村民偷走了。我听说那东西后来被藏在村里一间老房子的暗格里。你……你能帮我找回来吗？我老了，走不动了。」</span>
-        她的眼神里闪过一丝哀求。
-        <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">你要答应她吗？</span>
-    `);
+                <span class="title-line">🏪 小卖部 · 第三次拜访</span>
+                你第三次走进小卖部。老妪这次没有哼歌，而是静静地坐在柜台后面，手里拿着一块东西。
+                看到你进来，她将那块东西放在柜台上，缓缓推到你面前——那是一块巴掌大的鳞片，泛着青黑色的光泽，边缘带着细小的菌丝。
+                <span class="rule-text" style="color:#d4b87a;">「拿着吧，你以后用得上。这东西……是龙王爷身上掉下来的。」</span>
+                你犹豫了一下，伸手触碰——<span style="color:#d45a5a;">一阵冰凉的刺痛传来，龙气猛地涌入你的体内！</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d45a5a;">⚠️ 你触碰了「龙鳞碎片」！（龙化 +10）</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你获得了「龙鳞碎片」——冰凉的触感下，你感到一丝说不清的力量从指尖渗入掌心。</span>
+                <span class="divider">· · ·</span>
+                你正要离开，老妪突然叫住你，声音沙哑：
+                <span class="rule-text" style="color:#d4b87a;">「等等……年轻人，我有一件事想求你。」</span>
+                她犹豫了一下，从衣襟里掏出一张泛黄的纸片，上面画着一枚银锁片的图案。
+                <span class="rule-text" style="color:#d4b87a;">「这是我女儿的遗物……当年被一个赌鬼村民偷走了。我听说那东西后来被藏在村里一间老房子的暗格里。你……你能帮我找回来吗？我老了，走不动了。」</span>
+                她的眼神里闪过一丝哀求。
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你要答应她吗？</span>
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你正要开口，老妪忽然像是自言自语地说了一句：</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">「你知不知道，那年道观塌过一堵墙？就塌了三天，村里死了七个人。后来先生把墙补上了，那些人……也没再死了。」</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你看着她，她已经转过头去，像是没有说过那句话。</span>
+            `);// 在 setStory 中已有护玄清低语，在 setStory 之后添加
+                    if (!state.rules.includes('temple_defense_1')) {
+                        await addRule('temple_defense_1');
+                    }
 
                     // 触碰龙鳞碎片：龙化+10，获得道具
                     changeDragonization(10);
                     state.flags.hasDragonScale = true;
+                    // ---- 记录护玄清碎片 ----
+                    recordFragment('fragment_temple_defense_1');
 
                     if (state.gameOver || state._waitingConfirm) return;
                     renderOptions([{
                         label: '📜 接受任务，帮她寻找银锁片',
                         hint: '线索：废弃房屋的暗格',
                         tag: '支线',
-                        action: async function () {   // 添加 async
+                        action: async function () {
                             if (state.gameOver || state._waitingConfirm) return;
-                            // ---- 在玩家选择接受后，才标记任务已触发并添加规则 ----
                             state.flags.oldLadyQuest.triggered = true;
                             if (!state.rules.includes('old_lady_quest')) {
-                                await addRule('old_lady_quest');   // 添加 await
+                                await addRule('old_lady_quest');
                             }
                             setStory(`
-            <span class="title-line">📜 任务接受</span>
-            你郑重地点了点头：「我会帮您找到的。」
-            老妪的眼中闪过一丝泪光，她摆了摆手：「去吧，老身在这里等你回来。」
-            <span class="divider">· · ·</span>
-            <span style="color:#d4b87a;">📌 你接下了「老妪的银锁片」任务！</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 线索：银锁片被藏在村里某间老房子的暗格里。</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 村里有些老房子你可以去</span>
-        `);
+                        <span class="title-line">📜 任务接受</span>
+                        你郑重地点了点头：「我会帮您找到的。」
+                        老妪的眼中闪过一丝泪光，她摆了摆手：「去吧，老身在这里等你回来。」
+                        <span class="divider">· · ·</span>
+                        <span style="color:#d4b87a;">📌 你接下了「老妪的银锁片」任务！</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 线索：银锁片被藏在村里某间老房子的暗格里。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 村里有些老房子你可以去。</span>
+                    `);
                             renderOptions([{
                                 label: '🚶 离开小卖部',
                                 action: function () {
@@ -3961,11 +4383,11 @@
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             setStory(`
-                <span class="title-line">🚶 不接受</span>
-                你犹豫了一下，最终还是先离开了小卖部。老妪看着你的背影，叹了口气。
-                <span class="divider">· · ·</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你无法再接到这个任务了。</span>
-            `);
+                        <span class="title-line">🚶 不接受</span>
+                        你犹豫了一下，最终还是先离开了小卖部。老妪看着你的背影，叹了口气。
+                        <span class="divider">· · ·</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你无法再接到这个任务了。</span>
+                    `);
                             renderOptions([{
                                 label: '🚶 离开小卖部',
                                 action: function () {
@@ -3978,42 +4400,38 @@
                     }]);
                     return;
                 }
-                // ---- 第4次及以上：交还银锁片（如果已找到）或老太太沉默 ----
+
+                // ---- 第4次及以上：交还银锁片 + 药庐解锁 ----
                 if (visitCount >= 4) {
-                    // 检查是否可以交还银锁片
-                    var canComplete = state.flags.oldLadyQuest.silverFound &&
+                    // ---- 检查是否可以交还银锁片 ----
+                    const canComplete = state.flags.oldLadyQuest.silverFound &&
                         !state.flags.oldLadyQuest.completed &&
                         state.flags.oldLadyQuest.triggered;
 
                     if (canComplete) {
                         setStory(`
-            <span class="title-line">🏪 小卖部 · 归还银锁片</span>
-            你走进小卖部，老妪正坐在柜台后面发呆。你走到她面前，从怀中取出那枚银锁片。
-            <span class="rule-text" style="color:#d4b87a;">「老人家，我找到了这个。」</span>
-            老妪猛地抬起头，看到银锁片的瞬间，她的手开始颤抖。
-            她接过银锁片，紧紧攥在手里，泪水从布满皱纹的眼角滑落。
-            <span class="rule-text" style="color:#d4b87a;">「是它……真的是它……我女儿的平安锁……」</span>
-            她抬起头，声音哽咽：<span class="rule-text" style="color:#d4b87a;">「谢谢你……年轻人。我没有什么值钱的东西，这个你拿着——」</span>
-            她从衣襟里取出一枚用红线穿着的骨白色小牌，塞到你手里。
-            <span class="rule-text" style="color:#d4b87a;">「这是我年轻时从一个游方道人那里求来的护身符，说是能挡一次灾。我老婆子用不上了，你留着吧。」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#d4b87a;">📌 你获得了「老妪的护身符」！（一次性护身道具）</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 护身符可以抵挡一次致命伤害，在关键时刻也许能救你一命。</span>
-            ${!state.flags.awakening.unlocked ? '<span style="color:#d4b87a;">📌 老妪还低声告诉你：「村西的婆娘们，和村东的不是一路人。你要是想活命，去村西找阿芹。」</span>' : ''}
-        `);
+                    <span class="title-line">🏪 小卖部 · 归还银锁片</span>
+                    你走进小卖部，老妪正坐在柜台后面发呆。你走到她面前，从怀中取出那枚银锁片。
+                    <span class="rule-text" style="color:#d4b87a;">「老人家，我找到了这个。」</span>
+                    老妪猛地抬起头，看到银锁片的瞬间，她的手开始颤抖。
+                    她接过银锁片，紧紧攥在手里，泪水从布满皱纹的眼角滑落。
+                    <span class="rule-text" style="color:#d4b87a;">「是它……真的是它……我女儿的平安锁……」</span>
+                    她抬起头，声音哽咽：<span class="rule-text" style="color:#d4b87a;">「谢谢你……年轻人。我没有什么值钱的东西，这个你拿着——」</span>
+                    她从衣襟里取出一枚用红线穿着的骨白色小牌，塞到你手里。
+                    <span class="rule-text" style="color:#d4b87a;">「这是我年轻时从一个游方道人那里求来的护身符，说是能挡一次灾。我老婆子用不上了，你留着吧。」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">📌 你获得了「老妪的护身符」！（一次性护身道具）</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 护身符可以抵挡一次致命伤害，在关键时刻也许能救你一命。</span>
+                    ${!state.flags.awakening.unlocked ? '<span style="color:#d4b87a;">📌 老妪还低声告诉你：「村西的婆娘们，和村东的不是一路人。你要是想活命，去村西找阿芹。」</span>' : ''}
+                `);
 
-                        // 完成任务
                         state.flags.oldLadyQuest.completed = true;
                         state.flags.oldLadyQuest.hasAmulet = true;
 
-                        // 如果村西还没解锁，老妪的话会帮助解锁
                         if (!state.flags.awakening.unlocked) {
                             state.flags.folkloreWarned = true;
-                            // 直接解锁村西（但需要玩家自己去触发）
-                            // 设置一个标记，让玩家知道可以去村西了
                         }
 
-                        // 添加奖励规则
                         if (!state.rules.includes('old_lady_reward')) {
                             await addRule('old_lady_reward');
                         }
@@ -4030,16 +4448,16 @@
                         return;
                     }
 
-                    // 如果已经完成了任务，或者还没触发任务
+                    // ---- 如果任务已完成 ----
                     if (state.flags.oldLadyQuest.completed) {
                         setStory(`
-            <span class="title-line">🏪 小卖部</span>
-            你再次走进小卖部。老妪看到你，露出了慈祥的笑容：
-            <span class="rule-text" style="color:#d4b87a;">「是你啊……孩子。那护身符带着还合身吗？好好收着，能保命的。」</span>
-            她的心情看起来好了很多。
-            <span class="divider">· · ·</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">老妪已经没有什么新消息了。</span>
-        `);
+                    <span class="title-line">🏪 小卖部</span>
+                    你再次走进小卖部。老妪看到你，露出了慈祥的笑容：
+                    <span class="rule-text" style="color:#d4b87a;">「是你啊……孩子。那护身符带着还合身吗？好好收着，能保命的。」</span>
+                    她的心情看起来好了很多。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">老妪已经没有什么新消息了。</span>
+                `);
                         if (state.gameOver || state._waitingConfirm) return;
                         renderOptions([{
                             label: '🚶 离开小卖部',
@@ -4052,15 +4470,15 @@
                         return;
                     }
 
-                    // 没有银锁片，但任务已触发
+                    // ---- 任务已触发但银锁片未找到 ----
                     if (state.flags.oldLadyQuest.triggered && !state.flags.oldLadyQuest.silverFound) {
                         setStory(`
-            <span class="title-line">🏪 小卖部</span>
-            你走进小卖部，老妪看到你，眼中带着期待：
-            <span class="rule-text" style="color:#d4b87a;">「孩子……找到了吗？那银锁片……我女儿的遗物……」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还没有找到银锁片。线索：废弃房屋的暗格里。</span>
-        `);
+                    <span class="title-line">🏪 小卖部</span>
+                    你走进小卖部，老妪看到你，眼中带着期待：
+                    <span class="rule-text" style="color:#d4b87a;">「孩子……找到了吗？那银锁片……我女儿的遗物……」</span>
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还没有找到银锁片。线索：废弃房屋的暗格里。</span>
+                `);
                         if (state.gameOver || state._waitingConfirm) return;
                         renderOptions([{
                             label: '🚶 离开小卖部',
@@ -4073,25 +4491,20 @@
                         return;
                     }
 
-                    // 有银锁片但没有触发任务（即先找到了物品再接任务）
+                    // ---- 有银锁片但没有触发任务（即先找到了物品再接任务） ----
                     if (state.flags.oldLadyQuest.silverFound && !state.flags.oldLadyQuest.triggered) {
-                        // 触发任务并立即完成
                         state.flags.oldLadyQuest.triggered = true;
-                        // 自动进入交还流程（让玩家直接交还）
-                        // 这里简单处理，重新进入场景时会触发 canComplete
                         setStory(`
-            <span class="title-line">🏪 小卖部</span>
-            老妪看到你，正要说话，你突然想起了那枚银锁片。
-            <span class="divider">· · ·</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你身上有一枚银锁片，似乎就是老妪丢失的那枚。</span>
-        `);
-                        state.flags.oldLadyQuest.triggered = true;
+                    <span class="title-line">🏪 小卖部</span>
+                    老妪看到你，正要说话，你突然想起了那枚银锁片。
+                    <span class="divider">· · ·</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你身上有一枚银锁片，似乎就是老妪丢失的那枚。</span>
+                `);
                         if (state.gameOver || state._waitingConfirm) return;
                         renderOptions([{
                             label: '📜 拿出银锁片，询问老妪',
                             action: () => {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                // 重新进入场景，触发 canComplete
                                 goToScene('explore_shop');
                             }
                         }, {
@@ -4105,14 +4518,45 @@
                         return;
                     }
 
-                    // 默认：老太太不再说话
+                    // ---- 【药庐解锁】检查条件 ----
+                    const fragments = state.flags.medicineHut.fragmentsCollected || [];
+                    const hasEnoughFragments = fragments.length >= 3;
+                    const hasVisitedAbandonedTwice = state.flags.abandonedVisitCount >= 2;
+
+                    if (hasEnoughFragments && hasVisitedAbandonedTwice && !state.flags.medicineHut.unlocked) {
+                        state.flags.medicineHut.unlocked = true;
+                        setStory(`
+                    <span class="title-line">🏪 小卖部 · 药庐钥匙</span>
+                    你正要离开，老妪忽然叫住了你。
+                    <span class="rule-text" style="color:#d4b87a;">「年轻人，你等一下。」</span>
+                    她从柜台底下摸出一把锈迹斑斑的钥匙，放在柜台上，推到你面前。
+                    <span class="rule-text" style="color:#d4b87a;">「后山那间药庐……是先生以前坐诊的地方。后来他不去了，但里面的东西都没动过。你要是想查清楚什么，去那里看看吧。」</span>
+                    你拿起钥匙，铁质的触感冰凉而沉重。
+                    <span class="divider">· · ·</span>
+                    <span style="color:#d4b87a;">📌 你获得了「后山药庐的钥匙」！</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你现在可以去后山药庐探索了。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已收集 ${fragments.length} 个碎片，访问废弃房屋 ${state.flags.abandonedVisitCount} 次。</span>
+                `);
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderOptions([{
+                            label: '🔑 收好钥匙，离开',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你将钥匙小心收好，走出了小卖部。后山药庐……那里也许藏着答案。');
+                                finishSceneAndReturn();
+                            }
+                        }]);
+                        return;
+                    }
+
+                    // ---- 默认：老太太不再说话 ----
                     setStory(`
-        <span class="title-line">🏪 小卖部</span>
-        你再次走进小卖部。老妪坐在柜台后面，不再说话，只是一动不动地盯着你。
-        她的眼神空洞而平静，像是早已看透了你的命运。
-        <span class="divider">· · ·</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">老妪不再开口，她的沉默比任何话语都更令人不安。</span>
-    `);
+                <span class="title-line">🏪 小卖部</span>
+                你再次走进小卖部。老妪坐在柜台后面，不再说话，只是一动不动地盯着你。
+                她的眼神空洞而平静，像是早已看透了你的命运。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">老妪不再开口，她的沉默比任何话语都更令人不安。</span>
+            `);
                     changeDragonization(0);
                     if (state.gameOver || state._waitingConfirm) return;
                     renderOptions([{
@@ -4132,18 +4576,26 @@
             render: async () => {
                 if (state._waitingConfirm) return;
                 // 增加访问计数
-                state.flags.cardVisitCount++;
+                state.flags.cardVisitCount = (state.flags.cardVisitCount || 0) + 1;
                 const visitCount = state.flags.cardVisitCount;
 
-                // 所有6条规则混在一起，随机抽取
-                const allCardRules = ['card_important_1', 'card_important_2', 'card_important_3',
-                    'card_useless_1', 'card_useless_2', 'card_useless_3'];
+                // ---- 所有花切规则池（反玄清 + 护玄清） ----
+                // card_important_3 已在步骤2中修改为强化版
+                const allCardRules = [
+                    'card_important_1',   // 脚后跟不着地（反玄清）
+                    'card_important_2',   // 暗语对答基础（反玄清）
+                    'card_important_3',   // 旧童离观不敢提（反玄清-强化版）
+                    'card_useless_1',     // 闲聊
+                    'card_useless_2',     // 闲聊
+                    'card_useless_3',     // 闲聊
+                    'temple_defense_6',   // 药庐水还是清的（护玄清）- 新增
+                ];
 
                 // 过滤出未获得的规则
                 const available = allCardRules.filter(id => !state.rules.includes(id));
 
-                // 如果已经唠了6次（所有规则已获得），不再给新规则
-                if (visitCount > 6 || available.length === 0) {
+                // 如果已经唠了所有规则（已全部获得），不再给新规则
+                if (visitCount > allCardRules.length || available.length === 0) {
                     setStory(`
                 <span class="title-line">🃏 王大爷</span>
                 你又走到树下，王大爷正在晒太阳。他看到你，笑了笑：
@@ -4170,9 +4622,11 @@
 
                 // 判断是否是重要规则（仅用于显示标签）
                 const isImportant = picked.startsWith('card_important_');
+                // 判断是否是护玄清规则
+                const isDefense = picked === 'temple_defense_6';
 
                 // 显示唠嗑场景
-                const isFirstFew = visitCount <= 3; // 前3次气氛活跃，后面冷淡
+                const isFirstFew = visitCount <= 3;
                 const extraText = isFirstFew ?
                     '大爷来了兴致，和你切磋起花切来。一边玩，一边和你唠起村里的旧事。' :
                     '大爷今天兴致不高，只是有一搭没一搭地和你说着话。';
@@ -4182,15 +4636,24 @@
             你走到树下，一位大爷正在摆弄一副扑克牌，手法花哨。你上前搭话，表示自己也会几手。
             ${extraText}
             <span class="divider">· · ·</span>
-            ${isImportant ? '<span style="color:#d4b87a;">💡 你感觉他说的话似乎暗藏深意！</span>' : '<span style="color:var(--text-muted);">💭 这听起来像是一句普通的闲聊……</span>'}
+            ${isImportant ? '<span style="color:#d4b87a;">💡 你感觉他说的话似乎暗藏深意！</span>' : ''}
+            ${isDefense ? '<span style="color:#6a8aaa;">💡 这话听上去像是随口一提，但你总觉得没那么简单……</span>' : ''}
         `);
 
                 // 添加规则
                 const ok = await addRule(picked);
                 if (ok) {
-                    const displayText = rule.text.replace('【花切·规则1】', '').replace('【花切·规则2】', '');
+                    let displayText = rule.text;
+                    // 移除前缀标签（仅显示内容）
+                    displayText = displayText.replace(/【[^】]*】/, '').trim();
                     showStory(`大爷随口说了一句：「${displayText}」`);
                     showStory(`<span style="color:var(--text-gold);">📜 你获得了一条规则！</span>`);
+
+                    // ---- 如果是 temple_defense_6，记录碎片 ----
+                    if (picked === 'temple_defense_6') {
+                        recordFragment('fragment_temple_defense_6');
+                        showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">🍃 你隐约觉得这句话和后山药庐有关……</span>`);
+                    }
                 }
 
                 changeDragonization(-1);
@@ -4213,6 +4676,145 @@
                         finishSceneAndReturn();
                     }
                 }]);
+            }
+        };
+
+        // ================================================================
+        //  后山药庐（新增场景）
+        // ================================================================
+        SCENES['explore_medicine_hut'] = {
+            render: async function () {
+                if (state._waitingConfirm) return;
+                if (state.gameOver) return;
+
+                // ---- 标记已访问 ----
+                if (!state.flags.medicineHut.visited) {
+                    state.flags.medicineHut.visited = true;
+                }
+                // 增加探索计数
+                state.flags.medicineHut.exploredCount = (state.flags.medicineHut.exploredCount || 0) + 1;
+
+                // ---- 获取当前状态 ----
+                const itemsTaken = state.flags.medicineHut.itemsTaken || [];
+                const visitedCount = itemsTaken.length; // 已查看的位置数
+                const maxVisits = 2; // 最多查看2个位置
+                const canVisitMore = visitedCount < maxVisits && state.stamina >= 1 && !state.gameOver;
+
+                // ---- 检查是否已完成药庐探索 ----
+                // 当已经查看过至少一个位置时，标记为已完成（但可以在离开时再标记）
+                // 我们将在离开时检查 itemsTaken.length > 0 来设置 medicineHutDone
+
+                // ---- 构建场景描述 ----
+                let storyText = `
+            <span class="title-line">🏚️ 后山药庐</span>
+            <span class="divider">—— —— ——</span>
+            后山的路比前面的路窄很多。两边的草长得很高，像是很少有人走过。你走了一段，看到一间旧木屋，门被一条锈锁链拴着。
+            你低头看到门框的边沿上刻着一行小字，字迹很浅，像是很久以前用指甲划上去的：
+            <span class="rule-text" style="color:#d4b87a;">「玄清先生在此看诊。如无人应答，请稍候。」</span>
+            你推开吱呀作响的木门，一股陈年草药的气味扑面而来。屋内光线昏暗，陈设简单——一张旧桌、一个药柜、墙角堆着几摞旧纸。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你已经查看了 ${visitedCount}/${maxVisits} 个位置。</span>
+            ${canVisitMore ? '<span style="color:#6ab06a;">⚡ 你还可以继续查看。</span>' : '<span style="color:#aa4a4a;">⚠️ 你已经查看了足够多的位置，该离开了。</span>'}
+            ${state.stamina === 0 ? '<span style="color:#d45a5a;">⚠️ 你体力耗尽，无法继续查看。</span>' : ''}
+            <span class="divider">· · ·</span>
+        `;
+
+                // ---- 各位置状态 ----
+                const positions = [
+                    { id: 'prescription', label: '📜 检查药柜', hint: '柜子第三格有白布包', ruleId: 'temple_defense_8', fragment: 'fragment_temple_defense_8' },
+                    { id: 'warning', label: '📄 检查桌面', hint: '桌上压着一张旧纸', ruleId: 'temple_defense_9', fragment: 'fragment_temple_defense_9' },
+                    { id: 'list', label: '📋 检查墙角', hint: '墙角堆着几卷旧纸', ruleId: 'temple_defense_10', fragment: 'fragment_temple_defense_10' },
+                    { id: 'letter', label: '✉️ 翻开旧信', hint: '一封没有寄出的信', ruleId: 'temple_defense_12', fragment: 'fragment_temple_defense_12' },
+                ];
+
+                // ---- 显示已查看/未查看状态 ----
+                positions.forEach(pos => {
+                    const taken = itemsTaken.includes(pos.id);
+                    if (taken) {
+                        storyText += `• ✅ ${pos.label}（已查看）\n`;
+                    } else {
+                        storyText += `• <span style="color:#d4b87a;">${pos.label}</span>（未查看）\n`;
+                    }
+                });
+
+                setStory(storyText);
+
+                // ---- 构建选项 ----
+                let opts = [];
+
+                // ---- 查看位置的选项 ----
+                positions.forEach(pos => {
+                    const taken = itemsTaken.includes(pos.id);
+                    const canTake = !taken && canVisitMore;
+
+                    opts.push({
+                        label: taken ? `✅ ${pos.label}（已查看）` : `🔍 ${pos.label}`,
+                        hint: taken ? '已查看' : pos.hint,
+                        tag: taken ? '已读' : (canTake ? '可查看' : '不可用'),
+                        disabled: !canTake,
+                        action: async function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.stamina < 1) {
+                                showStory('⚠️ 体力不足，无法查看。');
+                                return;
+                            }
+                            // 消耗体力
+                            changeStamina(-1);
+                            // 标记已取走
+                            state.flags.medicineHut.itemsTaken.push(pos.id);
+                            // 添加规则
+                            if (!state.rules.includes(pos.ruleId)) {
+                                await addRule(pos.ruleId);
+                            }
+                            // 记录碎片（如果有对应的碎片ID）
+                            if (pos.fragment) {
+                                recordFragment(pos.fragment);
+                            }
+                            // 显示反馈
+                            let feedback = '';
+                            switch (pos.id) {
+                                case 'prescription':
+                                    feedback = '你打开药柜第三格，果然看到一个白布包。打开来，里面是一张泛黄的药方：\n「周家幼子，年七岁。手足青冷，舌苔灰白，不能言语。开方：桂枝、独活、茯神……七日后青退，十日可食粥。」\n你小心收好。';
+                                    break;
+                                case 'warning':
+                                    feedback = '你看到桌面上压着一张纸，上面写着：「北岭老林不可入。入者三日内必发。此非药石可解。」字迹潦草，像是匆忙写下的。';
+                                    break;
+                                case 'list':
+                                    feedback = '你翻开墙角的旧纸卷，发现是一份名录：\n「戊戌年谢氏、壬寅年周氏、癸卯年刘氏……共二十余人，皆标注"已愈"。」\n你数了数，那些名字后面都画着一个小小的圆圈，像是表示治愈。';
+                                    break;
+                                case 'letter':
+                                    feedback = '你拿起一封没有寄出的信，信纸已经泛黄，上面写着：\n「龙气并非不可控，只是无人敢试。若有人愿意走第三条路，他需要三样东西：药方、北岭的地图、还有一个人愿意信他。」\n你感到心头一震——这像是留给后来者的指引。';
+                                    break;
+                            }
+                            showStory(`
+                        <span class="divider">· · ·</span>
+                        <span style="color:#d4b87a;">📌 ${feedback}</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">⚡ 体力-1</span>
+                    `);
+                            updateUI();
+                            // 重新渲染场景
+                            SCENES['explore_medicine_hut'].render();
+                        }
+                    });
+                });
+
+                // ---- 离开药庐选项 ----
+                opts.push({
+                    label: '🚪 离开药庐',
+                    hint: '你在这里已经没什么可看的了',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        // 如果至少查看了一个位置，标记药庐完成
+                        if (state.flags.medicineHut.itemsTaken.length > 0) {
+                            state.flags.medicineHutDone = true;
+                        }
+                        setStory(`你走出了药庐，轻轻带上了门。${state.flags.medicineHutDone ? '你带走了药庐中的线索，心中的疑云似乎有了新的方向。' : '你空手而归，但至少确认了药庐的存在。'}`);
+                        finishSceneAndReturn();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
             }
         };
 
@@ -4307,11 +4909,18 @@
         SCENES['explore_awakening'] = {
             render: () => {
                 if (state._waitingConfirm) return;
-                if (state.flags.awakening.visited) {
+                if (state.gameOver) return;
+
+                // ---- 获取当前信任度 ----
+                const trust = state.flags.awakening.trustLevel || 0;
+                const visited = state.flags.awakening.visited;
+
+                // ---- 如果已经完成全部三轮对话 ----
+                if (trust >= 3) {
                     setStory(`
                 <span class="title-line">🌾 村西聚居区</span>
-                你再次来到村西，但觉醒者告诉你这里已经没有什么新消息了。
-                <span class="rule-text" style="color:#d4b87a;">「你该知道的都知道了。剩下的路，得靠你自己走。」</span>
+                你再次来到村西，阿芹看到你，微微点头：
+                <span class="rule-text" style="color:#d4b87a;">「你已经知道了该知道的一切。剩下的路，得靠你自己走了。」</span>
                 <span class="divider">· · ·</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">这里已经没有更多秘密了。</span>
             `);
@@ -4326,134 +4935,158 @@
                     return;
                 }
 
-                // 正式进入村西
-                state.flags.awakening.visited = true;
+                // ---- 如果从未访问过，标记已访问 ----
+                if (!visited) {
+                    state.flags.awakening.visited = true;
+                }
 
-                // 消耗2体力（已在进入场景时扣除，但在这里再次确认）
-                // 由于体力在 finishSceneAndReturn 中扣除，这里只是显示场景
-
-                setStory(`
-            <span class="title-line">🌾 村西聚居区</span>
-            <span class="divider">—— —— ——</span>
-            你趁夜色偷偷摸向村西。这里的房屋比村东破败许多，空气中弥漫着一股草药和泥土混合的气味。
-            你注意到一户人家的窗缝里透出微弱的灯光。
-            你正要走近，门突然开了——一个穿着灰布衣裳的女人站在门口，她的额头上长着一小簇像银杏芽一样的突起。
-            她似乎并不惊讶你的到来，只是平静地说了一句：
-            <span class="rule-text" style="color:#d4b87a;">「你终于来了。我等你好久了。」</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#d4b87a;">你跟着她走进了屋里……</span>
-        `);
-
-                renderOptions([{
-                    label: '📖 能听吗？？？',
-                    hint: '手册上的禁止前往！！',
-
-                    action: async () => {
-                        if (state.gameOver || state._waitingConfirm) return;
-
-                        // 第一阶段对话
-                        setStory(`
-                    <span class="title-line">🌾 觉醒者的讲述</span>
-                    女人示意你坐下，给你倒了一碗气味古怪的药茶。
-                    <span class="rule-text" style="color:#d4b87a;">「我叫阿芹，是十几年前被选中的"纯阳体"。我逃了出来，但这代价你也看到了——」</span>
-                    她指了指自己额头上的树芽状突起。
-                    <span class="rule-text" style="color:#d4b87a;">「村东那些嫂嫂，已经被龙王爷吃掉了心。她们笑着，热情着，但她们的眼睛在看你的阳原——那是龙王爷最爱吃的东西。」</span>
-                    <span class="rule-text" style="color:#d4b87a;">「玄清……不，那个东西，已经活了五百年。他早就不再是人了。他靠龙气续命，靠纯阳体的血肉维持那层人皮。」</span>
-                    <span class="divider">· · ·</span>
-                    <span style="color:#aa4a4a;">谁是玄清？龙气能续命？？？。</span>
-                `);
-
-                        // 给予第一条规则
+                // =============================================================
+                //  第一轮对话（trustLevel 0 → 1）
+                // =============================================================
+                if (trust === 0) {
+                    setStory(`
+                <span class="title-line">🌾 村西聚居区 · 初遇阿芹</span>
+                <span class="divider">—— —— ——</span>
+                你趁夜色偷偷摸向村西。这里的房屋比村东破败许多，空气中弥漫着一股草药和泥土混合的气味。
+                你注意到一户人家的窗缝里透出微弱的灯光。
+                你正要走近，门突然开了——一个穿着灰布衣裳的女人站在门口，她的额头上长着一小簇像银杏芽一样的突起。
+                她似乎并不惊讶你的到来，只是平静地说了一句：
+                <span class="rule-text" style="color:#d4b87a;">「你终于来了。我等你好久了。」</span>
+                <span class="divider">· · ·</span>
+                你跟着她走进了屋里……她示意你坐下，给你倒了一碗气味古怪的药茶。
+                <span class="rule-text" style="color:#d4b87a;">「我叫阿芹，是十几年前被选中的"纯阳体"。我逃了出来，但这代价你也看到了——」</span>
+                她指了指自己额头上的树芽状突起。
+                <span class="rule-text" style="color:#d4b87a;">「村东那些嫂嫂，已经被龙王爷吃掉了心。她们笑着，热情着，但她们的眼睛在看你的阳原——那是龙王爷最爱吃的东西。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#6a8aaa;">📌 你获得了一条重要线索！</span>
+            `);
+                    // 添加规则 awakening_1
+                    (async () => {
                         if (!state.rules.includes('awakening_1')) {
                             await addRule('awakening_1');
                         }
+                        // 提升信任度
                         state.flags.awakening.trustLevel = 1;
+                        updateUI();
 
                         renderOptions([{
                             label: '📖 继续追问',
                             hint: '了解更多',
-                            tag: '关键',
-                            action: async () => {
-                                if (state.gameOver || state._waitingConfirm) return;
-
-                                // 第二阶段对话
-                                setStory(`
-    <span class="title-line">🌾 觉醒者的讲述</span>
-    <span class="rule-text" style="color:#d4b87a;">「你问我们为什么不离开这里？因为龙王爷已经锁定了我们。离开这阴血覆盖的地方，我们体内的龙气就会发作，变成和村东那些人一样的东西。」</span>
-    <span class="rule-text" style="color:#d4b87a;">「但我们不是没有反抗。我们喝阴血，练阴气，就是为了有朝一日能斩断龙王爷的锁链。」</span>
-    阿芹顿了顿，压低声音说：
-    <span class="rule-text" style="color:#d4b87a;">「我告诉你一个秘密——当年修建道观的工匠里，有一个人察觉了真相。他在道观大殿左立柱的底座里藏了一块青石碑，上面刻着玄清真正的面目。如果你能登上道观，找到那块碑，你就能看清一切。」</span>
-    <span class="rule-text" style="color:#d4b87a;">「记住——左立柱，底座下。别让人看见。」</span>
-    <span class="divider">· · ·</span>
-    <span style="color:#d4b87a;">📌 你获得了关键线索：「道观大殿左立柱底座下藏有工匠暗碑」</span>
-    <span style="color:var(--text-muted);font-size:0.85rem;">💡 或许我可以在哪个地方找到碑文。</span>
-`);
-
-                                // 给予线索（不是直接给规则，而是给一个任务标记）
-                                state.flags.stele.hasClue = true;  // 需要先在 flags.stele 中添加
-                                state.flags.awakening.trustLevel = 2;
-
-                                // 仍然给予阴血符咒
-                                state.flags.awakening.hasCharm = true;
-
-                                changeDragonization(-5);
-                                if (!state.gameOver) showStory('你服下了阿芹给的药茶，龙气稍微被压制了一些（龙化 -5）。');
-
-                                renderOptions([{
-                                    label: '🙏 道谢，告辞',
-                                    action: () => {
-                                        if (state.gameOver || state._waitingConfirm) return;
-                                        setStory(`
-            <span class="title-line">🌾 告别觉醒者</span>
-            你郑重地收好阴血符咒，向阿芹深深一躬。
-            <span class="rule-text" style="color:#d4b87a;">「记住——嫂嫂们都是龙神的眼睛。如果你在山上见到任何笑得太久的人，不要相信她。去道观后面的碑林，那里有玄清的真身。」</span>
-            你走出了村西，夜色中，那盏灯光在你身后缓缓熄灭。
-            <span class="divider">· · ·</span>
-            <span style="color:#6a8aaa;">你获得了觉醒者的信任。她告诉你道观大殿里藏着一块刻有真相的石碑。</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 「阴血符咒」已存入背包。</span>
-        `);
-                                        renderOptions([{
-                                            label: '🚶 回到村中',
-                                            action: () => {
-                                                if (state.gameOver || state._waitingConfirm) return;
-                                                setStory('你带着沉重的心情回到了村中。你知道得越多，就越无法回头了。');
-                                                finishSceneAndReturn();
-                                            }
-                                        }]);
-                                    }
-                                }]);
-                            }
-                        }]);
-                    }
-                }, {
-                    label: '🔙 保持警惕，离开这里',
-                    hint: '这不是你该来的地方',
-
-                    action: () => {
-                        if (state.gameOver || state._waitingConfirm) return;
-                        setStory(`
-                    <span class="title-line">🌾 保持警惕</span>
-                    你感到不安，没有进屋，只是转身离开了村西。
-                    你听到身后传来一声若有若无的叹息，但你没有回头。
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">你安全地离开了。</span>
-                `);
-                        renderOptions([{
-                            label: '🚶 回到村中',
+                            tag: '→ 继续',
                             action: () => {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                setStory('你快步回到村中，心跳如雷。');
+                                // 重新渲染场景，进入第二轮
+                                SCENES['explore_awakening'].render();
+                            }
+                        }, {
+                            label: '🙏 道谢，告辞',
+                            hint: '你还需要时间消化这些信息',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你谢过阿芹，带着沉重的心情离开了村西。');
                                 finishSceneAndReturn();
                             }
                         }]);
-                    }
-                }]);
+                    })();
+                    return;
+                }
+
+                // =============================================================
+                //  第二轮对话（trustLevel 1 → 2）
+                // =============================================================
+                if (trust === 1) {
+                    setStory(`
+                <span class="title-line">🌾 村西聚居区 · 第二次拜访</span>
+                <span class="divider">—— —— ——</span>
+                你再次来到阿芹的住处。她正在昏暗的油灯下缝补一件旧衣，看到你进来，她放下手中的活计。
+                <span class="rule-text" style="color:#d4b87a;">「你果然回来了。还有什么想问的？」</span>
+                你沉默了一下，开口问道：「玄清……到底是什么人？」
+                阿芹的眼神变得幽深：
+                <span class="rule-text" style="color:#d4b87a;">「玄清已经活了五百年。他早就不再是人了。他靠龙气续命，靠纯阳体的血肉维持那层人皮。」</span>
+                <span class="rule-text" style="color:#d4b87a;">「我们这些逃出来的人，额头长树芽，身上起鳞片……都是被龙气侵蚀的结果。而村东那些嫂嫂，已经完全被龙神吃掉了心，她们不再是她们自己了。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#6a8aaa;">📌 你获得了更深的真相！</span>
+            `);
+                    (async () => {
+                        if (!state.rules.includes('awakening_2')) {
+                            await addRule('awakening_2');
+                        }
+                        state.flags.awakening.trustLevel = 2;
+                        updateUI();
+
+                        renderOptions([{
+                            label: '📖 继续追问',
+                            hint: '还有更深的秘密吗',
+                            tag: '→ 继续',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                SCENES['explore_awakening'].render();
+                            }
+                        }, {
+                            label: '🙏 道谢，告辞',
+                            hint: '你还需要时间消化这些信息',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory('你谢过阿芹，带着更深的疑虑离开了村西。');
+                                finishSceneAndReturn();
+                            }
+                        }]);
+                    })();
+                    return;
+                }
+
+                // =============================================================
+                //  第三轮对话（trustLevel 2 → 3）
+                // =============================================================
+                if (trust === 2) {
+                    setStory(`
+                <span class="title-line">🌾 村西聚居区 · 最后的秘密</span>
+                <span class="divider">—— —— ——</span>
+                你第三次来到阿芹的小屋。她似乎一直在等你。
+                <span class="rule-text" style="color:#d4b87a;">「你来了。我知道你一定会再来。」</span>
+                她站起身，走到墙角，从一块松动的砖后取出一个旧布包，打开来，里面是一块巴掌大的青石片。
+                <span class="rule-text" style="color:#d4b87a;">「当年修建道观的工匠里，有一个人察觉了真相。他在道观大殿左立柱的底座里藏了一块青石碑，上面刻着玄清真正的面目。」</span>
+                她把青石片递给你看——上面画着道观的结构图，左立柱的位置被圈了出来。
+                <span class="rule-text" style="color:#d4b87a;">「记住——左立柱，底座下。别让人看见。」</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">📌 你获得了关键线索：「道观大殿左立柱底座下藏有工匠暗碑」</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你可以在登山后前往道观寻找这块石碑。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 阿芹还给了你一枚「阴血符咒」，据说能压制龙气。</span>
+            `);
+                    (async () => {
+                        if (!state.rules.includes('awakening_3')) {
+                            await addRule('awakening_3');
+                        }
+                        // 标记支线完成
+                        state.flags.villageWestDone = true;
+                        state.flags.awakening.trustLevel = 3;
+                        state.flags.awakening.hasCharm = true;
+                        state.flags.stele.hasClue = true;
+                        changeDragonization(-5);
+                        updateUI();
+
+                        renderOptions([{
+                            label: '🙏 道谢，告辞',
+                            action: () => {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                setStory(`
+                            <span class="title-line">🌾 告别觉醒者</span>
+                            你郑重地收好阴血符咒，向阿芹深深一躬。
+                            <span class="rule-text" style="color:#d4b87a;">「记住——嫂嫂们都是龙神的眼睛。如果你在山上见到任何笑得太久的人，不要相信她。去道观后面的碑林，那里有玄清的真身。」</span>
+                            你走出了村西，夜色中，那盏灯光在你身后缓缓熄灭。
+                            <span class="divider">· · ·</span>
+                            <span style="color:#6a8aaa;">你获得了觉醒者的全部信任。她告诉你道观大殿里藏着一块刻有真相的石碑。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">💡 「阴血符咒」已存入背包。</span>
+                        `);
+                                finishSceneAndReturn();
+                            }
+                        }]);
+                    })();
+                    return;
+                }
             }
         };
 
-        // ================================================================
-        //  第二章 · 入口函数
-        // ================================================================
         // ================================================================
         //  第二章 · 入口函数
         // ================================================================
@@ -4465,7 +5098,15 @@
             }
 
             // ================================================================
-            //  第一步：重置 ch2 为初始状态
+            //  第一步：读取第一章完成状态
+            // ================================================================
+            var hasVillageWest = state.flags.villageWestDone || false;
+            var hasMedicineHut = state.flags.medicineHutDone || false;
+            var trustLevel = state.flags.medicineHut.trustLevel || 0;
+            var hasThirdPath = state.flags.medicineHut.itemsTaken && state.flags.medicineHut.itemsTaken.includes('letter');
+
+            // ================================================================
+            //  第二步：重置 ch2 为初始状态（包含新字段）
             // ================================================================
             state.ch2 = {
                 // ----- 原有字段 -----
@@ -4555,10 +5196,18 @@
                 // ----- 新增：结局标记 -----
                 endingTriggered: null,
                 marketVisitCount: 1,
+
+                // ================================================================
+                //  【步骤12新增】第一章继承状态
+                // ================================================================
+                hasVillageWestInfo: hasVillageWest,
+                hasMedicineHutInfo: hasMedicineHut,
+                xuanqingTrust: trustLevel,
+                hasThirdPath: hasThirdPath,
             };
 
             // ================================================================
-            //  第二步：设置全局状态
+            //  第三步：设置全局状态
             // ================================================================
             state.flags.chapter2 = true;
             state.stamina = state.maxStamina;
@@ -4570,7 +5219,7 @@
             document.getElementById('rule-notification').classList.remove('show');
 
             // ================================================================
-            //  第三步：显示进入第二章的过渡文本
+            //  第四步：显示进入第二章的过渡文本（包含第一章完成情况提示）
             // ================================================================
             var d = state.ch2.disguise;
             var disguiseDesc = '';
@@ -4578,8 +5227,41 @@
             else if (d >= 4) disguiseDesc = '你看起来像是他们的人，偶尔被打量但无碍。';
             else if (d >= 3) disguiseDesc = '你勉强混在人群中，只要不引起注意就没事。';
             else if (d >= 2) disguiseDesc = '你显得格格不入，已经有人在看你。';
-            else disguiseDesc = '你浑身不自在，这里的人看你的眼神都不对劲。';
+            else if (d >= 1) disguiseDesc = '你的伪装摇摇欲坠，随时可能被识破。';
+            else disguiseDesc = '你已经完全暴露了，每一个人都在盯着你。';
+            // ---- 根据第一章完成情况构建额外提示 ----
+            var chapter1Summary = '';
+            if (hasVillageWest && hasMedicineHut) {
+                chapter1Summary = `
+            <span style="color:#d4b87a;">📌 你怀里有两样东西，一样从村西带回来的，一样从药庐带回来的。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">两样东西都在你怀里，重量不一样，方向也不一样。你还没有想清楚该信哪一样。</span>
+        `;
+            } else if (hasVillageWest) {
+                chapter1Summary = `
+            <span style="color:#d4b87a;">📌 你从村西带回了一件东西，很轻，但压在心里很重。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">阿芹说的每一句话你都记得。但你还没有亲眼见过那扇门后面的东西。</span>
+        `;
+            } else if (hasMedicineHut) {
+                chapter1Summary = `
+            <span style="color:#d4b87a;">📌 你从药庐带回了几页纸，纸很旧，字迹很淡，但你没舍得扔。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">那些药方、那些名录、那封没寄出去的信……它们串起来的方向，和村口木牌上写的不太一样。</span>
+        `;
+            } else {
+                chapter1Summary = `
+            <span style="color:#d4b87a;">📌 你在邱龙村走了很多天，收集了不少东西，但说不上来自己到底带走了什么。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">碎片太多，拼图还缺几块。也许山上会有答案。</span>
+        `;
+            }
 
+            // ---- 如果有第三条路的信，追加提示 ----
+            if (hasThirdPath) {
+                chapter1Summary += `
+            <span style="color:#6a8aaa;">📌 你还翻到过一封信，信上说也许还有别的办法。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你没太当真，但一直留着。</span>
+        `;
+            }
+
+            // ---- 最终合成文本 ----
             setStory(`
         <span class="title-line">⛰️ 第二章 · 追赶社戏</span>
         <span class="divider">—— —— ——</span>
@@ -4590,6 +5272,8 @@
         <span class="rule-text" style="color:#d4b87a;">「游神队伍已经上山了，你现在去还能赶上尾巴。不过……你准备好了吗？」</span>
         <span class="divider">· · ·</span>
         你下意识地按了按衣襟里的东西，硬硬的还在。
+        <span class="divider">· · ·</span>
+        ${chapter1Summary}
         <span class="divider">· · ·</span>
         <span style="color:var(--text-gold);">🎭 初始伪装值：${d}/5</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">${disguiseDesc}</span>
@@ -4605,12 +5289,12 @@
     `);
 
             // ================================================================
-            //  第四步：更新UI
+            //  第五步：更新UI
             // ================================================================
             updateUI();
 
             // ================================================================
-            //  第五步：【关键修改】显示「继续」按钮，替代 setTimeout
+            //  第六步：显示「继续」按钮
             // ================================================================
             renderOptions([{
                 label: '🏪 进入山脚集市',
@@ -5816,17 +6500,14 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火剩余：${state.ch2.incenseRemaining}/3根</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">⏳ 社戏进度：${state.ch2.ritualProgress}%</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🏔️宽阔的石板路，蜿蜒向上。</span>
-        <span style="color:var(--text-muted);">右边那条路宽，踩上去的石板有些松动，前面隐约有人影。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌好走的路， 可获得？？？。</span>
+        <span style="color:#d4b87a;">🏔️ 右边那条路宽，踩上去的石板有些松动，前面隐约有人影。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 主干道：安全但远，可获得香火。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🌲 狭窄的小路，消失在密林深处。</span>
-        <span style="color:var(--text-muted);">左边那条路窄，草长得很高，像是很少有人走。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 没那么好走的路，可获得？？？。</span>
+        <span style="color:#d4b87a;">🌲 左边那条路窄，草长得很高，像是很少有人走。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 林间密道：近但凶险，可获得面具。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🕯️ 一条不起眼的小径，路旁散落着香灰和符纸。</span>
-        <span style="color:var(--text-muted);">中间似乎还有一条路，你差点没看见，地上有些纸灰。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 需香火护体，可获取？？？。</span>
+        <span style="color:#d4b87a;">🕯️ 中间还有一条不起眼的小径，地上散落着香灰和符纸。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 祭坛小径：最快，但需要香火护体。</span>
         <span class="divider">· · ·</span>
         ${state.ch2.incenseRemaining > 0 ?
                     '<span style="color:#6ab06a;">✅ 你有香火，可以安全走祭坛小径。</span>' :
@@ -5844,7 +6525,7 @@
             opts.push({
                 label: '🏔️ 走右边那条宽敞的路',
                 hint: mainDisabled ? '⚠️ 体力不足' : '路边插着几面褪了色的旗子',
-                tag: mainDisabled ? '⚠️ 体力不足' : '林间密道',
+                tag: mainDisabled ? '⚠️ 体力不足' : '主干道',
                 disabled: mainDisabled,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5855,9 +6536,10 @@
 
                     state.ch2.pathChosen = 'main';
                     state.ch2.phase = 'ritual_events';
-
                     state.ch2.km = 0;
                     state.ch2.mainProgress = 0;
+
+                    // 先扣除基础消耗
                     changeStamina(-2);
                     changeIncense(1);
 
@@ -5866,19 +6548,56 @@
                 <span style="color:#6ab06a;">✅ 你沿着主干道一路追赶，终于追上了游神队伍的尾部。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">这里是一支香火后勤队，你悄悄混入其中，顺手拿了一束香。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火+1，⚡ 体力-2</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已混入社戏队伍！</span>
+                <span class="divider">· · ·</span>
+                <span style="color:#d4b87a;">你注意到香火队的人正在往车上搬香袋，似乎人手不够。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你可以选择帮他们一把，也许能更快融入队伍。</span>
             `);
-                    updateUI();
-                    renderOptions([{
-                        label: '⏩ 继续前进',
-                        hint: '向祭坛方向走去',
-                        tag: '→ 继续',
-                        action: function () {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            state.ch2.dramaPhase = 0;
-                            renderRitualEvents();
+
+                    // ---- 子选项：帮香火队搬货 ----
+                    renderOptions([
+                        {
+                            label: '💪 帮香火队搬几袋香',
+                            hint: '体力-1，伪装+1',
+                            tag: '融入',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                if (state.stamina < 1) {
+                                    showStory('⚠️ 体力不足。');
+                                    return;
+                                }
+                                changeStamina(-1);
+                                changeDisguise(1);
+                                showStory(`
+                            <span class="divider">· · ·</span>
+                            <span style="color:#6ab06a;">✅ 你扛起一袋香火，跟着队伍往前搬了几趟。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">香火队的人看了你一眼，没说什么，但递给你一碗水——这是接纳的意思。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1，⚡ 体力-1</span>
+                        `);
+                                updateUI();
+                                // 进入社戏
+                                state.ch2.dramaPhase = 0;
+                                renderOptions([{
+                                    label: '⏩ 继续前进',
+                                    hint: '向祭坛方向走去',
+                                    tag: '→ 继续',
+                                    action: function () {
+                                        if (state.gameOver || state._waitingConfirm) return;
+                                        renderRitualEvents();
+                                    }
+                                }]);
+                            }
+                        },
+                        {
+                            label: '⏩ 继续前进',
+                            hint: '不引人注目',
+                            tag: '→ 继续',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch2.dramaPhase = 0;
+                                renderRitualEvents();
+                            }
                         }
-                    }]);
+                    ]);
                 }
             });
 
@@ -5887,7 +6606,7 @@
             opts.push({
                 label: '🌲 走左边那条窄路',
                 hint: forestDisabled ? '⚠️ 体力不足' : '路边长满了荆棘，需要小心前行',
-                tag: forestDisabled ? '⚠️ 体力不足' : '	路口的草被踩倒了一片',
+                tag: forestDisabled ? '⚠️ 体力不足' : '林间密道',
                 disabled: forestDisabled,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -5898,31 +6617,83 @@
 
                     state.ch2.pathChosen = 'forest';
                     state.ch2.phase = 'ritual_events';
-
                     state.ch2.km = 0;
                     state.ch2.forestProgress = 0;
+
+                    // 基础消耗
                     changeStamina(-1);
                     state.ch2.hasMask = true;
-                    changeDisguise(1);
+
+                    // ---- 检查是否解锁了药庐（影响草药选项） ----
+                    var hasMedicineHut = state.flags.medicineHutDone || state.flags.medicineHut.visited;
 
                     showStory(`
                 <span class="divider">· · ·</span>
                 <span style="color:#d45a5a;">⚠️ 你抄近路穿过了密林，成功拦截了队伍中部的面具护卫队。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">你趁乱捡到了一个掉落的面具，戴在脸上——看起来更像他们了。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1（面具），⚡ 体力-1</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已混入社戏队伍！</span>
+                <span class="divider">· · ·</span>
+                ${hasMedicineHut ? `
+                    <span style="color:#d4b87a;">你注意到路边有几株熟悉的草药——你在药庐的笔记上见过它们。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你认出了这些草药，可以涂抹在身上，掩盖外来者的气味。</span>
+                ` : `
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 路边有些草，但你不认识，不敢乱碰。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">（如果你去过药庐，或许能辨认出它们）</span>
+                `}
             `);
-                    updateUI();
-                    renderOptions([{
+
+                    // ---- 子选项 ----
+                    var subOpts = [];
+
+                    // 草药涂抹选项（需要药庐解锁）
+                    if (hasMedicineHut && state.stamina >= 1) {
+                        subOpts.push({
+                            label: '🌿 采几株草药涂抹在身上',
+                            hint: '体力-1，伪装+1',
+                            tag: '药庐知识',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                if (state.stamina < 1) {
+                                    showStory('⚠️ 体力不足。');
+                                    return;
+                                }
+                                changeStamina(-1);
+                                changeDisguise(1);
+                                showStory(`
+                            <span class="divider">· · ·</span>
+                            <span style="color:#6ab06a;">✅ 你采下几株草药，捣碎了涂在衣襟和手腕上。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">那股辛辣中带着微甜的苦味，和当地人的气味一模一样。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1，⚡ 体力-1</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你身上的外来者气味被盖住了。</span>
+                        `);
+                                updateUI();
+                                // 进入社戏
+                                state.ch2.dramaPhase = 0;
+                                renderOptions([{
+                                    label: '⏩ 继续前进',
+                                    hint: '向祭坛方向走去',
+                                    tag: '→ 继续',
+                                    action: function () {
+                                        if (state.gameOver || state._waitingConfirm) return;
+                                        renderRitualEvents();
+                                    }
+                                }]);
+                            }
+                        });
+                    }
+
+                    subOpts.push({
                         label: '⏩ 继续前进',
-                        hint: '向祭坛方向走去',
+                        hint: '不引人注目',
                         tag: '→ 继续',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             state.ch2.dramaPhase = 0;
                             renderRitualEvents();
                         }
-                    }]);
+                    });
+
+                    renderOptions(subOpts);
                 }
             });
 
@@ -5951,9 +6722,9 @@
 
                     state.ch2.pathChosen = 'altar';
                     state.ch2.phase = 'ritual_events';
-
                     state.ch2.km = 0;
                     state.ch2.altarProgress = 0;
+
                     changeStamina(-1);
                     changeIncense(-1);
                     state.ch2.hasRitualInfo = true;
@@ -5967,13 +6738,14 @@
                 <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已深入社戏队伍核心！</span>
             `);
                     updateUI();
+
+                    state.ch2.dramaPhase = 0;
                     renderOptions([{
                         label: '⏩ 继续前进',
                         hint: '向祭坛方向走去',
                         tag: '→ 继续',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
-                            state.ch2.dramaPhase = 0;
                             renderRitualEvents();
                         }
                     }]);
@@ -5983,7 +6755,7 @@
             // ---- 4. 返回集市（需要付出代价） ----
             var canReturn = state.stamina >= 1 && state.ch2.ritualProgress < 100;
             opts.push({
-                label: '🔙折返回去再转转',
+                label: '🔙 折返回去再转转',
                 hint: canReturn ? '你总觉得忘了什么' : '无法返回',
                 tag: canReturn ? '⚠️ 代价' : '不可用',
                 disabled: !canReturn,
@@ -6019,7 +6791,6 @@
                             renderChapter2();
                         }
                     }]);
-
                 }
             });
 
@@ -6028,7 +6799,7 @@
             opts.push({
                 label: '😞 沿着来路往回走',
                 hint: canGiveUp ? '山脚下的村子亮起了灯火' : '⚠️ 体力不足',
-                tag: canGiveUp ? ' 打道回府' : '🔒 锁定',
+                tag: canGiveUp ? '打道回府' : '🔒 锁定',
                 disabled: !canGiveUp,
                 action: function () {
                     if (state.gameOver || state._waitingConfirm) return;
@@ -6060,11 +6831,9 @@
                         tag: '→ 彻底放弃',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
-                            state.ch2.dramaPhase = 0;
-                            renderChapter2();
+                            triggerEnding('BE4_半途而废');
                         }
                     }]);
-
                 }
             });
 
@@ -6128,7 +6897,7 @@
                 setStory(storyText);
                 return;
 
-            } else if (d >= 2) {
+            } else if (d > 2) {
                 storyText = `
             <span class="title-line">🌫️ 阴影遭遇</span>
             <span class="divider">—— —— ——</span>
@@ -6154,7 +6923,7 @@
             }
 
             // ---- 选项 ----
-            if (d >= 2) {
+            if (d > 2) {
                 // 中等以上伪装：可以正常选择
                 options.push({
                     label: '🙏 低头念「龙佑平安」',
@@ -6308,7 +7077,7 @@
             var options = [];
 
             // ---- 根据伪装值显示不同文本 ----
-            if (d >= 4) {
+            if (d > 4) {
                 storyText = `
         <span class="title-line">🧙 道士盘查</span>
         <span class="divider">—— —— ——</span>
@@ -6352,7 +7121,7 @@
                 }]);
                 setStory(storyText);
                 return;
-            } else if (d >= 2) {
+            } else if (d > 2) {
                 storyText = `
             <span class="title-line">🧙 道士盘查</span>
             <span class="divider">—— —— ——</span>
@@ -6374,7 +7143,7 @@
             }
 
             // ---- 选项 ----
-            if (d >= 4) {
+            if (d > 4) {
                 // 高伪装：自动通过，直接跳到下一事件
                 options.push({
                     label: '🚶 继续前进',
@@ -6519,7 +7288,7 @@
             });
 
             // ---- 根据伪装值显示不同文本 ----
-            if (d >= 4) {
+            if (d > 4) {
                 storyText = `
         <span class="title-line">🗣️ 路人搭话</span>
         <span class="divider">—— —— ——</span>
@@ -6569,7 +7338,7 @@
                 return;
             }
 
-            if (d >= 2) {
+            if (d > 2) {
                 // 中等伪装：可以选择是否搭话
                 storyText = `
             <span class="title-line">🗣️ 路人搭话</span>
@@ -6703,7 +7472,7 @@
             var options = [];
 
             // ---- 根据伪装值显示不同文本 ----
-            if (d >= 4) {
+            if (d > 4) {
                 storyText = `
         <span class="title-line">👥 龙化者同行</span>
         <span class="divider">—— —— ——</span>
@@ -6743,7 +7512,7 @@
                 }]);
                 setStory(storyText);
                 return;
-            } else if (d >= 2) {
+            } else if (d > 2) {
                 storyText = `
             <span class="title-line">👥 龙化者同行</span>
             <span class="divider">—— —— ——</span>
@@ -6763,7 +7532,7 @@
             }
 
             // ---- 选项 ----
-            if (d >= 4) {
+            if (d > 4) {
                 // 高伪装：自动通过
                 options.push({
                     label: '🚶 继续前进',
@@ -6782,7 +7551,7 @@
                         }, 300);
                     }
                 });
-            } else if (d >= 2) {
+            } else if (d > 2) {
                 // 中等伪装：需要选择
                 options.push({
                     label: '🚶 模仿（脚后跟不着地）',
@@ -6958,7 +7727,7 @@
             showStory(`<span style="color:#aa4a4a;font-size:0.85rem;">🐉 你靠近了纯阳体，体内的龙气开始翻涌！（龙化 +5）</span>`);
 
             // ---- 根据伪装值显示不同文本 ----
-            if (d >= 4) {
+            if (d > 4) {
                 storyText = `
             <span class="title-line">👦 纯阳体现身</span>
             <span class="divider">—— —— ——</span>
@@ -6973,7 +7742,7 @@
             <span style="color:#6a8aaa;">📌 你看到了全部真相。这个男孩就是今年的「纯阳体」。</span>
             <span style="color:#6ab06a;">✅ 你站到了最前排。所有的选项都已解锁。</span>
         `;
-            } else if (d >= 2) {
+            } else if (d > 2) {
                 storyText = `
             <span class="title-line">👦 纯阳体现身</span>
             <span class="divider">—— —— ——</span>
@@ -8210,6 +8979,7 @@
                     dream: false,
                     knock: false,
                     window: false,
+                    dream_defense: false,  // 护玄清版嫂嫂梦话
                 },
                 awakening: {
                     unlocked: state.flags.awakening.unlocked || false,
@@ -8248,6 +9018,15 @@
                 hasShadowSecret: false,        // 是否从阴影中获得低语情报
                 hasTaoistInfo: false,          // 是否从道士处获得额外情报
                 hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+                _abandonedPositions: {
+                    wall: false,
+                    talisman: false,
+                    shrine: false,
+                    pot: false,
+                    desk: false,
+                    bedside: false,
+                    ash: false,
+                },
             };
 
             // ---- 重置 ch2 为初始状态（所有进度清零，但保留第一章继承的标记） ----
@@ -8406,6 +9185,7 @@
                     dream: false,
                     knock: false,
                     window: false,
+                    dream_defense: false,  // 护玄清版嫂嫂梦话
                 },
                 awakening: {
                     unlocked: false,
@@ -8442,6 +9222,15 @@
                 hasShadowSecret: false,        // 是否从阴影中获得低语情报
                 hasTaoistInfo: false,          // 是否从道士处获得额外情报
                 hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+                _abandonedPositions: {
+                    wall: false,
+                    talisman: false,
+                    shrine: false,
+                    pot: false,
+                    desk: false,
+                    bedside: false,
+                    ash: false,
+                },
             };
 
             // ---- 重置 ch2 为全新初始状态 ----
