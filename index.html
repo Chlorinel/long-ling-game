@@ -3137,7 +3137,338 @@
                 }
                 showStory(text);
             }
+            // ================================================================
+            //  🎵 Web Audio 音效引擎（BGM + 铃铛音效）
+            // ================================================================
 
+            let audioCtx = null;
+            let bgmNodes = {};
+            let bgmPlaying = false;
+            let sfxPlaying = false;
+            let bgmWasPlaying = false;
+            let bgmInterval = null;
+
+            // ---- 初始化音频上下文（需用户手势触发） ----
+            function initAudio() {
+                if (!audioCtx) {
+                    try {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.warn('Web Audio API 不支持');
+                        return false;
+                    }
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                return true;
+            }
+
+            // ---- 生成阴森中式 BGM（五声音阶 + 低频嗡鸣 + 随机敲击） ----
+            function startBGM() {
+                if (!initAudio()) return;
+                if (bgmPlaying) return;
+
+                // ---- 主音量 ----
+                const masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.10;
+                masterGain.connect(audioCtx.destination);
+
+                // ---- 1. 低频嗡鸣（深沉的背景） ----
+                const lowOsc = audioCtx.createOscillator();
+                const lowGain = audioCtx.createGain();
+                lowOsc.type = 'sine';
+                lowOsc.frequency.value = 55; // A1
+                lowGain.gain.value = 0.18;
+                lowOsc.connect(lowGain);
+                lowGain.connect(masterGain);
+                lowOsc.start();
+
+                // ---- 2. 旋律音（五声音阶，缓慢循环） ----
+                const melodyOsc = audioCtx.createOscillator();
+                const melodyGain = audioCtx.createGain();
+                melodyOsc.type = 'sine';
+                melodyOsc.frequency.value = 220;
+                melodyGain.gain.value = 0.06;
+                melodyOsc.connect(melodyGain);
+                melodyGain.connect(masterGain);
+                melodyOsc.start();
+
+                // ---- 3. 颤音 LFO（让旋律微微抖动） ----
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.5;
+                lfoGain.gain.value = 8;
+                lfo.connect(lfoGain);
+                lfoGain.connect(melodyOsc.frequency);
+                lfo.start();
+
+                // ---- 4. 高频泛音（增加诡异感） ----
+                const highOsc = audioCtx.createOscillator();
+                const highGain = audioCtx.createGain();
+                highOsc.type = 'sine';
+                highOsc.frequency.value = 880;
+                highGain.gain.value = 0.015;
+                highOsc.connect(highGain);
+                highGain.connect(masterGain);
+                highOsc.start();
+
+                // ---- 5. 随机“钟鸣”敲击（每6~12秒一次） ----
+                const bellGain = audioCtx.createGain();
+                bellGain.gain.value = 0.04;
+                bellGain.connect(masterGain);
+
+                function playRandomBell() {
+                    if (!bgmPlaying) return;
+                    try {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        const freq = 200 + Math.random() * 400;
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                        osc.connect(gain);
+                        gain.connect(bellGain);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.6);
+                    } catch (e) { }
+                    // 随机间隔 6~14 秒
+                    const delay = 6000 + Math.random() * 8000;
+                    bgmInterval = setTimeout(playRandomBell, delay);
+                }
+
+                // 启动随机敲击
+                const firstDelay = 3000 + Math.random() * 5000;
+                bgmInterval = setTimeout(playRandomBell, firstDelay);
+
+                // ---- 保存节点 ----
+                bgmNodes = { masterGain, lowOsc, lowGain, melodyOsc, melodyGain, highOsc, highGain, lfo, lfoGain, bellGain };
+                bgmPlaying = true;
+
+                // ---- 五声音阶循环（每 6 秒换一个音） ----
+                const pentatonic = [196, 220, 247, 294, 330, 392, 440]; // G3, A3, B3, D4, E4, G4, A4
+                let step = 0;
+                const melodyInterval = setInterval(() => {
+                    if (!bgmPlaying) { clearInterval(melodyInterval); return; }
+                    // 偏向低音
+                    let idx;
+                    if (Math.random() < 0.6) {
+                        idx = Math.floor(Math.random() * 3); // 低音区
+                    } else {
+                        idx = Math.floor(Math.random() * pentatonic.length);
+                    }
+                    const targetFreq = pentatonic[idx];
+                    melodyOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.8);
+                }, 5000);
+
+                bgmNodes._melodyInterval = melodyInterval;
+            }
+
+            // ---- 停止 BGM（清空所有节点） ----
+            function stopBGM() {
+                bgmPlaying = false;
+                if (bgmInterval) {
+                    clearTimeout(bgmInterval);
+                    bgmInterval = null;
+                }
+                if (bgmNodes._melodyInterval) {
+                    clearInterval(bgmNodes._melodyInterval);
+                    bgmNodes._melodyInterval = null;
+                }
+                try {
+                    if (bgmNodes.masterGain) bgmNodes.masterGain.disconnect();
+                    if (bgmNodes.lowOsc) bgmNodes.lowOsc.stop();
+                    if (bgmNodes.melodyOsc) bgmNodes.melodyOsc.stop();
+                    if (bgmNodes.highOsc) bgmNodes.highOsc.stop();
+                    if (bgmNodes.lfo) bgmNodes.lfo.stop();
+                } catch (e) { }
+                bgmNodes = {};
+            }
+
+            // ---- 播放铃铛音效（按键音） ----
+            function playSFX(callback) {
+                // 如果音效正在播放，先终止
+                if (sfxPlaying) {
+                    try { /* 没有持续节点，只标记 */ } catch (e) { }
+                    sfxPlaying = false;
+                }
+
+                // 暂停 BGM（如果正在播放）
+                if (bgmPlaying) {
+                    // 暂停随机敲击定时器（防止音效期间敲击干扰）
+                    if (bgmInterval) {
+                        clearTimeout(bgmInterval);
+                        bgmInterval = null;
+                    }
+                    // 降低 BGM 音量而不是完全暂停（更平滑）
+                    if (bgmNodes.masterGain) {
+                        bgmNodes.masterGain.gain.setTargetAtTime(0.01, audioCtx.currentTime, 0.05);
+                    }
+                    bgmWasPlaying = true;
+                } else {
+                    bgmWasPlaying = false;
+                }
+
+                // 生成铃铛音效
+                try {
+                    if (!initAudio()) {
+                        if (callback) callback();
+                        return;
+                    }
+                    const now = audioCtx.currentTime;
+                    // 主铃铛音：高频 + 快速衰减
+                    const osc1 = audioCtx.createOscillator();
+                    const gain1 = audioCtx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.value = 1200 + Math.random() * 300;
+                    gain1.gain.setValueAtTime(0.15, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc1.connect(gain1);
+                    gain1.connect(audioCtx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.25);
+
+                    // 泛音：略高，增加铃铛感
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 1800 + Math.random() * 400;
+                    gain2.gain.setValueAtTime(0.06, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start(now);
+                    osc2.stop(now + 0.18);
+
+                    // 低频泛音（更厚重）
+                    const osc3 = audioCtx.createOscillator();
+                    const gain3 = audioCtx.createGain();
+                    osc3.type = 'sine';
+                    osc3.frequency.value = 600 + Math.random() * 200;
+                    gain3.gain.setValueAtTime(0.04, now);
+                    gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc3.connect(gain3);
+                    gain3.connect(audioCtx.destination);
+                    osc3.start(now);
+                    osc3.stop(now + 0.3);
+
+                    sfxPlaying = true;
+
+                    // 音效结束后恢复 BGM
+                    const duration = 320;
+                    setTimeout(() => {
+                        sfxPlaying = false;
+                        if (bgmWasPlaying && bgmPlaying) {
+                            // 恢复 BGM 音量
+                            if (bgmNodes.masterGain) {
+                                bgmNodes.masterGain.gain.setTargetAtTime(0.10, audioCtx.currentTime, 0.1);
+                            }
+                            // 重新启动随机敲击
+                            if (bgmPlaying) {
+                                const delay = 3000 + Math.random() * 5000;
+                                bgmInterval = setTimeout(() => {
+                                    if (bgmPlaying) {
+                                        // 使用已保存的 bellGain
+                                        if (bgmNodes.bellGain) {
+                                            try {
+                                                const osc = audioCtx.createOscillator();
+                                                const gain = audioCtx.createGain();
+                                                const freq = 200 + Math.random() * 400;
+                                                osc.type = 'sine';
+                                                osc.frequency.value = freq;
+                                                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                                                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                                                osc.connect(gain);
+                                                gain.connect(bgmNodes.bellGain);
+                                                osc.start();
+                                                osc.stop(audioCtx.currentTime + 0.6);
+                                            } catch (e) { }
+                                        }
+                                        // 重新调度
+                                        const nextDelay = 6000 + Math.random() * 8000;
+                                        bgmInterval = setTimeout(() => {
+                                            if (bgmPlaying && bgmNodes.bellGain) {
+                                                try {
+                                                    const osc = audioCtx.createOscillator();
+                                                    const gain = audioCtx.createGain();
+                                                    const freq = 200 + Math.random() * 400;
+                                                    osc.type = 'sine';
+                                                    osc.frequency.value = freq;
+                                                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                                                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                                                    osc.connect(gain);
+                                                    gain.connect(bgmNodes.bellGain);
+                                                    osc.start();
+                                                    osc.stop(audioCtx.currentTime + 0.6);
+                                                } catch (e) { }
+                                                // 再次调度自己
+                                                const next2 = 6000 + Math.random() * 8000;
+                                                bgmInterval = setTimeout(arguments.callee, next2);
+                                            }
+                                        }, nextDelay);
+                                    }
+                                }, delay);
+                            }
+                        }
+                        if (callback) callback();
+                    }, duration);
+                } catch (e) {
+                    console.warn('音效生成失败', e);
+                    // 恢复 BGM
+                    if (bgmWasPlaying && bgmPlaying && bgmNodes.masterGain) {
+                        bgmNodes.masterGain.gain.setTargetAtTime(0.10, audioCtx.currentTime, 0.1);
+                    }
+                    if (callback) callback();
+                }
+            }
+
+            // ---- 启动 BGM 的辅助函数（在开始游戏时调用） ----
+            function ensureBGM() {
+                if (!bgmPlaying) {
+                    startBGM();
+                }
+            }
+
+            // ---- 修改 startNewGame 和 continueGame 以触发 BGM ----
+            // 保存原始函数
+            const _origStartNewGame = startNewGame;
+            const _origContinueGame = continueGame;
+
+            // 重写 startNewGame
+            startNewGame = function () {
+                if (_origStartNewGame) _origStartNewGame();
+                setTimeout(ensureBGM, 500);
+            };
+
+            // 重写 continueGame
+            continueGame = function () {
+                if (_origContinueGame) _origContinueGame();
+                setTimeout(ensureBGM, 500);
+            };
+
+            // 绑定到主菜单按钮（确保用户手势触发）
+            document.getElementById('btn-new-game').addEventListener('click', function () {
+                setTimeout(ensureBGM, 600);
+            });
+            document.getElementById('btn-continue').addEventListener('click', function () {
+                setTimeout(ensureBGM, 600);
+            });
+
+            // ---- 页面可见性变化时保持 BGM 运行 ----
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden && bgmPlaying) {
+                    // 如果页面重新可见，检查 BGM 是否还在
+                    if (bgmPlaying && bgmNodes.masterGain) {
+                        // BGM 可能因页面休眠而中断，重新启动
+                        // 简单处理：如果 bgmPlaying 为 true 但没有声音，可以重启
+                        // 但这里不强制重启，以免打断
+                    }
+                }
+            });
+
+            console.log('🎵 Web Audio 音效引擎已加载！');
             function renderOptions(options) {
                 const container = document.getElementById('options-area');
                 if (state._waitingConfirm) return;
@@ -3154,7 +3485,10 @@
                         `${opt.label}${opt.hint ? `<span class="hint">${opt.hint}</span>` : ''}${opt.cost ? `<span class="cost">${opt.cost}</span>` : ''}${opt.tag ? `<span class="tag">${opt.tag}</span>` : ''}`;
                     if (!opt.disabled) {
                         btn.addEventListener('click', () => {
-                            if (opt.action) opt.action();
+                            // ⭐ 播放铃铛音效，音效结束后执行原动作
+                            playSFX(() => {
+                                if (opt.action) opt.action();
+                            });
                         });
                     }
                     container.appendChild(btn);
