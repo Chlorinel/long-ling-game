@@ -1293,6 +1293,15 @@
                     </div>
 
                     <div class="status-item" id="ch2RitualDisplay" style="display:none;">
+                        <!-- ============ 药庐碎片进度（第一章） ============ -->
+                        <div class="status-item" id="fragmentProgressDisplay" style="display:none;">
+                            <span class="label">📜</span>
+                            <span class="bar-track" style="width:60px;height:6px;">
+                                <span class="bar-fill" id="fragmentProgressBar"
+                                    style="width:0%;background:linear-gradient(90deg, #5a7a5a, #d4b87a, #aa7a5a);border-radius:4px;"></span>
+                            </span>
+                            <span class="value" id="fragmentProgressText" style="min-width:32px;">0/5</span>
+                        </div>
                         <span class="label">⏳</span>
                         <span class="bar-track" style="width:50px;height:6px;">
                             <span class="bar-fill" id="ritualBar"
@@ -1875,7 +1884,26 @@
                 var ch2DisguiseDisplay = document.getElementById('ch2DisguiseDisplay');
                 var ch2IncenseDisplay = document.getElementById('ch2IncenseDisplay');
                 var ch2RitualDisplay = document.getElementById('ch2RitualDisplay');
+                // ================================================================
+                //  【新增】药庐碎片进度更新
+                // ================================================================
+                const fragmentDisplay = document.getElementById('fragmentProgressDisplay');
+                if (fragmentDisplay) {
+                    const collected = state.medicineHut.fragmentsCollected || [];
+                    const totalFragments = 5;
+                    const count = collected.length;
+                    const progress = Math.min(count / totalFragments * 100, 100);
 
+                    document.getElementById('fragmentProgressBar').style.width = progress + '%';
+                    document.getElementById('fragmentProgressText').textContent = count + '/' + totalFragments;
+
+                    // 仅在第一章且未进入第二章时显示
+                    if (!state.flags.chapter2 && !state.gameOver) {
+                        fragmentDisplay.style.display = 'inline-flex';
+                    } else {
+                        fragmentDisplay.style.display = 'none';
+                    }
+                }
                 if (state.flags.chapter2 && !state.gameOver) {
                     // ---- 显示三个新UI项 ----
                     ch2DisguiseDisplay.style.display = 'inline-flex';
