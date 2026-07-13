@@ -834,10 +834,10 @@
             z-index: 10;
             padding: 30px 20px;
             overflow: hidden;
-            /* ⭐ 图片背景 + 暗色遮罩 */
+            /* ⭐ 只有图片 + 暗色遮罩（去掉原来的深红渐变） */
             background:
-                linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.95) 100%),
-                url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80') center bottom / cover no-repeat;
+                linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%),
+                url('images/main.jpg') center center / cover no-repeat;
             background-blend-mode: overlay, normal;
             transition: none;
         }
