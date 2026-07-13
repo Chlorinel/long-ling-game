@@ -3116,6 +3116,7 @@
             let currentScene = 'intro';
 
             function showStory(text) {
+                if (state.gameOver) return;
                 const el = document.getElementById('storyText');
                 if (text) {
                     el.innerHTML += text.replace(/\n/g, '<br>') + '<br>';
@@ -3135,7 +3136,9 @@
                 if (endingClass) {
                     el.classList.add(endingClass);
                 }
-                showStory(text);
+                el.innerHTML = text.replace(/\n/g, '<br>');
+                const area = document.getElementById('story-area');
+                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
             }
             // ================================================================
             //  🎵 Web Audio 音效引擎（BGM + 铃铛音效）
@@ -4931,8 +4934,16 @@
                         hint: '你手里什么也没有',
                         tag: '不！！！！！ ',
                         action: function () {
-                            if (state.gameOver || state._waitingConfirm) return;
-                            triggerEnding('BE5_祭品_被迫献祭');
+                            // 强制清除所有锁定
+                            state._waitingConfirm = false;
+                            state._confirmResolve = null;
+                            document.getElementById('rule-notification').classList.remove('show');
+                            // 强制结束游戏
+                            state.gameOver = true;
+                            state._endingType = 'BE5_祭品_被迫献祭';
+                            // 直接调用结局渲染（它会调用 setStory）
+                            renderEndingContent('BE5_祭品_被迫献祭');
+                            saveGame();
                         }
                     }]);
                 }
@@ -10729,7 +10740,7 @@
 
                 // 【所有结局通用】回顾规则
                 options.push({
-                    label: '📜 回顾已收集的规则',
+                    label: '',
                     ending: true,
                     action: function () {
                         if (state._waitingConfirm) return;
