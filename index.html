@@ -9929,6 +9929,11 @@
 
                 // ---- 只读模式：仅显示返回按钮 ----
                 if (readOnly) {
+                    // 关闭画廊视图，显示游戏内容区域
+                    document.getElementById('gallery-view').classList.remove('active');
+                    document.getElementById('game-content').style.display = 'flex';
+
+                    // 显示结局故事（已在上面通过 setStory 完成）
                     options.push({
                         label: '🔙 返回画廊',
                         ending: true,
