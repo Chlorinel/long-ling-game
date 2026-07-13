@@ -5300,8 +5300,8 @@
                     const potRemaining = Math.max(0, potNeeded - visitCount);
 
                     if (!potAlreadyGot) {
-                        const hint = visitCount >= potNeeded ? '罐壁内似乎有刻痕……' : `还需探索 ${potRemaining} 次`;
-                        const tag = visitCount >= potNeeded ? '⭐ 刻字' : `📭 ${potRemaining}次后`;
+                        const hint = visitCount >= potNeeded ? '罐壁内似乎有刻痕……' : `时机未到`;
+                        const tag = visitCount >= potNeeded ? '⭐ 刻字' : `📭 `;
                         opts.push({
                             label: `🔍 地上的陶罐${visitCount >= potNeeded ? '' : '（再等等）'}`,
                             hint: hint,
@@ -5352,8 +5352,8 @@
                     const bedsideRemaining = Math.max(0, bedsideNeeded - visitCount);
 
                     if (!hasBookmark) {
-                        const hint = visitCount >= bedsideNeeded ? '你闻到一股淡淡的银杏叶香气……' : `还需探索 ${bedsideRemaining} 次`;
-                        const tag = visitCount >= bedsideNeeded ? '⭐ 书签' : `📭 ${bedsideRemaining}次后`;
+                        const hint = visitCount >= bedsideNeeded ? '你闻到一股淡淡的银杏叶香气……' : `时机未到`;
+                        const tag = visitCount >= bedsideNeeded ? '⭐ 书签' : `📭`;
                         opts.push({
                             label: `🔍 床头柜抽屉${visitCount >= bedsideNeeded ? '' : '（再等等）'}`,
                             hint: hint,
@@ -5404,8 +5404,8 @@
                     const deskRemaining = Math.max(0, deskNeeded - visitCount);
 
                     if (!hasSilver) {
-                        const hint = visitCount >= deskNeeded ? '抽屉似乎被什么东西卡住了……' : `还需探索 ${deskRemaining} 次`;
-                        const tag = visitCount >= deskNeeded ? '⭐ 银锁片' : `📭 ${deskRemaining}次后`;
+                        const hint = visitCount >= deskNeeded ? '抽屉似乎被什么东西卡住了……' : `时机未到`;
+                        const tag = visitCount >= deskNeeded ? '⭐ 银锁片' : `📭 `;
                         opts.push({
                             label: `🔍 旧桌子抽屉${visitCount >= deskNeeded ? '' : '（再等等）'}`,
                             hint: hint,
@@ -5498,9 +5498,11 @@
 
                         const allHiddenIds = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
                         const remaining = allHiddenIds.filter(id => !state.rules.includes(id));
+                        const currentlyUnlocked = state.rules.filter(id => allHiddenIds.includes(id)).length;
 
                         if (remaining.length === 0) {
                             feedback = '<span class="divider">· · ·</span><span style="color:var(--text-muted);">你已经获得了所有草木灰显影规则，灰烬中再也没有新的字迹了。</span>';
+                            pos.ash = true;
                             return;
                         }
 
@@ -5511,27 +5513,53 @@
                         if (hasTeaEnough) conditionsMet++;
                         if (hasAnsweredCode) conditionsMet++;
 
-                        let unlockCount = 0;
+                        // ============================================================
+                        //  ⭐ 核心修复：计算当前条件允许解锁的最大数量
+                        // ============================================================
+                        let maxAllowed = 0;
                         if (conditionsMet === 5) {
-                            unlockCount = remaining.length;
+                            maxAllowed = remaining.length;  // 全部解锁
                         } else {
-                            unlockCount = Math.min(conditionsMet, 3);
+                            // 未满足全部条件时，最多只能解锁 conditionsMet 条
+                            // 但需要减去已经解锁的数量
+                            maxAllowed = Math.max(0, conditionsMet - currentlyUnlocked);
+                        }
+
+                        // 如果已经没有可解锁的额度，直接提示并锁定
+                        if (maxAllowed <= 0) {
+                            feedback = `
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);">你已经获得了当前线索所能揭示的全部灰烬文字。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 继续寻找其他线索，解锁更多条件（当前已满足 ${conditionsMet}/5 个条件）。</span>
+        `;
+                            pos.ash = true;  // ⭐ 锁定草木灰堆，防止无限点击
+                            return;
+                        }
+
+                        // 实际解锁数量 = min(剩余规则数, 最大允许数, 3)
+                        // 注：当 conditionsMet < 5 时，单次最多解锁 3 条，防止一次性溢出
+                        let unlockCount = remaining.length;
+                        if (conditionsMet < 5) {
+                            unlockCount = Math.min(unlockCount, maxAllowed, 3);
+                        } else {
+                            unlockCount = Math.min(unlockCount, maxAllowed);
                         }
 
                         if (unlockCount === 0) {
                             feedback = `
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);">你在草木灰上洒了一些水，隐约看到一些字迹，但它们太模糊了，无法辨认。</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你还需要收集更多的线索……</span>
-                `;
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);">你在草木灰上洒了一些水，隐约看到一些字迹，但它们太模糊了，无法辨认。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你还需要收集更多的线索……</span>
+        `;
                             return;
                         }
 
+                        // ---- 显示显影过程 ----
                         feedback = `
-                <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;">🔥 你用水润湿了草木灰，灰烬渐渐显露出字迹……</span>
-                你屏住呼吸，一字一句地辨认着灰中浮现的文字。
-            `;
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">🔥 你用水润湿了草木灰，灰烬渐渐显露出字迹……</span>
+        你屏住呼吸，一字一句地辨认着灰中浮现的文字。
+    `;
 
                         const toUnlock = remaining.slice(0, unlockCount);
                         for (const id of toUnlock) {
@@ -5543,18 +5571,41 @@
                         }
 
                         const newRemaining = allHiddenIds.filter(id => !state.rules.includes(id));
+                        const newUnlocked = allHiddenIds.filter(id => state.rules.includes(id)).length;
+
+                        // ---- 全部解锁完成标记 ----
                         if (conditionsMet === 5 && newRemaining.length === 0) {
                             state.flags.hidden_unlocked = true;
                             feedback += `
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部草木灰显影规则！</span>
-                    灰烬中的文字完全显现，你终于看清了隐藏在游客守则之下的真相。
-                `;
-                        } else if (toUnlock.length > 0) {
-                            feedback += `
-                    <span class="divider">· · ·</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未显现，也许你还需要满足更多条件……（剩余 ${newRemaining.length} 条）</span>
-                `;
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部草木灰显影规则！</span>
+            灰烬中的文字完全显现，你终于看清了隐藏在游客守则之下的真相。
+        `;
+                            pos.ash = true;
+                        } else {
+                            // 还有剩余规则，但根据当前条件已经达到上限
+                            if (newRemaining.length > 0 && conditionsMet < 5 && newUnlocked >= conditionsMet) {
+                                feedback += `
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未显现（剩余 ${newRemaining.length} 条），你需要满足更多条件才能解锁。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">当前已满足 ${conditionsMet}/5 个条件。</span>
+            `;
+                                pos.ash = true;  // ⭐ 锁定，等待更多条件解锁
+                            } else if (newRemaining.length > 0) {
+                                feedback += `
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 灰烬中还有一些字迹尚未完全显现（剩余 ${newRemaining.length} 条）。</span>
+            `;
+                                // 如果还有剩余规则且 conditionsMet 不足 5，但还没达到上限，保留可查看状态
+                                // 但注意：上面已经用 pos.ash = true 锁定了，所以不会无限循环
+                                // 如果希望玩家下次还能继续解锁，需要把 pos.ash 设回 false
+                                // 但只有当 conditionsMet < 5 且 newUnlocked < conditionsMet 时才允许再次查看
+                                if (conditionsMet < 5 && newUnlocked < conditionsMet) {
+                                    pos.ash = false;  // 还有额度，允许再次点击
+                                } else {
+                                    pos.ash = true;   // 已达到上限，锁定
+                                }
+                            }
                         }
 
                         updateUI();
