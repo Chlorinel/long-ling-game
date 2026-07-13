@@ -1706,6 +1706,12 @@
                     <span class="btn-icon">🏆</span> 结局画廊
                     <span class="btn-hint" id="galleryHint">—— 已解锁 0 / 13 ——</span>
                 </button>
+                <!-- ⭐ 新增：清除缓存按钮 -->
+                <button id="btn-clear-cache" class="menu-btn" style="border-color: rgba(180, 80, 80, 0.3);">
+                    <span class="btn-glow"></span>
+                    <span class="btn-icon">🗑️</span> 清除所有缓存
+                    <span class="btn-hint">—— 删除所有存档和结局记录 ——</span>
+                </button>
             </div>
 
             <div class="menu-footer">
@@ -1888,11 +1894,13 @@
                         hasCharm: false,        // 是否获得阴血符咒
                         greeted: false,         // 是否已与觉醒者对话
                     },
-                    found: false,          // 是否已找到石碑
-                    decoded: false,        // 是否已解读石碑全文
-                    piecesFound: 0,        // 已获得的石碑片段数量（最多6片）
-                    hasClue: false,
-                    _revealTriggered: false,   // 防止重复触发石碑揭示动画       // 是否从觉醒者处获得了石碑线索
+                    stele: {
+                        found: false,
+                        decoded: false,
+                        piecesFound: 0,
+                        hasClue: false,
+                        _revealTriggered: false
+                    },     // 是否从觉醒者处获得了石碑线索
                     // 小卖部老妪支线
                     oldLadyQuest: {
                         triggered: false,      // 是否已触发任务
@@ -10601,6 +10609,57 @@
                 saveGame();
             }
 
+            // ================================================================
+            //  清除所有缓存（带二次确认）
+            // ================================================================
+
+            function clearAllCache() {
+                // 如果游戏正在运行且有未保存的进度，先保存
+                if (document.getElementById('game-content').style.display !== 'none') {
+                    saveGame();
+                }
+
+                // 确认对话框
+                const confirmed = confirm(
+                    '⚠️ 确定要清除所有缓存吗？\n\n' +
+                    '这将永久删除：\n' +
+                    '• 游戏存档（当前进度）\n' +
+                    '• 已解锁的结局记录\n' +
+                    '• 所有规则和状态\n\n' +
+                    '此操作不可撤销！'
+                );
+
+                if (!confirmed) return;
+
+                // 第二次确认（更安全）
+                const doubleConfirm = confirm(
+                    '🔄 再次确认：你真的要清除所有数据吗？\n' +
+                    '所有进度将永久丢失。'
+                );
+
+                if (!doubleConfirm) return;
+
+                try {
+                    // 清除所有 localStorage 数据
+                    localStorage.clear();
+
+                    // 重置游戏状态（防止残留数据导致显示异常）
+                    if (typeof resetGame === 'function') {
+                        resetGame();
+                    }
+
+                    // 显示成功提示
+                    alert('✅ 所有缓存已清除！页面即将刷新。');
+
+                    // 刷新页面，让一切回到初始状态
+                    window.location.reload();
+                } catch (e) {
+                    console.error('清除缓存失败:', e);
+                    alert('❌ 清除缓存失败，请手动清除浏览器数据。');
+                }
+            }
+
+
             // ---------- 规则面板切换 ----------
             let rulesPanelOpen = false;
             document.getElementById('rulesToggle').addEventListener('click', () => { toggleRulesPanel(); });
@@ -10839,23 +10898,32 @@
                 // 绑定主菜单按钮
                 document.getElementById('btn-new-game').addEventListener('click', startNewGame);
                 document.getElementById('btn-continue').addEventListener('click', continueGame);
+                document.getElementById('btn-gallery').addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    renderEndingGallery();
+                });
 
-                // 绑定返回主菜单按钮（独立监听，不受任何状态影响）
+                // ⭐ 新增：清除缓存按钮
+                document.getElementById('btn-clear-cache').addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    clearAllCache();
+                });
+
+                // 绑定返回主菜单按钮
                 const returnBtn = document.getElementById('btn-return-menu');
                 returnBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     returnToMenu();
                 });
-                // ================================================================
-                //  【新增】页面关闭时自动保存（兜底方案）
-                // ================================================================
+
+                // 页面关闭时自动保存
                 window.addEventListener('beforeunload', function () {
-                    // 如果游戏已开始（不在主菜单），且未结束，保存进度
                     if (document.getElementById('game-content').style.display !== 'none') {
                         saveGame();
                     }
                 });
-                // 显示主菜单（不自动进入游戏）
+
+                // 显示主菜单
                 showMainMenu();
             }
             window.onload = init;
