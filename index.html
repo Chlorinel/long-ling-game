@@ -9537,7 +9537,7 @@
 
                 document.getElementById('rule-notification').classList.remove('show');
                 updateUI();
-                goToScene('intro');
+
                 saveGame();
             }
 
@@ -9545,7 +9545,118 @@
             let rulesPanelOpen = false;
             document.getElementById('rulesToggle').addEventListener('click', () => { toggleRulesPanel(); });
             document.getElementById('rulesToggleBtn').addEventListener('click', () => { toggleRulesPanel(); });
+            // ================================================================
+            //  主菜单切换函数
+            // ================================================================
 
+            // ---- 显示主菜单 ----
+            function showMainMenu() {
+                document.getElementById('main-menu').style.display = 'flex';
+                document.getElementById('game-content').style.display = 'none';
+                const continueBtn = document.getElementById('btn-continue');
+                if (hasSave()) {
+                    continueBtn.style.opacity = '1';
+                    continueBtn.style.pointerEvents = 'auto';
+                    continueBtn.textContent = '📂 继续游戏';
+                } else {
+                    continueBtn.style.opacity = '0.5';
+                    continueBtn.style.pointerEvents = 'none';
+                    continueBtn.textContent = '📂 没有存档';
+                }
+            }
+
+            // ---- 进入游戏 ----
+            function showGameContent() {
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('game-content').style.display = 'flex';
+                updateUI();
+            }
+
+            // ---- 开始新游戏 ----
+            function startNewGame() {
+                localStorage.removeItem(SAVE_KEY);
+                resetGame();
+                showGameContent();
+                goToScene('intro');
+                saveGame();
+            }
+
+            // ---- 继续游戏 ----
+            function continueGame() {
+                if (!hasSave()) {
+                    alert('没有找到存档，请开始新游戏。');
+                    return;
+                }
+                const loaded = loadGame();
+                if (!loaded) {
+                    alert('存档损坏，请开始新游戏。');
+                    return;
+                }
+
+                // 强制清除规则确认锁定
+                state._waitingConfirm = false;
+                state._confirmResolve = null;
+                document.getElementById('rule-notification').classList.remove('show');
+                const container = document.getElementById('options-area');
+                const confirmBtn = container.querySelector('.confirm-btn');
+                if (confirmBtn) confirmBtn.remove();
+                document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(btn => {
+                    btn.style.pointerEvents = '';
+                    btn.style.opacity = '';
+                });
+
+                showGameContent();
+
+                // 如果游戏已结束，显示结局
+                if (state.gameOver) {
+                    if (state._endingType) {
+                        renderEndingContent(state._endingType);
+                    } else {
+                        setStory('你上次的游戏已经结束。点击下方按钮重新开始。');
+                        renderOptions([{
+                            label: '🔄 重新开始',
+                            action: function () {
+                                if (state._waitingConfirm) return;
+                                startNewGame();
+                            }
+                        }]);
+                    }
+                    return;
+                }
+
+                // 刷新当前场景
+                if (currentScene && SCENES[currentScene] && SCENES[currentScene].render) {
+                    SCENES[currentScene].render();
+                } else {
+                    renderMainOptions();
+                }
+            }
+
+            // ---- 返回主菜单（最高优先级，强制解除所有锁定） ----
+            function returnToMenu() {
+                // 1. 强制解除规则确认锁定
+                if (state._waitingConfirm) {
+                    state._waitingConfirm = false;
+                    state._confirmResolve = null;
+                    document.getElementById('rule-notification').classList.remove('show');
+                    const container = document.getElementById('options-area');
+                    const confirmBtn = container.querySelector('.confirm-btn');
+                    if (confirmBtn) confirmBtn.remove();
+                    document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(btn => {
+                        btn.style.pointerEvents = '';
+                        btn.style.opacity = '';
+                    });
+                }
+
+                // 2. 保存当前进度
+                saveGame();
+
+                // 3. 显示主菜单
+                showMainMenu();
+
+                // 4. 清空选项区，防止残留
+                document.getElementById('options-area').innerHTML = '';
+            }
             function toggleRulesPanel() {
                 rulesPanelOpen = !rulesPanelOpen;
                 document.getElementById('rules-panel').classList.toggle('open', rulesPanelOpen);
