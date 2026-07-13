@@ -3165,105 +3165,159 @@
             }
 
             // ---- 生成阴森中式 BGM（五声音阶 + 低频嗡鸣 + 随机敲击） ----
+            // ---- 生成古琴旋律 BGM（完整旋律循环 + 钟铃） ----
             function startBGM() {
                 if (!initAudio()) return;
                 if (bgmPlaying) return;
 
-                // ---- 主音量 ----
                 const masterGain = audioCtx.createGain();
-                masterGain.gain.value = 10;
+                masterGain.gain.value = 0.25;
                 masterGain.connect(audioCtx.destination);
 
-                // ---- 1. 低频嗡鸣（深沉的背景） ----
-                const lowOsc = audioCtx.createOscillator();
-                const lowGain = audioCtx.createGain();
-                lowOsc.type = 'sine';
-                lowOsc.frequency.value = 55; // A1
-                lowGain.gain.value = 0.18;
-                lowOsc.connect(lowGain);
-                lowGain.connect(masterGain);
-                lowOsc.start();
+                // ---- 低通滤波（古琴木质音色） ----
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 1200;
+                filter.Q.value = 1.5;
+                filter.connect(masterGain);
 
-                // ---- 2. 旋律音（五声音阶，缓慢循环） ----
-                const melodyOsc = audioCtx.createOscillator();
-                const melodyGain = audioCtx.createGain();
-                melodyOsc.type = 'sine';
-                melodyOsc.frequency.value = 220;
-                melodyGain.gain.value = 0.06;
-                melodyOsc.connect(melodyGain);
-                melodyGain.connect(masterGain);
-                melodyOsc.start();
+                // ---- 主音色振荡器 ----
+                const guqinOsc = audioCtx.createOscillator();
+                const guqinGain = audioCtx.createGain();
+                guqinOsc.type = 'square';
+                guqinOsc.frequency.value = 220;
+                guqinGain.gain.value = 0;
+                guqinOsc.connect(guqinGain);
+                guqinGain.connect(filter);
+                guqinOsc.start();
 
-                // ---- 3. 颤音 LFO（让旋律微微抖动） ----
-                const lfo = audioCtx.createOscillator();
-                const lfoGain = audioCtx.createGain();
-                lfo.type = 'sine';
-                lfo.frequency.value = 0.5;
-                lfoGain.gain.value = 8;
-                lfo.connect(lfoGain);
-                lfoGain.connect(melodyOsc.frequency);
-                lfo.start();
-
-                // ---- 4. 高频泛音（增加诡异感） ----
-                const highOsc = audioCtx.createOscillator();
-                const highGain = audioCtx.createGain();
-                highOsc.type = 'sine';
-                highOsc.frequency.value = 880;
-                highGain.gain.value = 0.015;
-                highOsc.connect(highGain);
-                highGain.connect(masterGain);
-                highOsc.start();
-
-                // ---- 5. 随机“钟鸣”敲击（每6~12秒一次） ----
+                // ---- 钟铃 ----
                 const bellGain = audioCtx.createGain();
-                bellGain.gain.value = 0.04;
+                bellGain.gain.value = 0.025;
                 bellGain.connect(masterGain);
 
                 function playRandomBell() {
                     if (!bgmPlaying) return;
                     try {
+                        const now = audioCtx.currentTime;
                         const osc = audioCtx.createOscillator();
                         const gain = audioCtx.createGain();
                         const freq = 200 + Math.random() * 400;
                         osc.type = 'sine';
                         osc.frequency.value = freq;
-                        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
                         osc.connect(gain);
                         gain.connect(bellGain);
-                        osc.start();
-                        osc.stop(audioCtx.currentTime + 0.6);
+                        osc.start(now);
+                        osc.stop(now + 0.8);
                     } catch (e) { }
-                    // 随机间隔 6~14 秒
-                    const delay = 6000 + Math.random() * 8000;
+                    const delay = 8000 + Math.random() * 12000;
                     bgmInterval = setTimeout(playRandomBell, delay);
                 }
 
-                // 启动随机敲击
-                const firstDelay = 3000 + Math.random() * 5000;
-                bgmInterval = setTimeout(playRandomBell, firstDelay);
+                const firstBellDelay = 4000 + Math.random() * 6000;
+                bgmInterval = setTimeout(playRandomBell, firstBellDelay);
 
-                // ---- 保存节点 ----
-                bgmNodes = { masterGain, lowOsc, lowGain, melodyOsc, melodyGain, highOsc, highGain, lfo, lfoGain, bellGain };
+                bgmNodes = { masterGain, guqinOsc, guqinGain, filter, bellGain };
                 bgmPlaying = true;
 
-                // ---- 五声音阶循环（每 6 秒换一个音） ----
-                const pentatonic = [196, 220, 247, 294, 330, 392, 440]; // G3, A3, B3, D4, E4, G4, A4
-                let step = 0;
-                const melodyInterval = setInterval(() => {
-                    if (!bgmPlaying) { clearInterval(melodyInterval); return; }
-                    // 偏向低音
-                    let idx;
-                    if (Math.random() < 0.6) {
-                        idx = Math.floor(Math.random() * 3); // 低音区
-                    } else {
-                        idx = Math.floor(Math.random() * pentatonic.length);
-                    }
-                    const targetFreq = pentatonic[idx];
-                    melodyOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.8);
-                }, 5000);
+                // ---- 五声音阶（完整音阶，含高八度） ----
+                const scale = [
+                    196, 220, 247, 294, 330, 392, 440, 494, 587, 659, 784, 880
+                ];
+                // 音名对照：G3 A3 B3 D4 E4 G4 A4 B4 D5 E5 G5 A5
 
-                bgmNodes._melodyInterval = melodyInterval;
+                // ---- 旋律数据库（用音阶索引表示） ----
+                // 每条旋律是一个音符索引序列，-1 表示休止
+                const melodies = [
+                    // 旋律1：1 3 5 6 5 3 2 1（上行后回落）
+                    [0, 2, 4, 5, 4, 2, 1, 0],
+                    // 旋律2：5 6 1' 2' 1' 6 5 3（高音区下行）
+                    [4, 5, 7, 8, 7, 5, 4, 2],
+                    // 旋律3：6 5 3 2 3 5 6 5（起伏）
+                    [5, 4, 2, 1, 2, 4, 5, 4],
+                    // 旋律4：3 5 6 1' 6 5 3 5（跨八度）
+                    [2, 4, 5, 7, 5, 4, 2, 4],
+                    // 旋律5：1 2 3 5 6 5 3 2（平稳上行回落）
+                    [0, 1, 2, 4, 5, 4, 2, 1],
+                    // 旋律6：5 3 2 1 2 3 5 6（反向）
+                    [4, 2, 1, 0, 1, 2, 4, 5],
+                ];
+
+                let currentMelodyIdx = 0;
+                let noteIdx = 0;
+                let isPlaying = false;
+                let currentNoteDuration = 0;
+                let nextNoteTimer = null;
+
+                // ---- 播放旋律中的下一个音符 ----
+                function playNextMelodyNote() {
+                    if (!bgmPlaying) { isPlaying = false; return; }
+                    if (isPlaying) return;
+                    isPlaying = true;
+
+                    const melody = melodies[currentMelodyIdx % melodies.length];
+                    const idx = melody[noteIdx % melody.length];
+                    const now = audioCtx.currentTime;
+
+                    if (idx === -1) {
+                        // 休止：静音
+                        guqinGain.gain.setTargetAtTime(0, now, 0.02);
+                        currentNoteDuration = 100 + Math.random() * 150;
+                    } else {
+                        const freq = scale[idx % scale.length];
+                        const currentFreq = guqinOsc.frequency.value;
+
+                        // ---- 滑音（从前一个音滑到目标音） ----
+                        if (Math.abs(currentFreq - freq) > 3) {
+                            guqinOsc.frequency.setTargetAtTime(freq, now, 0.08);
+                        } else {
+                            guqinOsc.frequency.setValueAtTime(freq, now);
+                        }
+
+                        // ---- 古琴拨弦包络 ----
+                        const peak = 0.06 + Math.random() * 0.04;
+                        guqinGain.gain.setValueAtTime(0, now);
+                        guqinGain.gain.linearRampToValueAtTime(peak, now + 0.012);
+                        guqinGain.gain.exponentialRampToValueAtTime(peak * 0.5, now + 0.1);
+                        guqinGain.gain.exponentialRampToValueAtTime(peak * 0.15, now + 0.4);
+                        guqinGain.gain.exponentialRampToValueAtTime(0.003, now + 0.9);
+
+                        currentNoteDuration = 400 + Math.random() * 250;
+                    }
+
+                    noteIdx++;
+
+                    // 如果当前旋律播完，切换到下一条
+                    if (noteIdx >= melody.length) {
+                        noteIdx = 0;
+                        currentMelodyIdx = (currentMelodyIdx + 1) % melodies.length;
+                    }
+
+                    // 音符结束后播放下一个
+                    nextNoteTimer = setTimeout(() => {
+                        isPlaying = false;
+                        if (bgmPlaying) {
+                            // 音符之间的间隙（古琴的“留白”）
+                            const gap = 120 + Math.random() * 300;
+                            setTimeout(playNextMelodyNote, gap);
+                        }
+                    }, currentNoteDuration + 50);
+                }
+
+                // 延迟 0.5 秒开始播放旋律
+                setTimeout(playNextMelodyNote, 500);
+
+                // ---- 旋律切换时微调滤波器 ----
+                let filterInterval = setInterval(() => {
+                    if (!bgmPlaying) {
+                        clearInterval(filterInterval);
+                        return;
+                    }
+                    const newFreq = 900 + Math.random() * 500;
+                    filter.frequency.setTargetAtTime(newFreq, audioCtx.currentTime, 0.6);
+                }, 4000);
             }
 
             // ---- 停止 BGM（清空所有节点） ----
