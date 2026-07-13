@@ -10921,6 +10921,13 @@
                     hasShadowSecret: false,        // 是否从阴影中获得低语情报
                     hasTaoistInfo: false,          // 是否从道士处获得额外情报
                     hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
+                    awakening: {
+                        unlocked: false,        // 是否已解锁村西探索选项
+                        visited: false,         // 是否已访问过村西
+                        trustLevel: 0,          // 觉醒者信任度（0-5），影响奖励
+                        hasCharm: false,        // 是否获得阴血符咒
+                        greeted: false,         // 是否已与觉醒者对话
+                    },
                 }
 
                 state.flags.chapter2 = true;
@@ -10994,11 +11001,11 @@
                             dream_defense: false,  // 护玄清版嫂嫂梦话
                         },
                         awakening: {
-                            unlocked: state.flags.awakening.unlocked || false,
-                            visited: state.flags.awakening.visited || false,
-                            trustLevel: state.flags.awakening.trustLevel || 0,
-                            hasCharm: state.flags.awakening.hasCharm || false,
-                            greeted: state.flags.awakening.greeted || false,
+                            unlocked: false,
+                            visited: false,
+                            trustLevel: 0,
+                            hasCharm: false,
+                            greeted: false,
                         },
                         stele: {
                             found: state.flags.stele.found || false,
