@@ -9913,8 +9913,8 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">你一共度过了 ${state.day} 天，收集了 ${state.rules.length} 条规则。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">最终龙化值: ${clamp(state.dragonization, 0, 100)}% · 理智值: ${100 - clamp(state.dragonization, 0, 100)}%</span>
         ${state.flags.chapter2 ? `<span style="color:var(--text-muted);font-size:0.85rem;">第二章进度: ${state.ch2.km}km · 遇到路人 ${state.ch2.passerbyCount} 次</span>` : ''}
-        ${state.flags.stele.found ? `<span style="color:var(--text-gold);font-size:0.85rem;">📜 已发现工匠暗碑，了解全部真相</span>` : ''}
-        ${state.flags.awakening.visited ? `<span style="color:var(--text-gold);font-size:0.85rem;">🌾 已接触觉醒者 · 信任度 ${state.flags.awakening.trustLevel}/5</span>` : ''}
+        ${state.flags.stele && state.flags.stele.found ? `<span style="color:var(--text-gold);font-size:0.85rem;">📜 已发现工匠暗碑，了解全部真相</span>` : ''}
+        ${state.flags.awakening && state.flags.awakening.visited ? `<span style="color:var(--text-gold);font-size:0.85rem;">🌾 已接触觉醒者 · 信任度 ${state.flags.awakening.trustLevel}/5</span>` : ''}
     `, endingClass);
 
                 var options = [];
