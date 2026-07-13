@@ -10287,7 +10287,10 @@
             //  触发结局（设置 gameOver 状态 + 调用渲染）
             // ================================================================
             function triggerEnding(type) {
+                // ⭐ 立即标记游戏结束，防止任何后续流程覆盖结局界面
+                state.gameOver = true;
                 saveUnlockedEnding(type);
+
                 if (state.gameOver) {
                     renderEndingContent(type);
                     return;
