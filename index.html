@@ -3171,7 +3171,7 @@
 
                 // ---- 主音量 ----
                 const masterGain = audioCtx.createGain();
-                masterGain.gain.value = 1;
+                masterGain.gain.value = 10;
                 masterGain.connect(audioCtx.destination);
 
                 // ---- 1. 低频嗡鸣（深沉的背景） ----
