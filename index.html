@@ -3171,7 +3171,7 @@
 
                 // ---- 主音量 ----
                 const masterGain = audioCtx.createGain();
-                masterGain.gain.value = 0.10;
+                masterGain.gain.value = 1;
                 masterGain.connect(audioCtx.destination);
 
                 // ---- 1. 低频嗡鸣（深沉的背景） ----
@@ -3323,7 +3323,7 @@
                     const gain1 = audioCtx.createGain();
                     osc1.type = 'sine';
                     osc1.frequency.value = 1200 + Math.random() * 300;
-                    gain1.gain.setValueAtTime(0.15, now);
+                    gain1.gain.setValueAtTime(1, now);
                     gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
                     osc1.connect(gain1);
                     gain1.connect(audioCtx.destination);
