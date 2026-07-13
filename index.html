@@ -10621,24 +10621,15 @@
                 document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
             }
             // ---------- 初始化 ----------
-            // ---------- 初始化 ----------
             function init() {
-                // 绑定主菜单按钮（添加空值检查）
-                const newGameBtn = document.getElementById('btn-new-game');
+                // 绑定主菜单按钮
+                var newGameBtn = document.getElementById('btn-new-game');
                 if (newGameBtn) newGameBtn.addEventListener('click', startNewGame);
 
-                const continueBtn = document.getElementById('btn-continue');
+                var continueBtn = document.getElementById('btn-continue');
                 if (continueBtn) continueBtn.addEventListener('click', continueGame);
 
-                const returnBtn = document.getElementById('btn-return-menu');
-                if (returnBtn) {
-                    returnBtn.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        returnToMenu();
-                    });
-                }
-
-                const galleryBtn = document.getElementById('btn-gallery');
+                var galleryBtn = document.getElementById('btn-gallery');
                 if (galleryBtn) {
                     galleryBtn.addEventListener('click', function (e) {
                         e.stopPropagation();
@@ -10646,10 +10637,18 @@
                     });
                 }
 
-                const galleryBackBtn = document.getElementById('gallery-back-btn');
+                var galleryBackBtn = document.getElementById('gallery-back-btn');
                 if (galleryBackBtn) {
                     galleryBackBtn.addEventListener('click', function () {
                         closeGallery();
+                    });
+                }
+
+                var returnBtn = document.getElementById('btn-return-menu');
+                if (returnBtn) {
+                    returnBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        returnToMenu();
                     });
                 }
 
