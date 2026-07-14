@@ -10920,25 +10920,25 @@
                 state.flags.hasDragonFollowerInfo = false;
 
 
-            }
 
-            state.flags.chapter2 = true;
 
-            state.stamina = state.maxStamina;
-            state.actionsToday = 0;
-            state._waitingConfirm = false;
-            state._confirmResolve = null;
-            document.getElementById('rule-notification').classList.remove('show');
-            updateUI();
+                state.flags.chapter2 = true;
 
-            setStory(`
+                state.stamina = state.maxStamina;
+                state.actionsToday = 0;
+                state._waitingConfirm = false;
+                state._confirmResolve = null;
+                document.getElementById('rule-notification').classList.remove('show');
+                updateUI();
+
+                setStory(`
         <span class="title-line">🔄 重新开始第二章</span>
         <span class="divider">—— —— ——</span>
         你回到了山前，准备再次踏上邱龙山道。这一次，你带着之前的经验与规则，希望能走得更远。
         <span style="color:var(--text-muted);font-size:0.85rem;">你已收集 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">初始伪装值：${state.ch2.disguise}/5。</span>
     `);
-            renderChapter2();
+                renderChapter2();
             }
 
             function resetToChapter1() {
