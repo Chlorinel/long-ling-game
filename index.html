@@ -2032,10 +2032,7 @@
                                 style="width:100%"></span></span>
                         <span class="value" id="sanityVal">100%</span>
                     </div>
-                    <div class="status-item" id="ch2KmDisplay" style="display:none;">
-                        <span class="label">📍</span>
-                        <span class="value" id="kmDisplay">0km</span>
-                    </div>
+
 
                     <!-- ============ 【新增】第二章 UI 元素 ============ -->
                     <div class="status-item" id="ch2DisguiseDisplay" style="display:none;">
@@ -7574,7 +7571,7 @@
 
                     // ===== 新增：结局标记 =====
                     endingTriggered: null,
-                    marketVisitCount: 1,
+                    marketVisitCount: 0,
                     hasBeggedIncense: false,
                     hasStolenIncense: false,
 
@@ -8690,7 +8687,7 @@
                 <span class="divider">· · ·</span>
                 你问：「你认识玄清吗？」
                 老人吹了一个短音：「他以前也听笛子。后来不听了。他说笛声里太多杂念。」
-                <span style="color:#d4b87a;">🔋 精力+1（老人的话让你放松了些）</span>
+                <span style="color:#d4b87a;">🔋 精力+3（老人的话让你放松了些）</span>
             `;
                     } else {
                         storyText += `
@@ -8731,16 +8728,16 @@
                     opts.push({
                         label: '🎵 再听一曲',
                         hint: '笛声让你放松了一些',
-                        tag: '🔋 +1',
+                        tag: '🔋 +3',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
-                            changeEnergy(1);
+                            changeEnergy(3);
                             state.flags._flutistCount = (state.flags._flutistCount || 0) + 1;
                             advanceEventCounter();
                             showStory(`
                     <span class="divider">· · ·</span>
                     <span style="color:#6ab06a;">你闭上眼睛，让笛声流淌过全身。一曲终了，你感觉精力恢复了一些。</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">🔋 精力+1</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🔋 精力+3</span>
                 `);
                             updateUI();
                             saveGame();
@@ -11498,11 +11495,24 @@
             }
             // ================================================================
             //  阶段2：路径选择（第二章）
+            //  所有路径均从队伍尾部开始，经历完整事件链
             // ================================================================
 
             function renderPathChoice() {
                 if (state.gameOver || state._waitingConfirm) return;
-                // ---- ⭐ 新增：社戏进度 100% 强制推进 ----
+
+                // ---- 精力归零检查 ----
+                if (state.ch2.energy <= 0 && !state.ch2.energyExhausted) {
+                    state.ch2.energyExhausted = true;
+                    setTimeout(function () {
+                        if (!state.gameOver && state.flags.chapter2) {
+                            handleEnergyExhaustion();
+                        }
+                    }, 100);
+                    return;
+                }
+
+                // ---- 社戏进度 100% 强制推进 ----
                 if (state.ch2.ritualProgress >= 100 && state.ch2.phase !== 'temple_gate' && state.ch2.phase !== 'chapter3') {
                     state.ch2.phase = 'temple_gate';
                     showStory(`
@@ -11515,16 +11525,6 @@
                             renderTempleGate();
                         }
                     }, 500);
-                    return;
-                }
-                // ---- 精力归零检查 ----
-                if (state.ch2.energy <= 0 && !state.ch2.energyExhausted) {
-                    state.ch2.energyExhausted = true;
-                    setTimeout(function () {
-                        if (!state.gameOver && state.flags.chapter2) {
-                            handleEnergyExhaustion();
-                        }
-                    }, 100);
                     return;
                 }
 
@@ -11546,7 +11546,7 @@
                 setStory(`
         <span class="title-line">🛤️ 分岔点 · 选择路径</span>
         <span class="divider">—— —— ——</span>
-        你站在山脚的分岔口。面前有三条路，分别通向游神队伍的不同位置。
+        你站在山脚的分岔口。面前有三条路，每一条都能追上游神队伍，但沿途的收获各不相同。
         ${ritualWarn}
         <span class="divider">· · ·</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">🎭 当前伪装值：${d}/5 — ${disguiseStatus}</span>
@@ -11554,25 +11554,26 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火剩余：${state.ch2.incenseRemaining}/3根</span>
         <span style="color:var(--text-muted);font-size:0.85rem;">⏳ 社戏进度：${state.ch2.ritualProgress}%</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🏔️ 右边那条路宽，踩上去的石板有些松动，前面隐约有人影。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 主干道：安全但远，可获得香火。</span>
+        <span style="color:#d4b87a;">🏔️ 右边那条路宽，石板平整，走起来稳当。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 主干道：安全，可获得香火。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🌲 左边那条路窄，草长得很高，像是很少有人走。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 林间密道：近但凶险，可获得面具。</span>
+        <span style="color:#d4b87a;">🌲 左边那条路窄，杂草丛生，但似乎能抄近路。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 林间密道：冒险，可获得面具（伪装+1）。</span>
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;">🕯️ 中间还有一条不起眼的小径，地上散落着香灰和符纸。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">📌 祭坛小径：最快，但需要香火护体。</span>
+        <span style="color:#d4b87a;">🕯️ 中间一条小径，地上散落着香灰和符纸，似乎只有香客才走。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 祭坛小径：最快，可获得仪式情报，但需要香火护体。</span>
         <span class="divider">· · ·</span>
         ${hasIncense ?
                         '<span style="color:#6ab06a;">✅ 你有香火，可以安全走祭坛小径。</span>' :
                         '<span style="color:#aa4a4a;">⚠️ 你没有香火，走祭坛小径会有危险！</span>'}
-        <span style="color:var(--text-muted);font-size:0.85rem;">💡 选择不同的路径会影响你进入社戏时的位置、状态和获取物。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 无论选择哪条路，你都将从队伍尾部开始，经历完整的事件链。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 路径选择会为你带来不同的初始道具和加成。</span>
     `);
 
                 // ---- 构建选项 ----
                 var opts = [];
 
-                // ---- 1. 主干道（消耗精力-2，进入尾部，社戏+2%，香火+1） ----
+                // ---- 1. 主干道（消耗精力-2，获得香火+1，进入尾部，社戏+2%） ----
                 var mainDisabled = state.ch2.energy < 2;
                 opts.push({
                     label: '🏔️ 走右边那条宽敞的路',
@@ -11593,13 +11594,13 @@
                         advanceRitual(2);
                         // 获得香火
                         changeIncense(1);
-                        // 设置位置
+                        // 设置位置（统一从尾部开始）
                         state.ch2.position = 'tail';
                         state.ch2.visitedHighestPosition = 'tail';
                         state.ch2.pathChosen = 'main';
-                        // 进入事件链
+                        // 进入事件链，从 E-1 开始
                         state.ch2.phase = 'ritual_events';
-                        state.ch2.dramaPhase = 0;  // 从 E-1 开始
+                        state.ch2.dramaPhase = 0;
 
                         showStory(`
                 <span class="divider">· · ·</span>
@@ -11626,12 +11627,12 @@
                     }
                 });
 
-                // ---- 2. 林间密道（消耗精力-1，进入中部，社戏+3%，获得面具） ----
+                // ---- 2. 林间密道（消耗精力-1，获得面具伪装+1，进入尾部，社戏+3%） ----
                 var forestDisabled = state.ch2.energy < 1;
                 opts.push({
                     label: '🌲 走左边那条窄路',
                     hint: forestDisabled ? '⚠️ 精力不足' : '路边长满了荆棘，需要小心前行',
-                    tag: forestDisabled ? '⚠️ 精力不足' : '林间密道 → 中部',
+                    tag: forestDisabled ? '⚠️ 精力不足' : '林间密道 → 尾部',
                     disabled: forestDisabled,
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -11648,23 +11649,23 @@
                         // 获得面具（伪装+1）
                         state.ch2.hasMask = true;
                         changeDisguise(1);
-                        // 设置位置
-                        state.ch2.position = 'middle';
-                        state.ch2.visitedHighestPosition = 'middle';
+                        // 设置位置（统一从尾部开始）
+                        state.ch2.position = 'tail';
+                        state.ch2.visitedHighestPosition = 'tail';
                         state.ch2.pathChosen = 'forest';
-                        // 进入事件链
+                        // 进入事件链，从 E-1 开始
                         state.ch2.phase = 'ritual_events';
-                        state.ch2.dramaPhase = 1;  // 从 E-4 开始（跳过尾部直接进中部）
+                        state.ch2.dramaPhase = 0;
 
                         showStory(`
                 <span class="divider">· · ·</span>
-                <span style="color:#d45a5a;">⚠️ 你抄近路穿过了密林，成功拦截了队伍中部的面具护卫队。</span>
+                <span style="color:#d45a5a;">⚠️ 你抄近路穿过了密林，成功拦截了游神队伍的尾部。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">你趁乱捡到了一个掉落的面具，戴在脸上——看起来更像他们了。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1（面具），🔋 精力-1，⏳ 社戏+3%</span>
                 <span class="divider">· · ·</span>
                 ${state.medicineHutDone || state.medicineHut.visited ? `
                     <span style="color:#d4b87a;">你注意到路边有几株熟悉的草药——你在药庐的笔记上见过它们。</span>
-                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你认出了这些草药，可以涂抹在身上，掩盖外来者的气味。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你认出了这些草药，可以涂抹在身上，掩盖外来者的气味（但需要自己采）。</span>
                 ` : `
                     <span style="color:var(--text-muted);font-size:0.85rem;">💡 路边有些草，但你不认识，不敢乱碰。</span>
                 `}
@@ -11673,12 +11674,12 @@
                         updateUI();
                         saveGame();
 
-                        // ---- 子选项：草药涂抹（需要药庐解锁） ----
+                        // ---- 子选项：草药涂抹（需要药庐解锁），但采草药不影响位置 ----
                         var subOpts = [];
                         if ((state.medicineHutDone || state.medicineHut.visited) && state.ch2.energy >= 1) {
                             subOpts.push({
                                 label: '🌿 采几株草药涂抹在身上',
-                                hint: '体力-1，伪装+1',
+                                hint: '精力-1，伪装+1',
                                 tag: '药庐知识',
                                 action: function () {
                                     if (state.gameOver || state._waitingConfirm) return;
@@ -11698,11 +11699,11 @@
                                     saveGame();
                                     renderOptions([{
                                         label: '⏩ 继续前进',
-                                        hint: '进入队伍中部',
+                                        hint: '进入队伍尾部',
                                         tag: '→ 继续',
                                         action: function () {
                                             if (state.gameOver || state._waitingConfirm) return;
-                                            renderMiddleEvents();
+                                            renderTailEvents();
                                         }
                                     }]);
                                 }
@@ -11711,11 +11712,11 @@
 
                         subOpts.push({
                             label: '⏩ 继续前进',
-                            hint: '进入队伍中部',
+                            hint: '进入队伍尾部',
                             tag: '→ 继续',
                             action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                renderMiddleEvents();
+                                renderTailEvents();
                             }
                         });
 
@@ -11723,12 +11724,12 @@
                     }
                 });
 
-                // ---- 3. 祭坛小径（消耗精力-1，需要香火≥1，进入头部，社戏+8%，获得仪式情报） ----
+                // ---- 3. 祭坛小径（消耗精力-1，需要香火≥1，获得仪式情报，进入尾部，社戏+8%） ----
                 var altarDisabled = state.ch2.energy < 1 || state.ch2.incenseRemaining < 1;
                 var altarTag = '';
                 if (state.ch2.energy < 1) altarTag = '⚠️ 精力不足';
                 else if (state.ch2.incenseRemaining < 1) altarTag = '⚠️ 需要香火';
-                else altarTag = '祭坛小径 → 头部';
+                else altarTag = '祭坛小径 → 尾部';
 
                 opts.push({
                     label: '🕯️ 走中间那条几乎看不见的小径',
@@ -11755,20 +11756,20 @@
                         // 获得仪式情报
                         state.ch2.hasRitualInfo = true;
                         changeDisguise(1);
-                        // 设置位置
-                        state.ch2.position = 'head';
-                        state.ch2.visitedHighestPosition = 'head';
+                        // 设置位置（统一从尾部开始）
+                        state.ch2.position = 'tail';
+                        state.ch2.visitedHighestPosition = 'tail';
                         state.ch2.pathChosen = 'altar';
-                        // 进入事件链（直接进入头部）
+                        // 进入事件链，从 E-1 开始
                         state.ch2.phase = 'ritual_events';
-                        state.ch2.dramaPhase = 3;  // 从 E-8 开始（跳过尾部和中部的所有事件）
+                        state.ch2.dramaPhase = 0;
 
                         showStory(`
                 <span class="divider">· · ·</span>
-                <span style="color:#d4b87a;">🕯️ 你点燃香火，踏上了祭坛小径，直接插到了队伍的最前端。</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">你远远看到了祭司们的身影，也瞥见了高台上隐约的人形——那就是纯阳体。</span>
+                <span style="color:#d4b87a;">🕯️ 你点燃香火，踏上了祭坛小径，很快便追上了游神队伍的尾部。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">虽然你只是到了尾部，但你在路上听到了一些关于仪式的低语。</span>
                 <span style="color:var(--text-muted);font-size:0.85rem;">🎭 伪装+1（仪式情报），🕯️ 香火不消耗，🔋 精力-1，⏳ 社戏+8%</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已深入社戏队伍核心！</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你获得了一些关于祭坛仪式的信息。</span>
             `);
 
                         updateUI();
@@ -11776,11 +11777,11 @@
 
                         renderOptions([{
                             label: '⏩ 继续前进',
-                            hint: '进入队伍头部',
+                            hint: '进入队伍尾部',
                             tag: '→ 继续',
                             action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
-                                renderHeadEvents();
+                                renderTailEvents();
                             }
                         }]);
                     }
