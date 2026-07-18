@@ -1895,6 +1895,147 @@
             }
         }
 
+        /* ===== 第三章 · 交互式道观地图 ===== */
+        #ch3-map-container {
+            background: rgba(10, 6, 4, 0.85);
+            border: 1px solid rgba(139, 122, 74, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px 20px 20px;
+            margin: 8px 0 12px 0;
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+
+        #ch3-map-container .map-title {
+            font-family: var(--font-title);
+            color: var(--text-gold);
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        #ch3-map-container .map-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        #ch3-map-container .map-cell {
+            padding: 10px 6px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid rgba(139, 122, 74, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(26, 20, 16, 0.5);
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        #ch3-map-container .map-cell .cell-icon {
+            font-size: 1.4rem;
+        }
+
+        #ch3-map-container .map-cell .cell-label {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+        }
+
+        #ch3-map-container .map-cell .cell-status {
+            font-size: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        #ch3-map-container .map-cell:hover:not(.locked) {
+            border-color: var(--text-gold);
+            background: rgba(60, 50, 40, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        #ch3-map-container .map-cell.explored {
+            border-color: #4a7a4a;
+            background: rgba(74, 122, 74, 0.15);
+        }
+
+        #ch3-map-container .map-cell.explored .cell-status {
+            color: #6ab06a;
+        }
+
+        #ch3-map-container .map-cell.current {
+            border-color: var(--text-gold);
+            background: rgba(180, 140, 80, 0.15);
+            box-shadow: 0 0 30px rgba(180, 140, 80, 0.08);
+        }
+
+        #ch3-map-container .map-cell.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(0.8);
+        }
+
+        #ch3-map-container .map-cell .cell-badge {
+            font-size: 0.4rem;
+            background: rgba(180, 140, 80, 0.2);
+            border-radius: 8px;
+            padding: 0 6px;
+            color: var(--text-gold);
+            margin-top: 1px;
+        }
+
+        /* ---- 地图连接线（装饰） ---- */
+        #ch3-map-container .map-connections {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto;
+            height: 10px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 18px;
+        }
+
+        #ch3-map-container .map-connections .conn {
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, rgba(139, 122, 74, 0.15), transparent);
+        }
+
+        /* ---- 探索进度条 ---- */
+        #ch3-map-container .map-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        #ch3-map-container .map-progress .bar {
+            width: 120px;
+            height: 3px;
+            background: #2a221a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #ch3-map-container .map-progress .bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a7a4a, #d4b87a);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -2337,6 +2478,103 @@
                     hasBeggedIncense: false,   // 是否已讨要过香火
                     hasStolenIncense: false,   // 是否已偷取过香火
                 },
+                // 在 state 定义中，ch2 对象之后添加：
+
+                ch3: {
+                    // ----- 探索状态 -----
+                    exploredAreas: {
+                        frontYard: false,    // 前院
+                        mainHall: false,     // 大殿
+                        library: false,      // 藏经阁
+                        alchemyRoom: false,  // 丹房
+                        backYard: false,     // 后院
+                    },
+                    areaVisitCount: {
+                        frontYard: 0,
+                        mainHall: 0,
+                        library: 0,
+                        alchemyRoom: 0,
+                        backYard: 0,
+                    },
+
+                    // ----- 钟声系统 (0~5响) -----
+                    bellTolls: 0,
+                    bellWarned: false,
+
+                    // ----- 心理压力 (0~3) -----
+                    pressure: 0,
+
+                    // ----- 线索拼图 (6个碎片) -----
+                    fragments: {
+                        piece1: false,  // 前院·门锁
+                        piece2: false,  // 大殿·玄清对话
+                        piece3: false,  // 藏经阁·旧日记
+                        piece4: false,  // 丹房·药方残篇
+                        piece5: false,  // 后院·井壁刻痕
+                        piece6: false,  // 后院·孩子
+                    },
+
+                    // ----- 道具收集 -----
+                    items: {
+                        oldDagger: false,      // 旧刀（刺杀线）
+                        mapFragment: false,    // 密道地图（屠龙线）
+                        recipePaper: false,    // 配方纸（驭龙线）
+                        furnaceAsh: false,     // 炉灰残渣（驭龙线）
+                        clayShard: false,      // 旧陶片（驭龙线）
+                        dragonScaleAsh: false, // 龙鳞余烬（屠龙线）
+                    },
+
+                    // ----- NPC状态 -----
+                    npc: {
+                        xuanqing: {
+                            dialogRound: 0,      // 0~3
+                            hasHeardFullStory: false,
+                        },
+                        qingyuan: {
+                            hasMet: false,
+                            trustLevel: 0,       // 从ch2继承，0~3
+                        },
+                        oldTaoist: {
+                            talkedCount: 0,
+                            hasGivenGuide: false,
+                        },
+                    },
+
+                    // ----- 香火使用记录（第三章消耗） -----
+                    incenseUsed: {
+                        frontYard: false,
+                        mainHall: false,
+                        backYard: false,
+                        library: false,
+                        alchemyRoom: false,
+                        gateSignal: false,
+                    },
+
+                    // ----- 行动线状态 -----
+                    actionLines: {
+                        assassination: {
+                            unlocked: false,
+                            steps: { letterSent: false, doorOpened: false, confronted: false },
+                            completed: false,
+                        },
+                        dragonSlayer: {
+                            unlocked: false,
+                            steps: { choseSitter: false, reachedRift: false, sealed: false },
+                            completed: false,
+                        },
+                        dragonRider: {
+                            unlocked: false,
+                            steps: { materialsCollected: false, choseSacrifice: false, forged: false },
+                            completed: false,
+                        },
+                    },
+
+                    // ----- 第三章状态 -----
+                    phase: 'exploration',  // 'exploration' | 'action_line' | 'ending'
+                    actionLineChosen: null, // 'assassination' | 'dragonSlayer' | 'dragonRider'
+                    endingTriggered: false,
+                    gameCompleted: false,
+                },
                 hasShadowSecret: false,        // 是否从阴影中获得低语情报
                 hasTaoistInfo: false,          // 是否从道士处获得额外情报
                 hasDragonFollowerInfo: false,  // 是否从龙化者处获得情报
@@ -2450,6 +2688,7 @@
 
             // 所有结局的元数据
             const ENDING_META = {
+                // ===== 已有结局（保留） =====
                 'TE1_薪火相传': {
                     icon: '🔥',
                     title: '薪火相传',
@@ -2534,7 +2773,7 @@
                     icon: '🌾',
                     title: '自投罗网',
                     subtitle: '💀 坏结局',
-                    shortDesc: '你在觉醒者和道观之间被碾成了碎片。夹缝之中，无处可逃。',
+                    shortDesc: '你看到了青巾，你走了过去，你做了正确的事——你做错了人。觉醒者们低着头，他们不能看你。阿芹的嘴在动，但你听不见她在说什么。',
                     color: '#aa2a2a',
                     bgClass: 'ending-be2'
                 },
@@ -2553,9 +2792,125 @@
                     shortDesc: '你站在那里，直到青灰色的烟漫过你的视线。有些进来的人，从来不被承认。',
                     color: '#7a9a9a',
                     bgClass: 'ending-be8'
-                }
-            };
+                },
 
+                // ================================================================
+                //  【新增】第三章 · 刺杀道士线（3个结局）
+                // ================================================================
+                'BE_BloodSacrifice': {
+                    icon: '🗡️',
+                    title: '血祭',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你亲手杀了他。刀柄是湿的，手上也是。你看着他倒下，没有说话。',
+                    color: '#aa2a2a',
+                    bgClass: 'ending-be2'
+                },
+                'BE_Accomplice': {
+                    icon: '🔪',
+                    title: '共犯',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你站在门口，看别人结束了他。你是共犯——你心里清楚。',
+                    color: '#aa2a2a',
+                    bgClass: 'ending-be2'
+                },
+                'NE_SpareLife': {
+                    icon: '🖐️',
+                    title: '留命',
+                    subtitle: '📖 普通结局',
+                    shortDesc: '你停手了。他活着。你不知道这是怜悯还是怯懦。',
+                    color: '#5a8a5a',
+                    bgClass: 'ending-normal'
+                },
+
+                // ================================================================
+                //  【新增】第三章 · 屠灭龙神线（4个结局）
+                // ================================================================
+                'BE_DragonSealer': {
+                    icon: '🐉',
+                    title: '镇龙者',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你坐在裂口上，风停了，地不动了。你把自己变成了封印。',
+                    color: '#cc3a2a',
+                    bgClass: 'ending-dragon'
+                },
+                'HE_Farewell': {
+                    icon: '💚',
+                    title: '送别',
+                    subtitle: '💛 好结局',
+                    shortDesc: '你看着清远走进去。他没有回头。你知道他不会再回来了。',
+                    color: '#8ac88a',
+                    bgClass: 'ending-he'
+                },
+                'BE_Price': {
+                    icon: '🔥',
+                    title: '代价',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你让玄清坐了那个位置。你看着他慢慢沉下去，没有伸手。',
+                    color: '#ccaa3a',
+                    bgClass: 'ending-corrupted'
+                },
+                'NE_Ajar': {
+                    icon: '🚪',
+                    title: '虚掩',
+                    subtitle: '📖 普通结局',
+                    shortDesc: '门没有关紧。你知道有一天它会再开——只是不知道谁会在那边。',
+                    color: '#5a8a5a',
+                    bgClass: 'ending-normal'
+                },
+
+                // ================================================================
+                //  【新增】第三章 · 驾驭龙气线（4个结局）
+                // ================================================================
+                'BE_Forgotten': {
+                    icon: '🧠',
+                    title: '遗忘者',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '你成功了——但你不记得自己是谁了。你握着薄片，看着陌生人的脸。',
+                    color: '#7a7a7a',
+                    bgClass: 'ending-be4'
+                },
+                'BE_BrokenPen': {
+                    icon: '✋',
+                    title: '断笔',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '清远再也不能写字了。他笑着，但你看到他的手指在发抖。',
+                    color: '#7a7a7a',
+                    bgClass: 'ending-be4'
+                },
+                'BE_LifeSwap': {
+                    icon: '💀',
+                    title: '换命',
+                    subtitle: '💀 坏结局',
+                    shortDesc: '他用命换来了薄片。你握着它，感觉像握着一块骨头的温度。',
+                    color: '#aa2a2a',
+                    bgClass: 'ending-be2'
+                },
+                'NE_EmptyFurnace': {
+                    icon: '🔥',
+                    title: '空炉',
+                    subtitle: '📖 普通结局',
+                    shortDesc: '你熄灭了丹炉的火。你什么都没有炼成——但你也没有失去任何东西。',
+                    color: '#5a8a5a',
+                    bgClass: 'ending-normal'
+                },
+            };
+            // ================================================================
+            //  第三章结局列表（用于检测和重置）
+            // ================================================================
+
+            const CHAPTER3_ENDINGS = [
+                'BE_BloodSacrifice',   // 血祭
+                'BE_Accomplice',       // 共犯
+                'NE_SpareLife',        // 留命
+                'BE_DragonSealer',     // 镇龙者
+                'HE_Farewell',         // 送别
+                'BE_Price',            // 代价
+                'NE_Ajar',             // 虚掩
+                'BE_Forgotten',        // 遗忘者
+                'BE_BrokenPen',        // 断笔
+                'BE_LifeSwap',         // 换命
+                'NE_EmptyFurnace',     // 空炉
+            ];
             // ----- 结局存储工具函数 -----
 
             function getUnlockedEndings() {
@@ -2822,9 +3177,8 @@
                         state._dragonEndingQueued = false;
                     }, 300);
                 }
-
-                // ---- 保存进度 ----
                 saveGame();
+
             }
 
             // ================================================================
@@ -7722,17 +8076,7 @@
                     return;
                 }
 
-                // ---- 检查进入第三章的条件（如果已在道观门前） ----
-                if (state.ch2.phase === 'temple_gate') {
-                    renderTempleGate();
-                    return;
-                }
 
-                // ---- 检查是否已进入第三章 ----
-                if (state.ch2.phase === 'chapter3') {
-                    renderCh2_chapter3();
-                    return;
-                }
 
                 // ---- 根据当前阶段分发 ----
                 switch (state.ch2.phase) {
@@ -7771,7 +8115,7 @@
 
                     // ----- 第三章入口 -----
                     case 'chapter3':
-                        renderCh2_chapter3();
+                        initChapter3();
                         break;
 
                     // ----- 未知阶段 → 重置到集市 -----
@@ -8755,14 +9099,46 @@
                         }
                     });
                 }
-
                 // ---- 离开 ----
+                // 检查是否可以快速穿越到已探索的最高层级
+                var canQuickTravel = state.ch2.visitedHighestPosition &&
+                    state.ch2.visitedHighestPosition !== 'tail' &&
+                    state.ch2.energy >= 1;
+                if (canQuickTravel) {
+                    var posNames = { 'middle': '中部', 'head': '头部' };
+                    var targetName = posNames[state.ch2.visitedHighestPosition] || '未知';
+                    opts.push({
+                        label: '⚡ 快速穿越到最高层级',
+                        hint: '消耗1精力，直接到达 ' + targetName,
+                        tag: '🔋 -1',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.energy < 1) {
+                                showStory('⚠️ 精力不足。');
+                                return;
+                            }
+                            if (quickTravelToHighest()) {
+                                // 根据到达位置跳转
+                                if (state.ch2.position === 'head') {
+                                    state.ch2.dramaPhase = 0;
+                                    renderHeadEvents();
+                                } else if (state.ch2.position === 'middle') {
+                                    state.ch2.dramaPhase = 0;
+                                    renderMiddleEvents();
+                                } else {
+                                    renderTailEvents();
+                                }
+                            }
+                        }
+                    });
+                }
+
                 opts.push({
                     label: '🚶 离开，继续前进',
                     hint: '笛声还在身后回荡',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
-                        // 如果还没有完成 E-2 的标记，记录已访问
+                        // 标记E-2已访问，推进尾部阶段
                         if (state.ch2.dramaPhase < 2) {
                             state.ch2.dramaPhase = 2;
                         }
@@ -11130,7 +11506,7 @@
                                 // 检查是否满足进入第三章的所有条件
                                 if (hasIncense && disguise >= 3) {
                                     state.ch2.phase = 'chapter3';
-                                    renderCh2_chapter3();
+                                    initChapter3();
                                 } else {
                                     // 理论上不会到这里，因为canEnter已经检查过了
                                     showStory('⚠️ 你还没有准备好进入第三章。');
@@ -11410,7 +11786,7 @@
                                 tag: '→ 道观门前',
                                 action: function () {
                                     if (state.gameOver || state._waitingConfirm) return;
-                                    renderCh2_chapter3();  // ✅ 直接进入第三章
+                                    initChapter3();  // ✅ 直接进入第三章
                                 }
                             }]);
                             return;
@@ -11427,7 +11803,7 @@
                         tag: '→ 道观门前',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
-                            renderCh2_chapter3();  // ✅ 直接进入第三章
+                            initChapter3();  // ✅ 直接进入第三章
                         }
                     }]);
                 }
@@ -12011,7 +12387,7 @@
                             state.ch2.hasFoundDarkStele = true;
 
 
-                            renderCh2_chapter3();
+                            initChapter3();
                         }
                     });
                 } else if (state.ch2.hasFoundDarkStele || state.flags.stele.found) {
@@ -12314,121 +12690,2945 @@
             // ================================================================
             //  第三章 · 入口（先石碑，后道观）
             // ================================================================
-            async function renderCh2_chapter3() {
-                if (state._waitingConfirm) return;
+            // ================================================================
+            //  第三章 · 锁龙观（完整重写）
+            // ================================================================
 
-                // ============================================================
-                //  第一步：检查是否发现石碑（在进入第三章剧情之前）
-                // ============================================================
-                var steleRevealed = false;
-                if (state.flags.stele.hasClue) {
-                    if (!state.flags.stele._revealTriggered) {
-                        state.flags.stele._revealTriggered = true;
-                        steleRevealed = true;
-                        checkAndRevealStele();  // 只记录状态，不添加规则
-                    }
+            function renderCh3Ending(actionLine) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                // ---- 检查是否已经触发结局 ----
+                if (state.ch3.endingTriggered) {
+                    return;
                 }
 
-                // ============================================================
-                //  第二步：显示石碑发现剧情（如有）
-                // ============================================================
-                if (steleRevealed) {
-                    // 完整石碑文言文
-                    var fullSteleText =
-                        '余承命修观，亲见羽士施术，龙啸震野，山崩地裂。然观成之后，每夜闻观内有异响，似孩童啜泣，又似鳞甲摩擦。\n\n' +
-                        '羽士令献童入观，余见新童入观半载，指尖泛青，眼神呆滞；旧童离观，从不回望，言及观中事，皆茫然无措。更有甚者，身生热症癞斑，斑痕渐成龙鳞，鳞上竟生菌柄，状若灵芝；受羽士影响深者，额间长出雷击木似的突起，色如银杏，宛然龙角，或终日笑脸，或持续暴怒，此等异状者，终会被羽士寻回观中，恐遭阳原被夺之祸。\n\n' +
-                        '余窃以为，羽士擒龙非为救民，实觊龙气求长生；献童非为侍观，乃以童阳养龙，再取龙气炼身。龙困于下，必怀怨怼，借观中人气夺舍；羽士倚龙气长生，必遭龙蚀。二者相缠，互为桎梏，恐成千年之祸。\n\n' +
-                        '民愚钝，不知其险，反颂其德。余不敢明言，藏此碑于柱底，愿后世有缘者见之，早避此劫。观中香火愈盛，阴邪愈重；社戏愈闹，牺牲愈多。慎之！慎之！';
+                // 如果游戏还没结束但进入了ending状态，强制触发
+                if (!state.gameOver) {
+                    state.gameOver = true;
+                }
 
+                // 显示结局 - 使用现有的 renderEndingContent
+                if (state._endingType) {
+                    renderEndingContent(state._endingType);
+                } else {
+                    // 默认结局
                     setStory(`
-            <span class="title-line">📜 道观大殿 · 发现暗碑</span>
+            <span class="title-line">🏁 结局</span>
             <span class="divider">—— —— ——</span>
-            你按照阿芹的指引，趁道士不注意，悄悄摸到大殿左立柱旁。
-            你蹲下身，手指摸索着柱基的缝隙——果然，有一块松动的青石。
-            你小心地撬开青石，里面露出一个尺余见方的暗格，藏着一块斑驳的青石碑。
-            碑面布满灰尘，字迹浅淡，但依稀可辨。
+            你的故事在这里结束了。
+            你选择了 ${actionLine || '一条路'}。
             <span class="divider">· · ·</span>
-            <span style="color:#d4b87a;">📜 你发现了「工匠暗碑」！</span>
-            <span class="divider">· · ·</span>
-            <span class="rule-text" style="color:#d4b87a;white-space:pre-line;font-size:0.9rem;line-height:2;text-align:left;">${fullSteleText}</span>
-            <span class="divider">· · ·</span>
-            <span style="color:#aa4a4a;">⚠️ 你终于明白了全部真相！</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">📌 石碑文已全部记录到规则笔记中。</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">💡 真相让你清醒了一些（龙化 -5）。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
         `);
-
-                    // 显示「继续」按钮，点击后批量添加规则并进入第三章
-                    renderOptions([{
-                        label: '📖 继续前行',
-                        action: async function () {
-                            if (state.gameOver || state._waitingConfirm) return;
-
-                            // ---- 此时玩家已经看完了石碑原文，现在添加规则 ----
-                            var steleIds = ['stele_1', 'stele_2', 'stele_3', 'stele_4', 'stele_5', 'stele_6'];
-                            for (var i = 0; i < steleIds.length; i++) {
-                                if (!state.rules.includes(steleIds[i])) {
-                                    await addRule(steleIds[i]);
-                                }
+                    renderOptions([
+                        {
+                            label: '🔄 重新开始第三章',
+                            hint: '保留香火和规则，重新探索锁龙观',
+                            action: function () {
+                                if (state._waitingConfirm) return;
+                                resetChapter3();
                             }
-
-                            // 进入第三章正式剧情
-                            renderTempleGate();
+                        },
+                        {
+                            label: '🔄 重新开始游戏',
+                            action: function () { startNewGame(); }
                         }
-                    }]);
-                    return;  // 先显示石碑，等待用户点击继续
+                    ]);
                 }
-
-                // ============================================================
-                //  第三步：显示第三章正式剧情（无石碑或石碑已完成）
-                // ============================================================
-                renderCh2_chapter3_main();
             }
 
             // ================================================================
-            //  第三章正式剧情（独立函数）
+            //  第三章初始化
             // ================================================================
-            function renderCh2_chapter3_main() {
+
+            // ================================================================
+            //  第三章初始化（含防重入检查）
+            // ================================================================
+
+            function initChapter3() {
                 if (state._waitingConfirm) return;
 
-                setStory(`
-        <span class="title-line">📖 第三章 · 道观之秘</span>
+                // ---- ⭐ 关键修复：如果 ch3 已经初始化且有进度，直接恢复 ----
+                if (state.ch3 && state.ch3.phase) {
+                    // 检查是否有任何探索进度
+                    var hasProgress = false;
+                    for (var key in state.ch3.exploredAreas) {
+                        if (state.ch3.exploredAreas[key]) { hasProgress = true; break; }
+                    }
+                    // 如果有进度，不重置，直接继续
+                    if (hasProgress || state.ch3.bellTolls > 0 || state.ch3.gameCompleted) {
+                        // 已经有进度，直接进入探索界面
+                        renderCh3Exploration();
+                        return;
+                    }
+                }
+
+                // ---- 检查进入第三章的条件 ----
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var disguise = state.ch2.disguise || 0;
+
+                if (!hasIncense || disguise < 3) {
+                    setStory(`
+            <span class="title-line">⛔ 无法进入道观</span>
+            <span class="divider">—— —— ——</span>
+            你站在道观门前，但一股无形的力量将你挡在了门外。
+            ${!hasIncense ? '<span style="color:#aa4a4a;">⚠️ 你需要至少1根香火才能进入道观。</span>' : ''}
+            ${disguise < 3 ? '<span style="color:#aa4a4a;">⚠️ 你的伪装不足（需要≥3）。</span>' : ''}
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你需要准备好再回来。</span>
+        `);
+                    renderOptions([{
+                        label: '🔙 回到道观门前',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.phase = 'temple_gate';
+                            renderTempleGate();
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- ⭐ 只在首次进入时初始化 ch3 ----
+                // 如果已经存在 ch3 但没有任何进度（首次进入），则初始化
+                if (!state.ch3 || !state.ch3.phase) {
+                    state.ch3 = {
+                        // ... 完整的 ch3 初始化对象（保留原内容）
+                        exploredAreas: { frontYard: false, mainHall: false, library: false, alchemyRoom: false, backYard: false },
+                        areaVisitCount: { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 },
+                        bellTolls: 0,
+                        bellWarned: false,
+                        pressure: 0,
+                        fragments: { piece1: false, piece2: false, piece3: false, piece4: false, piece5: false, piece6: false },
+                        items: { oldDagger: false, mapFragment: false, recipePaper: false, furnaceAsh: false, clayShard: false, dragonScaleAsh: false },
+                        npc: {
+                            xuanqing: { dialogRound: 0, hasHeardFullStory: false },
+                            qingyuan: { hasMet: false, trustLevel: state.ch2.qingyuanTrust || 0 },
+                            oldTaoist: { talkedCount: 0, hasGivenGuide: false },
+                        },
+                        incenseUsed: { frontYard: false, mainHall: false, backYard: false, library: false, alchemyRoom: false, gateSignal: false },
+                        _hasSeenChild: false,
+                        _sitter: null,
+                        _rescueAttempted: false,
+                        actionLines: {
+                            assassination: { unlocked: false, steps: { letterSent: false, doorOpened: false, confronted: false }, completed: false },
+                            dragonSlayer: { unlocked: false, steps: { choseSitter: false, reachedRift: false, sealed: false }, completed: false },
+                            dragonRider: { unlocked: false, steps: { materialsCollected: false, choseSacrifice: false, forged: false }, completed: false },
+                        },
+                        phase: 'exploration',
+                        actionLineChosen: null,
+                        endingTriggered: false,
+                        gameCompleted: false,
+                        // 新增：钟声事件触发标记
+                        _bell1Triggered: false,
+                        _bell2Triggered: false,
+                        _bell3Triggered: false,
+                        _bell4Triggered: false,
+                        _bell5Triggered: false,
+                        _childSoundTriggered: false,
+                        _oldTaoistUrgeTriggered: false,
+                        _xuanqingStandTriggered: false,
+                    };
+                    // 从第二章继承清远信任
+                    state.ch3.npc.qingyuan.trustLevel = state.ch2.qingyuanTrust || 0;
+                }
+
+                // ---- 显示进入第三章的过渡文本（仅在首次进入时显示） ----
+                var hasPeachWood = state.flags.hasPeachWood;
+                var qingyuanTrust = state.ch3.npc.qingyuan.trustLevel;
+                var hasDarkStele = state.flags.stele.found || state.ch2.hasFoundDarkStele;
+
+                var openingText = `
+        <span class="title-line">🏯 第三章 · 锁龙观</span>
         <span class="divider">—— —— ——</span>
-        <span style="color:var(--text-gold);">🎉 你成功完成了第二章的挑战！</span>
-        你穿过林间小路，终于来到了道观前。大门敞开，里面传来阵阵诵经声。
-        你握紧了手中的桃木吊坠，深吸一口气，迈步走了进去……
+        你深吸一口气，推开了道观的大门。
+        门轴发出沉闷的声响，像是很久没有被打开过了。
         <span class="divider">· · ·</span>
-        <span style="color:#d4b87a;font-weight:700;">第二章 · 完</span>
-        <span style="color:var(--text-muted);">你已成功完成第二章，后续故事将在第三章展开。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">感谢游玩《龙岭观前坑》第一二章。</span>
+        你跨过门槛，站在了锁龙观的庭院中。
+        青瓦白墙，檐角挂着铜铃——但铜铃已经锈死了，风无法让它发出声音。
         <span class="divider">· · ·</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%，度过了 ${state.day} 天。</span>
-        ${state.flags.stele.found ? '<span style="color:#d4b87a;font-weight:700;">📜 你已发现工匠暗碑，了解了全部真相！</span>' : ''}
-    `);
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 你进入了锁龙观。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 当前香火：${state.ch2.incenseRemaining}/3根</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🎭 当前伪装：${state.ch2.disguise}/5</span>
+        ${qingyuanTrust >= 2 ? '<span style="color:#6ab06a;">💚 清远信任：' + qingyuanTrust + '/3 — 他会帮助你。</span>' : ''}
+        ${hasDarkStele ? '<span style="color:#6a8aaa;">📜 你已发现暗碑，知道玄清的真相。</span>' : ''}
+        ${hasPeachWood ? '<span style="color:#6a8aaa;">🪬 你带着桃木吊坠，民俗部的人会认出来。</span>' : ''}
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你环顾四周，道观内安静得不像有人居住。</span>
+        <span style="color:#d4b87a;">但你隐约听到——大殿深处，有什么东西在呼吸。</span>
+    `;
+
+                setStory(openingText);
 
                 renderOptions([{
-                    label: '🔄 重新开始游戏',
-                    action: function () { startNewGame(); }
+                    label: '🗺️ 查看道观布局图',
+                    hint: '了解五个可探索区域',
+                    tag: '📌 指南',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Map();
+                    }
+                }, {
+                    label: '🚶 开始探索',
+                    hint: '进入锁龙观',
+                    tag: '→ 继续',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
                 }]);
+
+                // ---- 保存状态 ----
+                saveGame();
+            }
+
+            // ================================================================
+            //  第三章 · 交互式道观地图
+            // ================================================================
+
+            // ================================================================
+            //  第三章 · 交互式道观地图（含碎片视觉提示）
+            // ================================================================
+
+            function renderCh3Map() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var explored = state.ch3.exploredAreas || {};
+                var fragments = state.ch3.fragments || {};
+                var total = 5;
+                var count = 0;
+                for (var key in explored) { if (explored[key]) count++; }
+                var progress = Math.round((count / total) * 100);
+
+                // ---- 统计碎片收集情况 ----
+                var fragmentTotal = 6;
+                var fragmentCollected = 0;
+                for (var f in fragments) { if (fragments[f]) fragmentCollected++; }
+
+                // ---- 各区域对应的碎片ID ----
+                var areaFragments = {
+                    frontYard: ['piece1'],
+                    mainHall: ['piece2'],
+                    library: ['piece3'],
+                    alchemyRoom: ['piece4'],
+                    backYard: ['piece5', 'piece6'],
+                };
+
+                function getAreaFragmentStatus(areaId) {
+                    var areaFragments = {
+                        frontYard: ['piece1'],
+                        mainHall: ['piece2'],
+                        library: ['piece3'],
+                        alchemyRoom: ['piece4'],
+                        backYard: ['piece5', 'piece6'],
+                    };
+                    var fragments = state.ch3.fragments || {};
+                    var ids = areaFragments[areaId] || [];
+                    var collected = 0;
+                    for (var i = 0; i < ids.length; i++) {
+                        if (fragments[ids[i]]) collected++;
+                    }
+                    return { collected: collected, total: ids.length, ids: ids };
+                }
+
+                function getTotalFragmentCount() {
+                    var fragments = state.ch3.fragments || {};
+                    var count = 0;
+                    for (var key in fragments) { if (fragments[key]) count++; }
+                    return count;
+                }
+
+                // 定义区域数据
+                var areas = {
+                    frontYard: {
+                        label: '前院',
+                        icon: '🚪',
+                        desc: '大门·廊下',
+                        explored: explored.frontYard || false,
+                    },
+                    mainHall: {
+                        label: '大殿',
+                        icon: '🏛️',
+                        desc: '玄清所在',
+                        explored: explored.mainHall || false,
+                    },
+                    library: {
+                        label: '藏经阁',
+                        icon: '📚',
+                        desc: '清远·书籍',
+                        explored: explored.library || false,
+                    },
+                    alchemyRoom: {
+                        label: '丹房',
+                        icon: '🔥',
+                        desc: '丹炉·药材',
+                        explored: explored.alchemyRoom || false,
+                    },
+                    backYard: {
+                        label: '后院',
+                        icon: '🌳',
+                        desc: '枯井·小屋',
+                        explored: explored.backYard || false,
+                    },
+                };
+
+                // ---- 构建地图 HTML ----
+                var html = `
+        <div id="ch3-map-container">
+            <div class="map-title">🗺️ 锁龙观 · 平面图</div>
+
+            <!-- 探索进度 + 碎片进度 -->
+            <div class="map-progress">
+                <span>📌 探索 ${count}/${total}</span>
+                <div class="bar"><div class="fill" style="width:${progress}%"></div></div>
+                <span>${progress}%</span>
+            </div>
+            <div class="map-progress" style="margin-top:4px;">
+                <span>🧩 线索 ${fragmentCollected}/${fragmentTotal}</span>
+                <div class="bar"><div class="fill" style="width:${(fragmentCollected / fragmentTotal) * 100}%;background:linear-gradient(90deg,#d4b87a,#ccaa3a);"></div></div>
+                <span>${Math.round((fragmentCollected / fragmentTotal) * 100)}%</span>
+            </div>
+
+            <!-- 地图网格 -->
+            <div class="map-grid" style="margin-top:8px;">
+    `;
+
+                var rows = [
+                    ['frontYard'],
+                    ['library', 'mainHall', 'alchemyRoom'],
+                    ['backYard']
+                ];
+
+                for (var ri = 0; ri < rows.length; ri++) {
+                    var row = rows[ri];
+                    for (var ci = 0; ci < row.length; ci++) {
+                        var id = row[ci];
+                        var area = areas[id];
+                        if (!area) continue;
+
+                        var isExplored = area.explored;
+                        var fragmentStatus = getAreaFragmentStatus(id);
+                        var hasAllFragments = fragmentStatus.collected >= fragmentStatus.total && fragmentStatus.total > 0;
+                        var hasSomeFragments = fragmentStatus.collected > 0 && !hasAllFragments;
+
+                        // 状态样式
+                        var statusClass = '';
+                        var statusText = '';
+                        var fragmentDisplay = '';
+
+                        if (isExplored) {
+                            statusClass = 'explored';
+                            if (hasAllFragments) {
+                                statusText = '✅ 已集齐线索';
+                                fragmentDisplay = '<span style="color:#6ab06a;">🧩</span>';
+                            } else if (hasSomeFragments) {
+                                statusText = `🔍 ${fragmentStatus.collected}/${fragmentStatus.total}`;
+                                fragmentDisplay = `<span style="color:#d4b87a;">🧩 ${fragmentStatus.collected}/${fragmentStatus.total}</span>`;
+                            } else {
+                                statusText = '⬜ 已探索，无线索';
+                                fragmentDisplay = '<span style="color:var(--text-muted);opacity:0.3;">⬜</span>';
+                            }
+                        } else {
+                            statusText = '⬜ 未探索';
+                            fragmentDisplay = '<span style="color:var(--text-muted);opacity:0.2;">❓</span>';
+                        }
+
+                        // 区域是否可点击（已探索或未探索都可点击，但未探索的点击后会进入场景）
+                        var lockedClass = '';
+
+                        html += `
+                <div class="map-cell ${statusClass} ${lockedClass}"
+                     data-area="${id}"
+                     style="grid-column: span 1; position:relative;">
+                    <div class="cell-icon">${area.icon}</div>
+                    <div class="cell-label">${area.label}</div>
+                    <div class="cell-status">${statusText}</div>
+                    <div style="font-size:0.55rem;margin-top:2px;color:var(--text-muted);opacity:0.7;">
+                        ${fragmentDisplay}
+                    </div>
+                    <div style="font-size:0.45rem;color:var(--text-muted);opacity:0.4;margin-top:1px;">${area.desc}</div>
+                </div>
+            `;
+                    }
+                }
+
+                html += `
+            </div>
+
+            <!-- 图例 -->
+            <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:0.55rem;color:var(--text-muted);opacity:0.6;flex-wrap:wrap;">
+                <span>🧩 已集齐线索</span>
+                <span>🧩 ${fragmentCollected}/${fragmentTotal} 已收集</span>
+                <span>⬜ 未探索</span>
+            </div>
+
+            <div style="text-align:center;margin-top:8px;font-size:0.55rem;color:var(--text-muted);opacity:0.4;">
+                💡 点击区域前往探索 · 🧩 显示该区域已收集的线索数量
+            </div>
+        </div>
+    `;
+
+                setStory(html);
+
+                // ---- 绑定点击事件 ----
+                setTimeout(function () {
+                    var cells = document.querySelectorAll('#ch3-map-container .map-cell');
+                    cells.forEach(function (cell) {
+                        cell.addEventListener('click', function () {
+                            var areaId = this.dataset.area;
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Area(areaId);
+                        });
+                    });
+                }, 50);
+
+                renderOptions([{
+                    label: '🔙 返回探索',
+                    hint: '回到道观庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                }]);
+
                 updateUI();
             }
 
             // ================================================================
+            //  第三章 · 探索主界面
+            // ================================================================
+
+            function renderCh3Exploration() {
+                if (state.gameOver || state._waitingConfirm) return;
+                if (state.ch3.phase === 'action_line') {
+                    renderCh3ActionLine();
+                    return;
+                }
+                if (state.ch3.gameCompleted) {
+                    renderCh3Ending(state.ch3.actionLineChosen);
+                    return;
+                }
+
+                // ---- 检查是否所有区域都已探索 ----
+                var allExplored = state.ch3.exploredAreas.frontYard &&
+                    state.ch3.exploredAreas.mainHall &&
+                    state.ch3.exploredAreas.library &&
+                    state.ch3.exploredAreas.alchemyRoom &&
+                    state.ch3.exploredAreas.backYard;
+
+                // ---- 如果所有区域都已探索，触发行动线解锁 ----
+                if (allExplored && state.ch3.phase === 'exploration') {
+                    renderCh3AllExplored();
+                    return;
+                }
+
+                // ---- 钟声状态 ----
+                var bellTolls = state.ch3.bellTolls || 0;
+                var bellDisplay = '';
+                for (var i = 0; i < 5; i++) {
+                    bellDisplay += i < bellTolls ? '🔔' : '◯';
+                }
+
+                // ---- 压力状态 ----
+                var pressure = state.ch3.pressure || 0;
+                var pressureText = ['😌 平静', '😰 不安', '😨 紧张', '😤 决心'][pressure] || '😌 平静';
+                var pressureColor = ['var(--text-muted)', '#d4b87a', '#d45a5a', '#d4b87a'][pressure] || 'var(--text-muted)';
+
+                // ---- 香火状态 ----
+                var incense = state.ch2.incenseRemaining || 0;
+
+                // ---- 场景文本 ----
+                var atmosphereText = getCh3Atmosphere(bellTolls);
+
+                setStory(`
+        <span class="title-line">🏯 锁龙观 · 探索</span>
+        <span class="divider">—— —— ——</span>
+        ${atmosphereText}
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🔔 钟声：${bellDisplay}</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🎭 心理压力：<span style="color:${pressureColor};">${pressureText}</span></span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火：${incense}/3根</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你站在庭院中，四周的门都通向不同的地方。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 选择一个区域前往探索。</span>
+    `);
+
+                // ---- 构建选项 ----
+                var opts = [];
+
+                var areas = [
+                    { id: 'frontYard', label: '🚪 前院', hint: '大门、廊下', status: state.ch3.exploredAreas.frontYard },
+                    { id: 'mainHall', label: '🏛️ 大殿', hint: '玄清所在', status: state.ch3.exploredAreas.mainHall },
+                    { id: 'library', label: '📚 藏经阁', hint: '书籍、清远', status: state.ch3.exploredAreas.library },
+                    { id: 'alchemyRoom', label: '🔥 丹房', hint: '丹炉、药材', status: state.ch3.exploredAreas.alchemyRoom },
+                    { id: 'backYard', label: '🌳 后院', hint: '枯井、小屋', status: state.ch3.exploredAreas.backYard },
+                ];
+
+                areas.forEach(function (area) {
+                    var isExplored = area.status || false;
+                    opts.push({
+                        label: area.label + (isExplored ? ' ✅' : ''),
+                        hint: isExplored ? '已探索' : area.hint,
+                        tag: isExplored ? '已读' : '未探索',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Area(area.id);
+                        }
+                    });
+                });
+
+
+
+                // 原来的“查看行动线状态”按钮 —— 替换为模糊直觉
+                opts.push({
+                    label: '💭 感受直觉',
+                    hint: '你似乎捕捉到了一些线索……',
+                    tag: '📌 模糊',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Intuition();
+                    }
+                });
+                // 在 renderCh3Exploration 的 opts 中找到并替换
+                opts.push({
+                    label: '🗺️ 查看道观布局图',
+                    hint: '点击区域直接探索',
+                    tag: '📌 地图',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Map();
+                    }
+                });
+                // ---- 退出探索（回到第二章门前） ----
+                opts.push({
+                    label: '🔙 回到道观门前',
+                    hint: '离开锁龙观',
+                    tag: '⚠️ 退出',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        state.ch2.phase = 'temple_gate';
+                        state.flags.chapter2 = true;
+                        renderTempleGate();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  获取道观氛围描述（基于钟声）
+            // ================================================================
+
+            function getCh3Atmosphere(bellTolls) {
+                var descriptions = [
+                    '青瓦白墙，铜铃轻响，诵经声平和如常。',
+                    '诵经声加快了节奏，像是有人在催。',
+                    '空气中有了一丝焦糊味，像是烧纸的气味。',
+                    '铜铃不再响了。四周安静得可怕。',
+                    '你能感觉到地面在微微震动。',
+                    '钟声停了。有什么东西正在苏醒。'
+                ];
+                var idx = Math.min(bellTolls, 5);
+                return '<span style="color:var(--text-muted);font-size:0.85rem;">🌫️ ' + descriptions[idx] + '</span>';
+            }
+            // ================================================================
+            //  第三章 · 区域探索分发
+            // ================================================================
+
+            function renderCh3Area(areaId) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                // ---- 检查是否所有区域都已探索 ----
+                var allExplored = state.ch3.exploredAreas.frontYard &&
+                    state.ch3.exploredAreas.mainHall &&
+                    state.ch3.exploredAreas.library &&
+                    state.ch3.exploredAreas.alchemyRoom &&
+                    state.ch3.exploredAreas.backYard;
+
+                if (allExplored && state.ch3.phase === 'exploration') {
+                    renderCh3AllExplored();
+                    return;
+                }
+
+                // ---- 区域访问计数 ----
+                if (!state.ch3.areaVisitCount) {
+                    state.ch3.areaVisitCount = { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 };
+                }
+                state.ch3.areaVisitCount[areaId] = (state.ch3.areaVisitCount[areaId] || 0) + 1;
+
+                // ---- 如果是首次探索该区域，标记为已探索并触发钟声 ----
+                var isFirstVisit = !state.ch3.exploredAreas[areaId];
+                if (isFirstVisit) {
+                    state.ch3.exploredAreas[areaId] = true;
+                    // 钟声+1
+                    state.ch3.bellTolls = Math.min((state.ch3.bellTolls || 0) + 1, 5);
+                    showStory(`<span style="color:var(--text-muted);font-size:0.85rem;">🔔 铜钟敲响了一次（${state.ch3.bellTolls}/5）</span>`);
+                    // 检查钟声是否触发特殊事件
+                    checkBellEvents();
+                    saveGame();  // ⬅️ 新增：立即保存探索进度
+                }
+
+                // ---- 分发到具体区域 ----
+                switch (areaId) {
+                    case 'frontYard':
+                        renderCh3FrontYard(isFirstVisit);
+                        break;
+                    case 'mainHall':
+                        renderCh3MainHall(isFirstVisit);
+                        break;
+                    case 'library':
+                        renderCh3Library(isFirstVisit);
+                        break;
+                    case 'alchemyRoom':
+                        renderCh3AlchemyRoom(isFirstVisit);
+                        break;
+                    case 'backYard':
+                        renderCh3BackYard(isFirstVisit);
+                        break;
+                    default:
+                        renderCh3Exploration();
+                }
+                saveGame();
+            }
+
+            // ================================================================
+            //  钟声事件检查
+            // ================================================================
+
+            function checkBellEvents() {
+                var tolls = state.ch3.bellTolls || 0;
+
+                // 第2响：后院出现孩子的声音
+                if (tolls === 2 && !state.ch3._childSoundTriggered) {
+                    state.ch3._childSoundTriggered = true;
+                    showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:#6a8aaa;">你听到后院传来一声很轻的响动——像是有什么东西被碰倒了。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你侧耳倾听，但那声音没有再出现。</span>
+        `); saveGame();
+                }
+
+                // 第3响：老道士催促
+                if (tolls === 3 && !state.ch3._oldTaoistUrgeTriggered) {
+                    state.ch3._oldTaoistUrgeTriggered = true;
+                    showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">一个苍老的声音从廊下传来：</span>
+            <span class="rule-text" style="color:#d4b87a;">「你该做决定了。钟声不会一直等着你。」</span>
+        `); saveGame();
+                }
+
+                // 第4响：玄清起身
+                if (tolls === 4 && !state.ch3._xuanqingStandTriggered) {
+                    state.ch3._xuanqingStandTriggered = true;
+                    showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:#d45a5a;">大殿里传来了脚步声——有人站了起来。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">玄清的声音从大殿深处传来：「你还在犹豫什么？」</span>
+        `); saveGame();
+                    // 压力+1
+                    state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+                }
+
+                // 第5响：强制推进
+                if (tolls === 5 && !state.ch3._bell5Triggered) {
+                    state.ch3._bell5Triggered = true;
+                    state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+                    showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:#d45a5a;font-weight:700;">🔔 第五声钟响了。</span>
+            <span style="color:#d45a5a;">钟声停了。有什么东西正在苏醒。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你感到脚下的地面在震动……</span>
+        `); saveGame();
+                    // 如果还没有触发任何行动线，强制进入最终抉择
+                    var hasActionLine = state.ch3.actionLines.assassination.completed ||
+                        state.ch3.actionLines.dragonSlayer.completed ||
+                        state.ch3.actionLines.dragonRider.completed;
+                    if (!hasActionLine && state.ch3.phase === 'exploration') {
+                        setTimeout(function () {
+                            if (!state.gameOver && !state._waitingConfirm) {
+                                renderCh3FinalChoice();
+                            }
+                        }, 1000);
+                    }
+                }
+            }
+            // ================================================================
+            //  前院
+            // ================================================================
+
+            function renderCh3FrontYard(isFirstVisit) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var visitCount = state.ch3.areaVisitCount.frontYard || 0;
+                var oldTaoistTalked = state.ch3.npc.oldTaoist.talkedCount || 0;
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var incenseUsed = state.ch3.incenseUsed.frontYard || false;
+
+                var storyText = `
+        <span class="title-line">🚪 前院</span>
+        <span class="divider">—— —— ——</span>
+        你站在道观的前院。青石板铺地，缝隙里长着青苔。
+        廊下坐着一个老道士，闭着眼睛，像是在打盹。
+        大门在你身后，门栓是铁的，已经生了锈。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 第${visitCount}次来到前院</span>
+        ${isFirstVisit ? '<span style="color:#6ab06a;">✅ 首次探索完成（钟声+1）</span>' : ''}
+        ${oldTaoistTalked > 0 ? '<span style="color:var(--text-muted);font-size:0.85rem;">👴 老道士已经和你说过' + oldTaoistTalked + '次话了。</span>' : ''}
+    `;
+
+                // ---- 根据访问次数增加内容 ----
+                if (visitCount === 1) {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            老道士睁开了眼睛，看了你一眼，又闭上了。
+            <span class="rule-text" style="color:#d4b87a;">「你来了。我以为你不会来。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你可以和他对话，但可能需要多聊几次。</span>
+        `;
+                } else if (visitCount === 2) {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            老道士这次没有睁眼，但他的嘴唇动了动：
+            <span class="rule-text" style="color:#d4b87a;">「你还在看。你在找什么？」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他似乎在等你问对问题。</span>
+        `;
+                } else if (visitCount >= 3) {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            老道士睁开眼睛，看着你：
+            <span class="rule-text" style="color:#d4b87a;">「你想问什么？北岭的路怎么走？还是丹炉的火怎么点？还是……那扇门后面是什么？」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他似乎知道很多。</span>
+        `;
+                }
+
+                setStory(storyText);
+
+                var opts = [];
+
+                // ---- 与老道士对话 ----
+                if (visitCount >= 1) {
+                    opts.push({
+                        label: '👴 与老道士说话',
+                        hint: '他说话很慢，但每句都有分量',
+                        tag: oldTaoistTalked >= 3 ? '💬 已问完' : '📖 对话',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3OldTaoistTalk();
+                        }
+                    });
+                }
+
+                // ---- 检查大门（门锁结构） ----
+                if (!state.ch3.fragments.piece1) {
+                    opts.push({
+                        label: '🔍 检查大门门锁',
+                        hint: '铁栓已经锈了',
+                        tag: '🧩 线索碎片',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.fragments.piece1 = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你蹲下来检查大门门锁。铁栓已经锈死了，但锁扣上有一个不起眼的痕迹——像是被人从外面撬开过。
+                    <span style="color:#6a8aaa;">📌 你注意到：门锁是从外面锁上的。</span>
+                    <span style="color:#d4b87a;">🧩 线索碎片 +1（1/6）</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索前院',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3FrontYard(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 香火使用：递给老道士 ----
+                if (hasIncense && !incenseUsed && visitCount >= 2) {
+                    opts.push({
+                        label: '🕯️ 递给老道士一根香',
+                        hint: '他沉默地接了过去',
+                        tag: '🕯️ 消耗1根香',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.incenseRemaining < 1) {
+                                showStory('⚠️ 你没有香火了。');
+                                return;
+                            }
+                            state.ch2.incenseRemaining--;
+                            state.ch3.incenseUsed.frontYard = true;
+                            state.ch3.npc.oldTaoist.hasGivenGuide = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你递出一根香，老道士沉默地接了过去。
+                    他把香插在廊下的石缝里，点燃了。
+                    <span class="rule-text" style="color:#d4b87a;">「北岭的路，有一条捷径。你走的时候，绕过第三棵松树，就不会迷路。」</span>
+                    <span style="color:#6a8aaa;">📌 你获得了北岭“正确走法”！</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火-1（剩余：${state.ch2.incenseRemaining}/3）</span>
+                `);
+                            // 屠龙线解锁条件之一
+                            state.ch3.items.mapFragment = true;
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索前院',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3FrontYard(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 离开前院 ----
+                opts.push({
+                    label: '🔙 回到庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  老道士对话
+            // ================================================================
+
+            function renderCh3OldTaoistTalk() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var talkCount = state.ch3.npc.oldTaoist.talkedCount || 0;
+
+                // 三条线的指引
+                var guides = [
+                    { line: 'assassination', text: '「北坡的银杏林里，有人在等你。你去了就知道了。」' },
+                    { line: 'dragonSlayer', text: '「北岭的裂口，需要一个人坐上去。那个人最好是你自己选的。」' },
+                    { line: 'dragonRider', text: '「丹炉的火，要用‘永远不会拿回来的东西’来引。你舍得吗？」' },
+                ];
+
+                var guideIndex = talkCount % guides.length;
+                var guide = guides[guideIndex];
+
+                setStory(`
+        <span class="title-line">👴 老道士</span>
+        <span class="divider">—— —— ——</span>
+        老道士看着你，目光平静得像一潭死水。
+        <span class="divider">· · ·</span>
+        ${talkCount === 0 ? `
+            你在他身边坐下，他沉默了很久，才开口：
+            <span class="rule-text" style="color:#d4b87a;">「你不是第一个来的人。但你是第一个坐下来的人。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他愿意和你说话了。</span>
+        ` : `
+            你再次坐下，他看了你一眼：
+            <span class="rule-text" style="color:#d4b87a;">「你又来了。你想听什么？」</span>
+        `}
+        <span class="divider">· · ·</span>
+        <span class="rule-text" style="color:#d4b87a;">${guide.text}</span>
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💬 已对话 ${talkCount + 1} 次</span>
+    `);
+
+                state.ch3.npc.oldTaoist.talkedCount = (talkCount || 0) + 1;
+
+                // 如果是第三次对话，标记屠龙线条件之一
+                if (state.ch3.npc.oldTaoist.talkedCount >= 3) {
+                    state.ch3.npc.oldTaoist.hasGivenGuide = true;
+                }
+
+                renderOptions([{
+                    label: '🔙 回到前院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3FrontYard(false);
+                    }
+                }]);
+            }
+            // ================================================================
+            //  第三章 · 大殿 · 基于探索进度的动态对话
+            // ================================================================
+
+            function renderCh3MainHall(isFirstVisit) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var visitCount = state.ch3.areaVisitCount.mainHall || 0;
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var incenseUsed = state.ch3.incenseUsed.mainHall || false;
+                var hasDarkStele = state.flags.stele.found || state.ch2.hasFoundDarkStele;
+
+                // ---- 获取各区域探索状态 ----
+                var explored = state.ch3.exploredAreas || {};
+                var hasFrontYard = explored.frontYard || false;
+                var hasLibrary = explored.library || false;
+                var hasAlchemyRoom = explored.alchemyRoom || false;
+                var hasBackYard = explored.backYard || false;
+
+                // ---- 计算已探索区域列表（用于对话生成） ----
+                var visitedPlaces = [];
+                if (hasFrontYard) visitedPlaces.push('frontYard');
+                if (hasLibrary) visitedPlaces.push('library');
+                if (hasAlchemyRoom) visitedPlaces.push('alchemyRoom');
+                if (hasBackYard) visitedPlaces.push('backYard');
+
+                var visitedCount = visitedPlaces.length;
+                var isFirstEnter = visitCount === 0;  // 第一次进入大殿
+                var allExplored = visitedCount >= 4;
+
+                // ---- 获取碎片收集状态 ----
+                var fragments = state.ch3.fragments || {};
+                var hasPiece1 = fragments.piece1 || false;  // 前院门锁
+                var hasPiece2 = fragments.piece2 || false;  // 大殿神像
+                var hasPiece3 = fragments.piece3 || false;  // 藏经阁日记
+                var hasPiece4 = fragments.piece4 || false;  // 丹房炉灰
+                var hasPiece5 = fragments.piece5 || false;  // 后院井壁
+                var hasPiece6 = fragments.piece6 || false;  // 后院孩子
+
+                // ---- 检查玄清是否已讲述完整故事 ----
+                var fullStoryTold = state.ch3.npc.xuanqing.hasHeardFullStory || false;
+
+                // ================================================================
+                //  对话生成器
+                // ================================================================
+
+                var xuanqingText = '';
+                var dialogOptions = [];
+
+                // ---- 情况1：首次进入大殿（从未探索任何区域） ----
+                if (isFirstEnter && visitedCount === 0) {
+                    xuanqingText = `
+            大殿里光线昏暗，神像前的长明灯已经快要熄灭了。
+            一个穿着灰色道袍的人坐在蒲团上，背对着你。
+            他没有回头，但开口了：
+            <span class="rule-text" style="color:#d4b87a;">「你来了。我等你很久了。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 这就是玄清。你可以和他对话，但他似乎不急于说话。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📌 你还没有探索道观的其他地方。也许先看看这座道观里有什么，再回来找他。</span>
+        `;
+                    // 首次进入，只有简单互动
+                    dialogOptions.push({
+                        label: '🗣️ 「你是谁？」',
+                        hint: '你直视他的背影',
+                        tag: '💬 初次对话',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            setStory(`
+                    <span class="title-line">🏛️ 大殿 · 初次问答</span>
+                    <span class="divider">—— —— ——</span>
+                    你开口问：「你是谁？」
+                    他没有转身，沉默了很久才回答：
+                    <span class="rule-text" style="color:#d4b87a;">「这附近的人都叫我玄清。你听过这个名字吗？」</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">你确实听过。在很多地方听过。但你没有说。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 他似乎知道一些事情，但他不会白白告诉你。</span>
+                `);
+                            renderOptions([{
+                                label: '🔙 离开大殿',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3Exploration();
+                                }
+                            }]);
+                        }
+                    });
+                    // 直接离开
+                    dialogOptions.push({
+                        label: '🚶 离开大殿，先去别处看看',
+                        hint: '你还不确定要不要相信他',
+                        tag: '⏳ 先探索',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Exploration();
+                        }
+                    });
+                    renderOptions(dialogOptions);
+                    updateUI();
+                    return;
+                }
+
+                // ---- 情况2：已探索部分区域，根据具体去过的地方生成对话 ----
+                if (!allExplored && !fullStoryTold) {
+
+                    // 构建探索状态描述
+                    var visitedDesc = [];
+                    var placeMap = {
+                        'frontYard': '前院',
+                        'library': '藏经阁',
+                        'alchemyRoom': '丹房',
+                        'backYard': '后院'
+                    };
+                    for (var i = 0; i < visitedPlaces.length; i++) {
+                        visitedDesc.push(placeMap[visitedPlaces[i]] || '某处');
+                    }
+                    var descText = visitedDesc.length > 0 ? visitedDesc.join('、') : '任何地方';
+
+                    // 判断缺失的区域（用于提醒）
+                    var missing = [];
+                    if (!hasFrontYard) missing.push('前院');
+                    if (!hasLibrary) missing.push('藏经阁');
+                    if (!hasAlchemyRoom) missing.push('丹房');
+                    if (!hasBackYard) missing.push('后院');
+                    var missingText = missing.length > 0 ? missing.join('、') : '';
+
+                    // ---- 根据已探索区域生成玄清评论 ----
+                    var comments = [];
+
+                    if (hasFrontYard) {
+                        if (hasPiece1) {
+                            comments.push('你注意到了门锁的痕迹。那个锁是从外面被人撬过的——你知道这意味着什么吗？');
+                        } else {
+                            comments.push('你去了前院。看到那个老道士了吗？他以前是我的同门。现在他只是坐在那里，什么都不做了。');
+                        }
+                    }
+
+                    if (hasLibrary) {
+                        if (hasPiece3) {
+                            comments.push('你翻到了那本日记。癸未年，四十七人——你数过了吧？你觉得那数字大吗？');
+                        } else {
+                            comments.push('藏经阁的书你都翻过了？那里面的东西，有一半是我写的。另一半……是别人写的。');
+                        }
+                    }
+
+                    if (hasAlchemyRoom) {
+                        if (hasPiece4) {
+                            comments.push('你看到丹炉底下的灰了。那里面烧过的东西，比你想象中要多。');
+                        } else {
+                            comments.push('丹房那口炉子，日夜不熄。你知道烧的是什么吗？');
+                        }
+                    }
+
+                    if (hasBackYard) {
+                        if (hasPiece5 && hasPiece6) {
+                            comments.push('后院那口井里的刻痕，你数过了。还有那个孩子……你看到了。你什么都看到了。');
+                        } else if (hasPiece5) {
+                            comments.push('你看到了井壁上的刻痕。那些数字，你数得清吗？');
+                        } else if (hasPiece6) {
+                            comments.push('你看到了那个孩子。他还在那里。他一直在那里。');
+                        } else {
+                            comments.push('后院那口井很深。你还没有下去看过，对吧？');
+                        }
+                    }
+
+                    // 如果还没有任何评论（理论上不会发生），给一个通用对话
+                    if (comments.length === 0) {
+                        comments.push('你已经在道观里走了不少地方了。但你还缺一些东西。一些很重要的东西。');
+                    }
+
+                    // ---- 构建玄清主对话 ----
+                    var commentText = comments.join('\n');
+                    var hasAllPlaces = visitedCount >= 4;
+                    var hasAllFragments = hasPiece1 && hasPiece2 && hasPiece3 && hasPiece4 && hasPiece5 && hasPiece6;
+
+                    // 根据探索进度调整玄清的语气
+                    var tone = '';
+                    if (visitedCount >= 3) {
+                        tone = '他的声音比之前轻了一些。你注意到他的手指正在轻轻地、一下一下地敲着膝盖——像是在数什么东西。';
+                    } else if (visitedCount >= 2) {
+                        tone = '他仍然背对着你，但他的声音里多了一丝说不清道不明的东西——像是期待，又像是等待。';
+                    } else {
+                        tone = '他说话的时候仍然没有转身。你只能看到他的背影，像一尊不会移动的石像。';
+                    }
+
+                    // 如果有部分碎片已收集，玄清的反应会更强烈
+                    var fragmentComment = '';
+                    if (hasAllFragments && visitedCount >= 3) {
+                        fragmentComment = '你找到的东西比我想象中要多。你正在拼凑一些我并不希望被拼凑出来的东西。';
+                    } else if (hasPiece1 || hasPiece3 || hasPiece4 || hasPiece5 || hasPiece6) {
+                        fragmentComment = '你从那些地方带走了一些东西。你知道那些东西是什么吗？还是说，你只是觉得它们有趣？';
+                    }
+
+                    xuanqingText = `
+            你再次走进大殿。玄清仍然坐在蒲团上，背对着你。
+            但他似乎知道你已经走了不少地方。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📌 你已经探索了：${descText}</span>
+            ${missing.length > 0 ? `<span style="color:var(--text-muted);font-size:0.85rem;">📌 还未探索：${missingText}</span>` : ''}
+            <span class="divider">· · ·</span>
+            ${tone}
+            <span class="rule-text" style="color:#d4b87a;">「${commentText}」</span>
+            ${fragmentComment ? `<span class="rule-text" style="color:#d4b87a;">「${fragmentComment}」</span>` : ''}
+            ${hasAllPlaces && !hasAllFragments ? `<span style="color:#d4b87a;">💡 你已经走遍了所有地方，但有些东西你还没有找到。再仔细看看。</span>` : ''}
+            ${hasAllFragments && visitedCount >= 3 ? `<span style="color:#6a8aaa;">📌 你已经找到了很多碎片。玄清似乎察觉到了什么。</span>` : ''}
+        `;
+
+                    // ---- 构建选项 ----
+                    // 1. 继续对话（如果还有未探索的区域，玄清会给出提示）
+                    if (visitedCount < 4 && !fullStoryTold) {
+                        var hintText = '';
+                        if (missing.length > 0) {
+                            hintText = '你还没有去过 ' + missingText + '。先去看看，再回来。';
+                        } else {
+                            hintText = '你已经去过所有地方了。还有什么想问的吗？';
+                        }
+                        dialogOptions.push({
+                            label: '🗣️ 「你还有什么想说的吗？」',
+                            hint: hintText,
+                            tag: visitedCount < 4 ? '💬 继续' : '💬 追问',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                // 如果还有未探索区域，给出提示后返回探索
+                                if (visitedCount < 4 && missing.length > 0) {
+                                    setStory(`
+                            <span class="title-line">🗣️ 玄清的提醒</span>
+                            <span class="divider">—— —— ——</span>
+                            你问：「你还有什么想说的吗？」
+                            他沉默了一会儿：
+                            <span class="rule-text" style="color:#d4b87a;">「你还没有去看完。等你全都看过了，再回来找我。那时候……我会告诉你一些事情。」</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他还差一个地方——${missingText}。</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">📌 先去探索 ${missingText}，再回来找他。</span>
+                        `);
+                                    renderOptions([{
+                                        label: '🔙 离开大殿，继续探索',
+                                        action: function () {
+                                            if (state.gameOver || state._waitingConfirm) return;
+                                            renderCh3Exploration();
+                                        }
+                                    }]);
+                                } else {
+                                    // 所有区域都去过但还没集齐所有碎片
+                                    setStory(`
+                            <span class="title-line">🗣️ 玄清的沉默</span>
+                            <span class="divider">—— —— ——</span>
+                            你问：「你还有什么想说的吗？」
+                            他沉默了很久。久到你以为他不会回答了。
+                            然后他说：
+                            <span class="rule-text" style="color:#d4b87a;">「你已经走遍了这座道观的所有地方。但你还没有看完所有该看的东西。」</span>
+                            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还需要更仔细地检查每个角落。</span>
+                        `);
+                                    renderOptions([{
+                                        label: '🔙 离开大殿，继续寻找',
+                                        action: function () {
+                                            if (state.gameOver || state._waitingConfirm) return;
+                                            renderCh3Exploration();
+                                        }
+                                    }]);
+                                }
+                            }
+                        });
+                    }
+
+                    // 2. 香火互动（如果持有香火且未使用）
+                    if (hasIncense && !incenseUsed) {
+                        dialogOptions.push({
+                            label: '🕯️ 将香插在身侧香炉',
+                            hint: '香烟升起来，玄清停了下来',
+                            tag: '🕯️ 消耗1根香，解锁一段自述',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                if (state.ch2.incenseRemaining < 1) {
+                                    showStory('⚠️ 你没有香火了。');
+                                    return;
+                                }
+                                state.ch2.incenseRemaining--;
+                                state.ch3.incenseUsed.mainHall = true;
+                                // 解锁一段玄清自述
+                                if (!fullStoryTold) {
+                                    state.ch3.npc.xuanqing.dialogRound = Math.max(
+                                        (state.ch3.npc.xuanqing.dialogRound || 0),
+                                        Math.min(visitedCount + 1, 4)
+                                    );
+                                }
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你点燃了一根香，插在玄清身侧的香炉里。
+                        香烟袅袅升起，玄清的声音停了下来。
+                        他沉默了很久，然后说：
+                        <span class="rule-text" style="color:#d4b87a;">「你点的香，比他们点的都轻。你是在听我说话，不是在供奉我。」</span>
+                        <span style="color:#6a8aaa;">📌 你获得了一段特殊的自述。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火-1（剩余：${state.ch2.incenseRemaining}/3）</span>
+                    `);
+                                // 如果已经探索了足够多的地方，触发更多内容
+                                if (visitedCount >= 3) {
+                                    showStory(`
+                            <span style="color:#d4b87a;">他继续说：</span>
+                            <span class="rule-text" style="color:#d4b87a;">「你看到的东西，比我以为你看到的要多。也许……你真的应该知道一些事情了。」</span>
+                        `);
+                                }
+                                updateUI();
+                                renderOptions([{
+                                    label: '🔙 继续大殿对话',
+                                    action: function () {
+                                        if (state.gameOver || state._waitingConfirm) return;
+                                        renderCh3MainHall(false);
+                                    }
+                                }]);
+                            }
+                        });
+                    }
+
+                    // 3. 直接离开
+                    dialogOptions.push({
+                        label: '🚶 离开大殿',
+                        hint: '你还需要更多线索',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Exploration();
+                        }
+                    });
+
+                    setStory(xuanqingText);
+                    renderOptions(dialogOptions);
+                    updateUI();
+                    return;
+                }
+
+                // ---- 情况3：所有区域已探索 + 所有碎片已收集（最终真相） ----
+                if (allExplored && !fullStoryTold) {
+                    // 检查是否集齐全部6个碎片
+                    var hasAllFragmentsFinal = hasPiece1 && hasPiece2 && hasPiece3 && hasPiece4 && hasPiece5 && hasPiece6;
+
+                    if (!hasAllFragmentsFinal) {
+                        // 所有区域都去了，但碎片不全
+                        var missingFragments = [];
+                        if (!hasPiece1) missingFragments.push('前院');
+                        if (!hasPiece2) missingFragments.push('大殿');
+                        if (!hasPiece3) missingFragments.push('藏经阁');
+                        if (!hasPiece4) missingFragments.push('丹房');
+                        if (!hasPiece5 || !hasPiece6) missingFragments.push('后院');
+
+                        xuanqingText = `
+                你走遍了道观的每一个角落。但有些东西你还没有找到。
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">📌 你还需要在 ${missingFragments.join('、')} 仔细搜查。</span>
+                <span class="rule-text" style="color:#d4b87a;">「你离答案很近了。再仔细看看那些你走过的地方。有些东西……不是一眼就能看全的。」</span>
+            `;
+                        dialogOptions.push({
+                            label: '🔙 离开大殿，继续搜索',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderCh3Exploration();
+                            }
+                        });
+                        setStory(xuanqingText);
+                        renderOptions(dialogOptions);
+                        updateUI();
+                        return;
+                    }
+
+                    // ---- 全部完成！触发最终真相 ----
+                    state.ch3.npc.xuanqing.hasHeardFullStory = true;
+
+                    xuanqingText = `
+            你再次走进大殿。这一次，玄清没有坐在蒲团上。
+            他站在神像前面，背对着你。他听到你进来了，但没有转身。
+            <span class="divider">· · ·</span>
+            他开口了。声音比之前轻，但你听得很清楚：
+            <span class="rule-text" style="color:#d4b87a;">「你全都看过了。前院、藏经阁、丹房、后院——你一个都没有落下。你看到了门锁上的痕迹、书架上那本旧日记、丹炉底下的灰烬、井壁上的刻痕、还有那个被锁着的孩子。」</span>
+            他停顿了一下。
+            <span class="rule-text" style="color:#d4b87a;">「你一直在找答案。但我告诉你——答案不会让你更轻松。」</span>
+            他转过身来。你第一次看清了他的脸。那张脸比你想象中年轻，但眼睛里有太多东西——像一口深井，你看不到底。
+            <span class="rule-text" style="color:#d4b87a;">「这座道观是我建的。每一块砖、每一根柱子、每一扇门——都是我亲手放上去的。我把它建在龙脉上，是为了镇住地底的东西。我以为自己可以控制它。我以为自己足够强。」</span>
+            他的声音开始变轻。
+            <span class="rule-text" style="color:#d4b87a;">「我没有。它从地底渗上来了。穿过石缝、穿过砖墙、穿过人的身体。它变成了那些笑声、那些哭声、那些刻在井壁上的名字。我试着治——我开了药方，我收了徒弟，我把那些被侵蚀的人关在后院的小屋里。我没有治好他们。我只是……把他们放得远了一些。」</span>
+            ${hasDarkStele ? `
+                <span style="color:#d45a5a;">你想起暗碑上的话——他说的话和碑上写的不完全一样。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">你感到困惑。暗碑说他在猎龙，他说他在镇龙。谁说的是真的？还是说，两件事都是真的？</span>
+            ` : ''}
+            <span class="divider">· · ·</span>
+            <span class="rule-text" style="color:#d4b87a;">「你想知道的，我都告诉你了。剩下的路——你得自己走了。」</span>
+            <span style="color:#6a8aaa;">📌 你听到了玄清的完整自述。</span>
+            <span style="color:var(--text-gold);">🔓 所有行动线已解锁。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 现在你可以去选择一条路了。</span>
+        `;
+
+                    // 自动解锁所有行动线
+                    state.ch3.actionLines.assassination.unlocked = true;
+                    state.ch3.actionLines.dragonSlayer.unlocked = true;
+                    state.ch3.actionLines.dragonRider.unlocked = true;
+
+                    dialogOptions.push({
+                        label: '🗺️ 查看行动线',
+                        hint: '三条路，三个结局',
+                        tag: '⭐ 选择你的路',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3AllExplored();
+                        }
+                    });
+                    dialogOptions.push({
+                        label: '🔙 离开大殿',
+                        hint: '你还需要时间消化这一切',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Exploration();
+                        }
+                    });
+
+                    setStory(xuanqingText);
+                    renderOptions(dialogOptions);
+                    updateUI();
+                    return;
+                }
+
+                // ---- 情况4：玄清已经讲完了完整故事 ----
+                if (fullStoryTold) {
+                    xuanqingText = `
+            你再次走进大殿。玄清坐在蒲团上，闭着眼睛，像是在打坐。
+            你知道他已经把该说的都说了。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">他已经没有什么可以告诉你了。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你已经在道观里看到了全部真相。剩下的路，要你自己走了。</span>
+            <span style="color:#d4b87a;">💡 三条行动线已经解锁。你可以选择你的道路了。</span>
+        `;
+                    dialogOptions.push({
+                        label: '🗺️ 查看行动线',
+                        hint: '三条路，三个结局',
+                        tag: '⭐ 选择你的路',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3AllExplored();
+                        }
+                    });
+                    dialogOptions.push({
+                        label: '🔙 离开大殿',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3Exploration();
+                        }
+                    });
+                    setStory(xuanqingText);
+                    renderOptions(dialogOptions);
+                    updateUI();
+                    return;
+                }
+
+                // ---- 兜底：出现意外情况时的默认处理 ----
+                setStory(`
+        <span class="title-line">🏛️ 大殿</span>
+        <span class="divider">—— —— ——</span>
+        你站在大殿里，玄清背对着你，没有开口。
+        你知道有些事情不太对劲——但你不确定是什么。
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 也许你应该去探索道观的其他地方，看看还有什么线索。</span>
+    `);
+                renderOptions([{
+                    label: '🔙 离开大殿',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                }]);
+                updateUI();
+            }
+            // ================================================================
+            //  藏经阁
+            // ================================================================
+
+            function renderCh3Library(isFirstVisit) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var visitCount = state.ch3.areaVisitCount.library || 0;
+                var qingyuanTrust = state.ch3.npc.qingyuan.trustLevel || 0;
+                var hasMetQingyuan = state.ch3.npc.qingyuan.hasMet || false;
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var incenseUsed = state.ch3.incenseUsed.library || false;
+
+                var storyText = `
+        <span class="title-line">📚 藏经阁</span>
+        <span class="divider">—— —— ——</span>
+        你推开藏经阁的门，一股陈年的纸墨气味扑面而来。
+        书架从地板一直顶到天花板，上面堆满了线装书和卷轴。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 第${visitCount}次来到藏经阁</span>
+        ${isFirstVisit ? '<span style="color:#6ab06a;">✅ 首次探索完成（钟声+1）</span>' : ''}
+    `;
+
+                // ---- 清远出现 ----
+                if (!hasMetQingyuan) {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            书架后面有一个人影。你走近了，看到一个年轻的道士正在翻书。
+            他抬头看了你一眼——然后他的表情变了。
+            <span class="rule-text" style="color:#d4b87a;">「是你……你来了。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 这就是清远。你认出了他。</span>
+            ${qingyuanTrust >= 2 ? '<span style="color:#6ab06a;">💚 清远信任：' + qingyuanTrust + '/3 — 他看起来很信任你。</span>' : ''}
+            ${qingyuanTrust < 2 ? '<span style="color:#d4b87a;">💚 清远信任：' + qingyuanTrust + '/3 — 他还有些犹豫。</span>' : ''}
+        `;
+                    state.ch3.npc.qingyuan.hasMet = true;
+                } else {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            清远还在那里，看到你进来，他合上了书。
+            <span class="rule-text" style="color:#d4b87a;">「你又来了。你在找什么？」</span>
+            ${qingyuanTrust >= 2 ? '<span style="color:#6ab06a;">💚 他愿意帮助你。</span>' : ''}
+        `;
+                }
+
+                setStory(storyText);
+
+                var opts = [];
+
+                // ---- 与清远对话 ----
+                opts.push({
+                    label: '🗣️ 与清远说话',
+                    hint: qingyuanTrust >= 2 ? '他愿意帮你' : '他还有些保留',
+                    tag: qingyuanTrust >= 2 ? '💚 信任' : '💬 对话',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3QingyuanTalk();
+                    }
+                });
+
+                // ---- 翻阅旧日记 ----
+                if (!state.ch3.fragments.piece3) {
+                    opts.push({
+                        label: '📖 翻阅旧日记',
+                        hint: '书架第三层有一本泛黄的册子',
+                        tag: '🧩 线索碎片',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.fragments.piece3 = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你从书架上抽出一本旧日记，封面上写着「癸未年·道观记事」。
+                    你翻开它，里面记载着：
+                    <span class="rule-text" style="color:#d4b87a;">「每年重阳，献童一人。至今已有四十七人。」</span>
+                    <span style="color:#6a8aaa;">📌 你看到了记录：每年一人，从未间断。</span>
+                    <span style="color:#d4b87a;">🧩 线索碎片 +1（3/6）</span>
+                    <span style="color:#aa4a4a;">⚠️ 心理压力 +1</span>
+                `);
+                            state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索藏经阁',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3Library(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 寻找旧刀 ----
+                if (!state.ch3.items.oldDagger) {
+                    opts.push({
+                        label: '🔍 搜查书架底层',
+                        hint: '角落里有个旧木匣',
+                        tag: '🗡️ 道具',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.items.oldDagger = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你在书架底层发现了一个旧木匣，打开来，里面是一把锈迹斑斑的短刀。
+                    刀柄上刻着一行小字：
+                    <span class="rule-text" style="color:#d4b87a;">「若有人用它刺穿龙心，龙气自散。」</span>
+                    <span style="color:#6a8aaa;">📌 你获得了「旧刀」。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 这可能是刺杀线的武器。</span>
+                `);
+                            // 解锁刺杀线条件之一
+                            state.ch3.actionLines.assassination.unlocked = true;
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索藏经阁',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3Library(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 香火使用：递给清远 ----
+                if (hasIncense && !incenseUsed && hasMetQingyuan) {
+                    opts.push({
+                        label: '🕯️ 递给清远一根点燃的香',
+                        hint: '他接过香，眼神变了',
+                        tag: '🕯️ 消耗1根香，信任+1',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.incenseRemaining < 1) {
+                                showStory('⚠️ 你没有香火了。');
+                                return;
+                            }
+                            state.ch2.incenseRemaining--;
+                            state.ch3.incenseUsed.library = true;
+                            state.ch3.npc.qingyuan.trustLevel = Math.min((state.ch3.npc.qingyuan.trustLevel || 0) + 1, 3);
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你递出一根点燃的香，清远愣了一下，然后接了过去。
+                    他低头看着香头燃烧，沉默了很久。
+                    <span class="rule-text" style="color:#d4b87a;">「你……你是真的在相信我。」</span>
+                    <span style="color:#6a8aaa;">💚 清远信任 +1（当前：${state.ch3.npc.qingyuan.trustLevel}/3）</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火-1（剩余：${state.ch2.incenseRemaining}/3）</span>
+                    ${state.ch3.npc.qingyuan.trustLevel >= 2 ? '<span style="color:#6ab06a;">✅ 清远已经完全信任你了！</span>' : ''}
+                `);
+                            // 如果信任达到2，刺杀线解锁条件之一
+                            if (state.ch3.npc.qingyuan.trustLevel >= 2) {
+                                state.ch3.actionLines.assassination.unlocked = true;
+                            }
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索藏经阁',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3Library(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 离开藏经阁 ----
+                opts.push({
+                    label: '🔙 回到庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  清远对话
+            // ================================================================
+
+            function renderCh3QingyuanTalk() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var trust = state.ch3.npc.qingyuan.trustLevel || 0;
+
+                var trustText = '';
+                var trustColor = 'var(--text-muted)';
+                if (trust === 0) { trustText = '❄️ 冷漠 — 他不信任你'; trustColor = 'var(--text-muted)'; }
+                else if (trust === 1) { trustText = '🤝 客气 — 他愿意和你说话'; trustColor = '#d4b87a'; }
+                else if (trust === 2) { trustText = '💬 信任 — 他愿意帮你'; trustColor = '#6ab06a'; }
+                else if (trust >= 3) { trustText = '❤️ 信赖 — 他愿意为你冒险'; trustColor = '#ff6b6b'; }
+
+                setStory(`
+        <span class="title-line">🗣️ 清远</span>
+        <span class="divider">—— —— ——</span>
+        清远放下书，认真地看着你。
+        <span class="divider">· · ·</span>
+        ${trust === 0 ? `
+            <span class="rule-text" style="color:#d4b87a;">「你来了。但我不确定你来了是想走，还是想留。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他还不信任你。你需要赢得他的信任。</span>
+        ` : trust === 1 ? `
+            <span class="rule-text" style="color:#d4b87a;">「你上次说的话，我想了很久。你说你是来听故事的人。」</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 他愿意和你说更多了。</span>
+        ` : trust === 2 ? `
+            <span class="rule-text" style="color:#d4b87a;">「我一直在等你。如果你想做什么——我帮你。」</span>
+            <span style="color:#6a8aaa;">💡 他愿意协助你。</span>
+        ` : `
+            <span class="rule-text" style="color:#d4b87a;">「你来了。我跟你走。」</span>
+            <span style="color:#6a8aaa;">💡 他完全信任你，愿意为你冒险。</span>
+        `}
+        <span class="divider">· · ·</span>
+        <span style="color:${trustColor};">💚 ${trustText}</span>
+        ${trust >= 2 ? '<span style="color:#6ab06a;">✅ 刺杀线前置条件已满足（清远信任≥2）</span>' : ''}
+    `);
+
+                var opts = [];
+
+                // ---- 根据信任度提供不同互动 ----
+                if (trust >= 2) {
+                    opts.push({
+                        label: '🗡️ 「我需要你帮我开门。」',
+                        hint: '你直视他的眼睛',
+                        tag: '⭐ 刺杀线',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            // 标记刺杀线解锁
+                            state.ch3.actionLines.assassination.unlocked = true;
+                            state.ch3.actionLines.assassination.steps.doorOpened = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    清远点了点头，没有问为什么。
+                    <span class="rule-text" style="color:#d4b87a;">「好。我帮你。什么时候？」</span>
+                    <span style="color:#6a8aaa;">📌 清远同意帮你开门。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 刺杀线的准备工作已经完成。</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续对话',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3QingyuanTalk();
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 询问纯阳体（信任≥1） ----
+                if (trust >= 1) {
+                    opts.push({
+                        label: '❓ 「纯阳体到底是什么？」',
+                        hint: '你直视他的眼睛',
+                        tag: '📖 信息',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    清远低下头，声音几乎听不见：
+                    <span class="rule-text" style="color:#d4b87a;">「纯阳体就是……没有被龙气污染过的灵魂。先生需要它们来维持自己的阳原。每年一个，从来不够。」</span>
+                    <span style="color:#6a8aaa;">📌 你了解了纯阳体的真相。</span>
+                    ${!state.ch3.fragments.piece4 ? '<span style="color:#d4b87a;">🧩 线索碎片 +1（4/6）</span>' : ''}
+                `);
+                            if (!state.ch3.fragments.piece4) {
+                                state.ch3.fragments.piece4 = true;
+                            }
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续对话',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3QingyuanTalk();
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 询问玄清 ----
+                if (trust >= 2) {
+                    opts.push({
+                        label: '❓ 「你知道玄清做了什么吗？」',
+                        hint: '你压低声音',
+                        tag: '📖 信息',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    清远沉默了很久，然后说：
+                    <span class="rule-text" style="color:#d4b87a;">「我知道。我一直在看着。但我不知道该怎么办。」</span>
+                    <span style="color:#6a8aaa;">📌 清远承认他知道玄清的罪行。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 他的立场和你相似。</span>
+                `);
+                            // 心理压力-1（有人理解你）
+                            state.ch3.pressure = Math.max((state.ch3.pressure || 0) - 1, 0);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续对话',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3QingyuanTalk();
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 离开 ----
+                opts.push({
+                    label: '🔙 回到藏经阁',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Library(false);
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+            // ================================================================
+            //  丹房
+            // ================================================================
+
+            function renderCh3AlchemyRoom(isFirstVisit) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var visitCount = state.ch3.areaVisitCount.alchemyRoom || 0;
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var incenseUsed = state.ch3.incenseUsed.alchemyRoom || false;
+
+                var storyText = `
+        <span class="title-line">🔥 丹房</span>
+        <span class="divider">—— —— ——</span>
+        你推开门，一股灼热的气息扑面而来。
+        丹房里有一尊巨大的铜炉，炉身刻满了符文，炉膛里还有余烬在发红。
+        墙上挂着各种草药和工具，桌面上散落着药方残页。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 第${visitCount}次来到丹房</span>
+        ${isFirstVisit ? '<span style="color:#6ab06a;">✅ 首次探索完成（钟声+1）</span>' : ''}
+    `;
+
+                setStory(storyText);
+
+                var opts = [];
+
+                // ---- 检查丹炉（获取龙鳞余烬） ----
+                if (!state.ch3.items.dragonScaleAsh) {
+                    opts.push({
+                        label: '🔍 检查丹炉',
+                        hint: '炉膛里还有余烬',
+                        tag: '🔥 道具',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.items.dragonScaleAsh = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你凑近丹炉，炉膛里还有一些暗红色的余烬。
+                    你拨开灰烬，发现底部有一些细碎的鳞片状残渣——像是龙鳞烧剩的。
+                    <span style="color:#6a8aaa;">📌 你获得了「龙鳞余烬」。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 这可能是屠龙线的火种，也是驭龙线的材料。</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索丹房',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AlchemyRoom(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 翻找药方残篇 ----
+                if (!state.ch3.items.recipePaper) {
+                    opts.push({
+                        label: '📄 翻找桌面上的药方',
+                        hint: '纸张已经发黄了',
+                        tag: '🧪 道具',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.items.recipePaper = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你翻动桌面上的药方残页，其中一张引起了你的注意：
+                    <span class="rule-text" style="color:#d4b87a;">「龙气可引，不可灭。以火炼之，以血引之，以魂镇之。」</span>
+                    <span style="color:#6a8aaa;">📌 你获得了「旧药方残篇」。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 这可能是驭龙线的配方。</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索丹房',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AlchemyRoom(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 检查炉灰（线索碎片） ----
+                if (!state.ch3.fragments.piece4) {
+                    opts.push({
+                        label: '🔍 检查炉灰',
+                        hint: '灰烬里有东西',
+                        tag: '🧩 线索碎片',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.fragments.piece4 = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你拨开炉灰，在底部发现了一片烧焦的纸角。
+                    上面写着几个字：
+                    <span class="rule-text" style="color:#d4b87a;">「……癸未年献童一人，其母哭于门外，三日不绝……」</span>
+                    <span style="color:#6a8aaa;">📌 你看到了药方残篇：龙气可引，不可灭。</span>
+                    <span style="color:#d4b87a;">🧩 线索碎片 +1（4/6）</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索丹房',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AlchemyRoom(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 香火使用：投入炉膛 ----
+                if (hasIncense && !incenseUsed) {
+                    opts.push({
+                        label: '🕯️ 将香投入炉膛',
+                        hint: '火焰猛地窜高了一下',
+                        tag: '🕯️ 消耗1根香，炉火认主',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.incenseRemaining < 1) {
+                                showStory('⚠️ 你没有香火了。');
+                                return;
+                            }
+                            state.ch2.incenseRemaining--;
+                            state.ch3.incenseUsed.alchemyRoom = true;
+                            state.ch3.items.furnaceAsh = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你将一根香投入炉膛，火焰猛地窜高了一下，然后归于平静。
+                    但你注意到——炉膛里的火，颜色变了。
+                    它不再是红色，而是带了一丝暗金色。
+                    <span class="rule-text" style="color:#d4b87a;">「炉火认主了。」</span>
+                    <span style="color:#6a8aaa;">📌 你获得了「炉火认主」状态。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 现在你可以尝试炼制物品了。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火-1（剩余：${state.ch2.incenseRemaining}/3）</span>
+                `);
+                            // 驭龙线条件之一
+                            state.ch3.actionLines.dragonRider.unlocked = true;
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索丹房',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AlchemyRoom(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 离开丹房 ----
+                opts.push({
+                    label: '🔙 回到庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+            // ================================================================
+            //  后院
+            // ================================================================
+
+            function renderCh3BackYard(isFirstVisit) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var visitCount = state.ch3.areaVisitCount.backYard || 0;
+                var hasIncense = state.ch2.incenseRemaining > 0;
+                var incenseUsed = state.ch3.incenseUsed.backYard || false;
+                var hasSeenChild = state.ch3._hasSeenChild || false;
+                var hasClayShard = state.ch3.items.clayShard || false;
+
+                var storyText = `
+        <span class="title-line">🌳 后院</span>
+        <span class="divider">—— —— ——</span>
+        后院比前院小得多，但阴气更重。
+        一口枯井立在院子中央，井口长满了青苔。
+        角落有一间上锁的小屋，门缝里透出微弱的光。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📌 第${visitCount}次来到后院</span>
+        ${isFirstVisit ? '<span style="color:#6ab06a;">✅ 首次探索完成（钟声+1）</span>' : ''}
+        ${hasSeenChild ? '<span style="color:#aa4a4a;">😰 你记得小屋里的孩子。</span>' : ''}
+    `;
+
+                // ---- 枯井（查看井壁刻痕） ----
+                if (!state.ch3.fragments.piece5) {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">🕳️ 枯井：井壁上似乎有刻痕。</span>
+        `;
+                } else {
+                    storyText += `
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">✅ 井壁刻痕已查看（共47条）。</span>
+        `;
+                }
+
+                setStory(storyText);
+
+                var opts = [];
+
+                // ---- 查看枯井 ----
+                opts.push({
+                    label: '🕳️ 查看枯井',
+                    hint: '井口有绳子，可以下去',
+                    tag: hasIncense && !incenseUsed ? '🕯️ 持香下井' : '🔍 查看',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Well(hasIncense);
+                    }
+                });
+
+                // ---- 上锁小屋 ----
+                opts.push({
+                    label: '🏚️ 查看上锁小屋',
+                    hint: '门缝里有光',
+                    tag: hasSeenChild ? '😰 已看过' : '🔍 查看',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3ChildHut();
+                    }
+                });
+
+                // ---- 井底旧陶片（驭龙线材料） ----
+                if (!hasClayShard && state.ch3.fragments.piece5) {
+                    opts.push({
+                        label: '🔍 在井边搜寻',
+                        hint: '似乎有什么东西埋在土里',
+                        tag: '🧱 道具',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.items.clayShard = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你在井边的泥土里翻找，手指触到了一块硬物。
+                    你挖出来一看——是一块巴掌大的旧陶片，边缘有烧过的痕迹。
+                    <span style="color:#6a8aaa;">📌 你获得了「旧陶片」。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 这可能是驭龙线的材料。</span>
+                `);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 继续探索后院',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3BackYard(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 离开后院 ----
+                opts.push({
+                    label: '🔙 回到庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  枯井
+            // ================================================================
+
+            function renderCh3Well(hasIncense) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var incenseUsed = state.ch3.incenseUsed.backYard || false;
+
+                setStory(`
+        <span class="title-line">🕳️ 枯井</span>
+        <span class="divider">—— —— ——</span>
+        你站在井口往下看——井很深，底部有积水，反射着微弱的光。
+        井壁上有密密麻麻的刻痕，像是用指甲划出来的。
+        <span class="divider">· · ·</span>
+        ${hasIncense && !incenseUsed ? `
+            <span style="color:#d4b87a;">💡 你有一根香。如果你持香下井，或许能看清那些刻痕。</span>
+        ` : incenseUsed ? `
+            <span style="color:var(--text-muted);font-size:0.85rem;">✅ 你已经持香下过井了，看清了所有刻痕。</span>
+        ` : `
+            <span style="color:#aa4a4a;">⚠️ 你没有香火，下井会什么都看不清。</span>
+        `}
+    `);
+
+                var opts = [];
+
+                // ---- 持香下井 ----
+                if (hasIncense && !incenseUsed) {
+                    opts.push({
+                        label: '🕯️ 持香下井',
+                        hint: '你点燃香，顺着绳子下去',
+                        tag: '🕯️ 消耗1根香',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch2.incenseRemaining < 1) {
+                                showStory('⚠️ 你没有香火了。');
+                                return;
+                            }
+                            state.ch2.incenseRemaining--;
+                            state.ch3.incenseUsed.backYard = true;
+                            state.ch3.fragments.piece5 = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你点燃香，顺着绳子下到井底。
+                    香火在黑暗中摇曳，照亮了井壁上的刻痕——
+                    你数了数，一共四十七道。每一道都代表一个被献祭的孩子。
+                    <span style="color:#6a8aaa;">📌 你看到了全部刻痕（共47条）。</span>
+                    <span style="color:#d4b87a;">🧩 线索碎片 +1（5/6）</span>
+                    <span style="color:#aa4a4a;">⚠️ 心理压力 +1</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 香火-1（剩余：${state.ch2.incenseRemaining}/3）</span>
+                `);
+                            state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+                            updateUI();
+                            renderOptions([{
+                                label: '🔙 回到井上',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3BackYard(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 直接下井（无香） ----
+                if (!incenseUsed && state.ch3.fragments.piece5) {
+                    opts.push({
+                        label: '⬇️ 直接下井',
+                        hint: '你摸着黑下去',
+                        tag: '⚠️ 看不清',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你顺着绳子下到井底，但黑暗中你什么都看不清。
+                    你只能用手触摸井壁——那些刻痕很深，你数不过来，但你知道它们很多。
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 你只知道「很多」，但看不清具体数字。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 如果你有香火，就能看清全部刻痕。</span>
+                `);
+                            renderOptions([{
+                                label: '🔙 回到井上',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3BackYard(false);
+                                }
+                            }]);
+                        }
+                    });
+                }
+
+                // ---- 回到后院 ----
+                opts.push({
+                    label: '🔙 回到后院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3BackYard(false);
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  小屋里的孩子
+            // ================================================================
+
+            function renderCh3ChildHut() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var hasSeen = state.ch3._hasSeenChild || false;
+
+                if (hasSeen) {
+                    setStory(`
+            <span class="title-line">🏚️ 上锁小屋</span>
+            <span class="divider">—— —— ——</span>
+            你再次来到小屋门前。门还是锁着，但你记得那个孩子的眼神。
+            <span style="color:var(--text-muted);font-size:0.85rem;">你已经见过他了。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 如果你有钥匙，就能打开这扇门。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 钥匙可能藏在道观的某个角落里。</span>
+        `);
+                    renderOptions([{
+                        label: '🔙 回到后院',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            renderCh3BackYard(false);
+                        }
+                    }]);
+                    return;
+                }
+
+                setStory(`
+        <span class="title-line">🏚️ 上锁小屋</span>
+        <span class="divider">—— —— ——</span>
+        你走到小屋门前，门缝里透出昏黄的光。
+        你透过门缝往里看——
+        一个孩子坐在墙角，抱着膝盖，低着头。
+        他的手腕上有淤青，脚踝上锁着铁链。
+        <span class="divider">· · ·</span>
+        他抬起头，看着你。
+        那双眼睛里没有光——什么都没有。
+        但就在那一瞬间，你看到他做了一个口型：
+        <span class="rule-text" style="color:#d4b87a;">「……走……」</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#aa4a4a;">😰 你看到了被锁着的孩子。</span>
+        <span style="color:#aa4a4a;">⚠️ 心理压力 +1</span>
+        <span style="color:#d4b87a;">🧩 线索碎片 +1（6/6）</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你已经集齐了全部6条线索碎片！</span>
+    `);
+
+                state.ch3._hasSeenChild = true;
+                state.ch3.fragments.piece6 = true;
+                state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+
+                // 解锁刺杀线条件之一
+                state.ch3.actionLines.assassination.unlocked = true;
+
+                // 检查是否集齐所有碎片
+                var allFragments = state.ch3.fragments.piece1 && state.ch3.fragments.piece2 &&
+                    state.ch3.fragments.piece3 && state.ch3.fragments.piece4 &&
+                    state.ch3.fragments.piece5 && state.ch3.fragments.piece6;
+
+                if (allFragments) {
+                    showStory(`
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-gold);font-weight:700;">🎉 你集齐了全部6条线索碎片！</span>
+            <span style="color:#d4b87a;">💡 所有行动线的条件都已解锁。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📌 你现在可以选择一条行动线了。</span>
+        `);
+                }
+
+                updateUI();
+
+                renderOptions([{
+                    label: '🔙 回到后院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3BackYard(false);
+                    }
+                }]);
+            }
+            // ================================================================
+            //  所有区域探索完成
+            // ================================================================
+
+            function renderCh3AllExplored() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var allFragments = state.ch3.fragments.piece1 && state.ch3.fragments.piece2 &&
+                    state.ch3.fragments.piece3 && state.ch3.fragments.piece4 &&
+                    state.ch3.fragments.piece5 && state.ch3.fragments.piece6;
+
+                setStory(`
+        <span class="title-line">✅ 道观探索完成</span>
+        <span class="divider">—— —— ——</span>
+        你已经走遍了锁龙观的每一个角落。
+        前院、大殿、藏经阁、丹房、后院——你都去过了。
+        你看到了老道士、玄清、清远、还有那个被锁着的孩子。
+        <span class="divider">· · ·</span>
+        ${allFragments ? `
+            <span style="color:#6ab06a;">🧩 你集齐了全部6条线索碎片！</span>
+            <span style="color:var(--text-gold);">🔓 所有行动线已解锁。</span>
+        ` : `
+            <span style="color:#d4b87a;">🧩 你已收集 ${countFragments()}/6 条线索碎片。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 继续探索以集齐所有碎片。</span>
+        `}
+        <span class="divider">· · ·</span>
+        <span style="color:#d45a5a;">⚠️ 钟声已敲响 ${state.ch3.bellTolls || 0} 次。</span>
+        <span style="color:#d4b87a;">💡 是时候做出你的选择了。</span>
+    `);
+
+                var opts = [];
+
+                // ---- 选择行动线 ----
+                var canAssassinate = state.ch3.actionLines.assassination.unlocked &&
+                    state.ch3.npc.qingyuan.trustLevel >= 2 &&
+                    state.ch3.items.oldDagger &&
+                    state.ch3._hasSeenChild;
+
+                var canSlayDragon = state.ch3.items.mapFragment &&
+                    state.ch3.fragments.piece5 &&
+                    state.ch3.npc.oldTaoist.talkedCount >= 3 &&
+                    state.ch3.items.dragonScaleAsh;
+
+                var canRideDragon = state.ch3.items.recipePaper &&
+                    state.ch3.items.furnaceAsh &&
+                    state.ch3.items.clayShard &&
+                    state.ch3.npc.xuanqing.hasHeardFullStory;
+
+                // ---- 标记解锁状态 ----
+                if (canAssassinate) {
+                    state.ch3.actionLines.assassination.unlocked = true;
+                }
+                if (canSlayDragon) {
+                    state.ch3.actionLines.dragonSlayer.unlocked = true;
+                }
+                if (canRideDragon) {
+                    state.ch3.actionLines.dragonRider.unlocked = true;
+                }
+
+                // ---- 显示行动线状态 ----
+                var lineStatus = `
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">三条行动线：</span>
+        ${canAssassinate ? '🔥 刺杀道士 ✅ 可执行' : '🔥 刺杀道士 🔒 条件不足'}
+        ${canSlayDragon ? '🐉 屠灭龙神 ✅ 可执行' : '🐉 屠灭龙神 🔒 条件不足'}
+        ${canRideDragon ? '🌀 驾驭龙气 ✅ 可执行' : '🌀 驾驭龙气 🔒 条件不足'}
+    `;
+
+                showStory(storyText + lineStatus);
+
+                // ---- 选项 ----
+                if (canAssassinate) {
+                    opts.push({
+                        label: '🗡️ 刺杀道士线',
+                        hint: '杀死玄清，终结一切',
+                        tag: '⭐ 觉醒者之刃',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'assassination';
+                            state.ch3.phase = 'action_line';
+                            renderCh3AssassinationLine();
+                        }
+                    });
+                }
+
+                if (canSlayDragon) {
+                    opts.push({
+                        label: '🐉 屠灭龙神线',
+                        hint: '封住北岭裂口',
+                        tag: '⭐ 最后一次献祭',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'dragonSlayer';
+                            state.ch3.phase = 'action_line';
+                            renderCh3DragonSlayerLine();
+                        }
+                    });
+                }
+
+                if (canRideDragon) {
+                    opts.push({
+                        label: '🌀 驾驭龙气线',
+                        hint: '炼制龙气薄片',
+                        tag: '⭐ 炼炉之约',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'dragonRider';
+                            state.ch3.phase = 'action_line';
+                            renderCh3DragonRiderLine();
+                        }
+                    });
+                }
+
+                // ---- 如果条件不足，显示提示 ----
+                opts.push({
+                    label: '💭 感受直觉',
+                    hint: '你似乎捕捉到了一些线索……',
+                    tag: '📌 模糊',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Intuition();
+                    }
+                });
+
+
+                // ---- 返回探索 ----
+                opts.push({
+                    label: '🔙 继续探索',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                });
+
+                renderOptions(opts);
+                updateUI();
+            }
+
+            // ================================================================
+            //  统计已收集碎片数量
+            // ================================================================
+
+            function countFragments() {
+                var count = 0;
+                for (var key in state.ch3.fragments) {
+                    if (state.ch3.fragments[key]) count++;
+                }
+                return count;
+            }
+
+            // ================================================================
+            //  第三章 · 模糊直觉（替代行动线状态面板）
+            // ================================================================
+
+            function renderCh3Intuition() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var exploredCount = getExploredCount();
+                var hasSeenChild = state.ch3._hasSeenChild || false;
+                var hasOldDagger = state.ch3.items.oldDagger || false;
+                var hasMapFragment = state.ch3.items.mapFragment || false;
+                var hasRecipePaper = state.ch3.items.recipePaper || false;
+                var hasFurnaceAsh = state.ch3.items.furnaceAsh || false;
+                var hasClayShard = state.ch3.items.clayShard || false;
+                var hasDragonScaleAsh = state.ch3.items.dragonScaleAsh || false;
+                var qingyuanTrust = state.ch3.npc.qingyuan.trustLevel || 0;
+                var xuanqingHeard = state.ch3.npc.xuanqing.hasHeardFullStory || false;
+                var oldTaoistTalked = state.ch3.npc.oldTaoist.talkedCount || 0;
+
+                // 根据收集进度生成模糊叙事
+                var lines = [];
+
+                if (exploredCount === 0) {
+                    lines.push('你站在庭院里，四面都是门。你不知道哪一扇门后面藏着答案。');
+                } else {
+                    if (hasSeenChild) {
+                        lines.push('你看到了那个孩子。他的眼神让你想起了一些你试图遗忘的事情。你觉得自己可能知道该做什么了——但你还不确定自己有没有那个勇气。');
+                    } else {
+                        lines.push('你总觉得后院有什么东西在等你。不是活物，是那种……被遗忘的、还在呼吸的东西。');
+                    }
+
+                    if (hasOldDagger) {
+                        lines.push('你摸到腰间那把旧刀的轮廓。它很沉。你一直没想明白，为什么一把旧刀会让你觉得安心。');
+                    } else {
+                        lines.push('你隐约觉得，有什么重要的东西被藏在了藏经阁的角落里。');
+                    }
+
+                    if (hasMapFragment) {
+                        lines.push('你手里那份北岭的地图边缘已经卷了。你记得老道士说过“绕过第三棵松树”。你还不确定那是什么意思。');
+                    } else {
+                        lines.push('老道士的话还在你耳边回响。他似乎知道些什么，但他每次只说一半。');
+                    }
+
+                    if (hasRecipePaper) {
+                        lines.push('你读过了那张药方残篇。“以火炼之，以血引之，以魂镇之”——你觉得自己可能理解了，又可能完全理解错了。');
+                    }
+
+                    if (hasFurnaceAsh) {
+                        lines.push('丹炉认主了。你记得那个瞬间——火变成暗金色的时候，你觉得那口炉子正在看着你。');
+                    }
+
+                    if (hasClayShard) {
+                        lines.push('井边的陶片很旧。你用手指摩挲它的边缘时，闻到了一股很远的气味。像是烧过的骨头。');
+                    }
+
+                    if (hasDragonScaleAsh) {
+                        lines.push('你手里有龙鳞余烬。你还没有想好该怎么用它。');
+                    }
+
+                    if (qingyuanTrust >= 2) {
+                        lines.push('清远愿意帮你。你记得他点头的时候，眼神里有一种“我早就知道会这样”的东西。');
+                    } else if (qingyuanTrust >= 1) {
+                        lines.push('清远愿意和你说话，但他还在犹豫。你觉得他还需要一些说服。');
+                    } else {
+                        lines.push('清远还没有完全信任你。你觉得自己还需要再做点什么。');
+                    }
+
+                    if (xuanqingHeard) {
+                        lines.push('玄清把该说的都说了。你听到的，和暗碑上写的，在同一个地方交汇了。');
+                    } else {
+                        lines.push('玄清还有很多话没有说。你觉得自己需要在道观里看得更仔细一些。');
+                    }
+
+                    // 根据探索程度添加总体感觉
+                    if (exploredCount >= 4) {
+                        lines.push('你已经走遍了这座道观的每一个角落。你知道自己离某种东西很近了——但你还不确定那东西是出口还是深渊。');
+                    } else if (exploredCount >= 2) {
+                        lines.push('你已经看了不少地方。那些碎片正在慢慢拼成一个形状，但你还不确定那是什么形状。');
+                    }
+                }
+
+                // 随机打乱顺序（让每次查看感觉不同）
+                shuffleArray(lines);
+                var intuitionText = lines.slice(0, 4).join('\n');
+
+                setStory(`
+        <span class="title-line">💭 直觉</span>
+        <span class="divider">—— —— ——</span>
+        你闭上眼睛，深吸一口气。那些零散的感觉、气味、声音，正在你脑中拼凑成一幅模糊的图像……
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.95rem;">${intuitionText}</span>
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.75rem;">你感到自己的手正在微微发抖。不是害怕——是某种更古老的东西。</span>
+    `);
+
+                renderOptions([{
+                    label: '🔙 回到庭院',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                }]);
+            }
+            // ================================================================
+            //  刺杀道士线
+            // ================================================================
+
+            function renderCh3AssassinationLine() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var steps = state.ch3.actionLines.assassination.steps;
+                var completed = state.ch3.actionLines.assassination.completed;
+
+                if (completed) {
+                    renderCh3Ending('assassination');
+                    return;
+                }
+
+                // ---- 步骤1：传信 ----
+                if (!steps.letterSent) {
+                    setStory(`
+            <span class="title-line">🗡️ 刺杀道士 · 第一步：传信</span>
+            <span class="divider">—— —— ——</span>
+            你来到前院廊下，蹲下身，从怀里取出那片银杏叶。
+            你把它放入砖缝中——这是阿芹告诉你的传信方式。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你需要在廊下等待回应。</span>
+        `);
+                    renderOptions([{
+                        label: '📨 放下银杏叶，等待回应',
+                        hint: '你蹲在廊下，假装系鞋带',
+                        tag: '⭐ 传信',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            steps.letterSent = true;
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你放下银杏叶，站起身，假装在廊下休息。
+                    过了一会儿，你回来查看——银杏叶不见了。
+                    取而代之的，是一枚小石子，压着一张纸条：
+                    <span class="rule-text" style="color:#d4b87a;">「北坡已就位。明日此时。」</span>
+                    <span style="color:#6a8aaa;">📌 阿芹回信了。</span>
+                `);
+                            state.ch3.actionLines.assassination.unlocked = true;
+                            updateUI();
+                            renderOptions([{
+                                label: '⏩ 继续',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AssassinationLine();
+                                }
+                            }]);
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 步骤2：开门 ----
+                if (!steps.doorOpened) {
+                    setStory(`
+            <span class="title-line">🗡️ 刺杀道士 · 第二步：开门</span>
+            <span class="divider">—— —— ——</span>
+            你来到藏经阁，清远正在等你。
+            他看到你，点了点头，从袖中取出一根竹片。
+            <span class="rule-text" style="color:#d4b87a;">「门锁我已经看过了。用这个挑开铁栓上的头发，就能拉开。」</span>
+            <span class="divider">· · ·</span>
+            ${state.ch3.npc.qingyuan.trustLevel >= 2 ? `
+                <span style="color:#6a8aaa;">💡 清远主动提出帮你拉铁栓。</span>
+            ` : `
+                <span style="color:#d4b87a;">💡 你需要和清远一起拉铁栓。</span>
+            `}
+        `);
+                    renderOptions([{
+                        label: '🚪 去开门',
+                        hint: '你和清远走向大门',
+                        tag: '⭐ 开门',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            steps.doorOpened = true;
+                            var trustText = state.ch3.npc.qingyuan.trustLevel >= 2 ?
+                                '清远用力一拉，门栓应声而开。' :
+                                '你和清远一起用力，门栓缓缓滑开。';
+                            showStory(`
+                    <span class="divider">· · ·</span>
+                    你走到大门前，用竹片挑开铁栓上的头发。
+                    ${trustText}
+                    大门开了一条缝——冷风从外面灌进来。
+                    <span style="color:#6a8aaa;">📌 大门已打开。</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">💡 阿芹的人已经就位了。</span>
+                `);
+                            // 如果清远信任≥2，标记已协助
+                            if (state.ch3.npc.qingyuan.trustLevel >= 2) {
+                                state.ch3.actionLines.assassination.steps.doorOpened = true;
+                            }
+                            updateUI();
+                            renderOptions([{
+                                label: '⏩ 继续',
+                                action: function () {
+                                    if (state.gameOver || state._waitingConfirm) return;
+                                    renderCh3AssassinationLine();
+                                }
+                            }]);
+                        }
+                    }]);
+                    return;
+                }
+
+                // ---- 步骤3：对峙 ----
+                if (!steps.confronted) {
+                    setStory(`
+            <span class="title-line">🗡️ 刺杀道士 · 第三步：对峙</span>
+            <span class="divider">—— —— ——</span>
+            你握着那把旧刀，走进大殿。
+            玄清仍然坐在蒲团上，背对着你。
+            但他开口了：
+            <span class="rule-text" style="color:#d4b87a;">「你终于来了。我等这一刻很久了。」</span>
+            <span class="divider">· · ·</span>
+            <span style="color:#d45a5a;">⚠️ 你握着刀。阿芹在门外。</span>
+            <span style="color:#d4b87a;">你要怎么做？</span>
+        `);
+                    renderOptions([
+                        {
+                            label: '🗡️ 自己刺下去',
+                            hint: '你握紧刀柄，走向他',
+                            tag: '💀 血祭',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch3.actionLines.assassination.completed = true;
+                                state.ch3.gameCompleted = true;
+                                triggerEnding('BE_BloodSacrifice');
+                            }
+                        },
+                        {
+                            label: '🔪 交给阿芹',
+                            hint: '你退到门边，让出位置',
+                            tag: '💀 共犯',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch3.actionLines.assassination.completed = true;
+                                state.ch3.gameCompleted = true;
+                                triggerEnding('BE_Accomplice');
+                            }
+                        },
+                        {
+                            label: '🖐️ 放下针',
+                            hint: '你松开了手，刀掉在地上',
+                            tag: '💛 留命',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                state.ch3.actionLines.assassination.completed = true;
+                                state.ch3.gameCompleted = true;
+                                triggerEnding('NE_SpareLife');
+                            }
+                        }
+                    ]);
+                    return;
+                }
+            }
+            // ================================================================
+            //  屠灭龙神线
+            // ================================================================
+
+            function renderCh3DragonSlayerLine() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var steps = state.ch3.actionLines.dragonSlayer.steps;
+                var completed = state.ch3.actionLines.dragonSlayer.completed;
+
+                if (completed) {
+                    renderCh3Ending('dragonSlayer');
+                    return;
+                }
+
+                // ---- 步骤1：选择坐裂口的人 ----
+                if (!steps.choseSitter) {
+                    setStory(`
+            <span class="title-line">🐉 屠灭龙神 · 第一步：选择坐裂口的人</span>
+            <span class="divider">—— —— ——</span>
+            你站在北岭的裂口前，风从裂缝里涌上来，带着硫磺和铁锈的气味。
+            裂口需要一个人坐上去才能封住。
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">谁去坐？</span>
+            ${state.flags.hasDragonScale ? '<span style="color:#6a8aaa;">💡 你有龙鳞碎片，可以自己去坐。</span>' : ''}
+            ${state.ch3.npc.qingyuan.trustLevel >= 2 ? '<span style="color:#6a8aaa;">💡 清远信任你，他愿意替你去。</span>' : ''}
+            ${state.ch3.npc.xuanqing.dialogRound >= 4 ? '<span style="color:#d45a5a;">💡 你可以激将玄清——让他去坐。</span>' : ''}
+        `);
+                    var sitterOpts = [];
+
+                    // 自己去坐
+                    if (state.flags.hasDragonScale) {
+                        sitterOpts.push({
+                            label: '🧑 自己坐上去',
+                            hint: '你握紧龙鳞碎片，走向裂口',
+                            tag: '💀 镇龙者',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                steps.choseSitter = true;
+                                state.ch3._sitter = 'self';
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你走向裂口，坐了下去。
+                        风在你耳边呼啸，龙鳞碎片在你手中发烫。
+                        你闭上眼睛，感受着身下的震动慢慢平息……
+                        <span style="color:#6a8aaa;">📌 你坐在了裂口上。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 现在是封死还是留缝？</span>
+                    `);
+                                renderCh3SealChoice();
+                            }
+                        });
+                    }
+
+                    // 清远去坐
+                    if (state.ch3.npc.qingyuan.trustLevel >= 2) {
+                        sitterOpts.push({
+                            label: '💚 让清远去坐',
+                            hint: '他看了你一眼，点了点头',
+                            tag: '💛 送别',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                steps.choseSitter = true;
+                                state.ch3._sitter = 'qingyuan';
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你看向清远。他点了点头，没有多说。
+                        他走向裂口，在边缘停了一下，回头看了你一眼。
+                        <span class="rule-text" style="color:#d4b87a;">「你来了。我跟你走。」</span>
+                        他坐了下去。
+                        <span style="color:#6a8aaa;">📌 清远坐在了裂口上。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 现在是封死还是留缝？</span>
+                    `);
+                                renderCh3SealChoice();
+                            }
+                        });
+                    }
+
+                    // 玄清去坐
+                    if (state.ch3.npc.xuanqing.dialogRound >= 4) {
+                        sitterOpts.push({
+                            label: '🔥 激将玄清去坐',
+                            hint: '你指着裂口：「你造的孽，你来填。」',
+                            tag: '💀 代价',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                steps.choseSitter = true;
+                                state.ch3._sitter = 'xuanqing';
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        你转向玄清，指着裂口：
+                        <span class="rule-text" style="color:#d4b87a;">「你造的孽，你来填。」</span>
+                        玄清沉默了很久，然后笑了。
+                        <span class="rule-text" style="color:#d4b87a;">「你说得对。是我造的孽。」</span>
+                        他走向裂口，坐了下去。
+                        <span style="color:#6a8aaa;">📌 玄清坐在了裂口上。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 现在是封死还是留缝？</span>
+                    `);
+                                renderCh3SealChoice();
+                            }
+                        });
+                    }
+
+                    // 如果没有可用选项
+                    if (sitterOpts.length === 0) {
+                        showStory(`
+                <span class="divider">· · ·</span>
+                <span style="color:#aa4a4a;">⚠️ 你没有人可以坐上去。</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 你需要龙鳞碎片、清远信任≥2、或玄清完整自述。</span>
+            `);
+                        sitterOpts.push({
+                            label: '🔙 返回',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderCh3AllExplored();
+                            }
+                        });
+                    }
+
+                    renderOptions(sitterOpts);
+                    return;
+                }
+
+                // ---- 步骤2：封死或留缝（由 renderCh3SealChoice 处理） ----
+                renderCh3SealChoice();
+            }
+
+            // ================================================================
+            //  封口选择（屠龙线）
+            // ================================================================
+
+            function renderCh3SealChoice() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var sitter = state.ch3._sitter || 'self';
+                var sitterNames = { 'self': '你', 'qingyuan': '清远', 'xuanqing': '玄清' };
+
+                setStory(`
+        <span class="title-line">🐉 封口</span>
+        <span class="divider">—— —— ——</span>
+        ${sitterNames[sitter] || '那个人'}坐在裂口上，看着你。
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你有两个选择：</span>
+        <span style="color:#d4b87a;">🔒 封死 — 裂口永远关闭，里面的人永不回来</span>
+        <span style="color:#d4b87a;">🔓 留缝 — 裂口虚掩，可能再开</span>
+    `);
+
+                renderOptions([
+                    {
+                        label: '🔒 封死',
+                        hint: '你点燃符纸，贴在裂口边缘',
+                        tag: '💀 ' + (sitter === 'self' ? '镇龙者' : sitter === 'qingyuan' ? '送别' : '代价'),
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLines.dragonSlayer.completed = true;
+                            state.ch3.gameCompleted = true;
+                            if (sitter === 'self') {
+                                triggerEnding('BE_DragonSealer');
+                            } else if (sitter === 'qingyuan') {
+                                triggerEnding('HE_Farewell');
+                            } else {
+                                triggerEnding('BE_Price');
+                            }
+                        }
+                    },
+                    {
+                        label: '🔓 留缝',
+                        hint: '你犹豫了，符纸只贴了一半',
+                        tag: '💛 虚掩',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLines.dragonSlayer.completed = true;
+                            state.ch3.gameCompleted = true;
+                            triggerEnding('NE_Ajar');
+                        }
+                    }
+                ]);
+            }
+            // ================================================================
+            //  驾驭龙气线
+            // ================================================================
+
+            function renderCh3DragonRiderLine() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                var steps = state.ch3.actionLines.dragonRider.steps;
+                var completed = state.ch3.actionLines.dragonRider.completed;
+
+                if (completed) {
+                    renderCh3Ending('dragonRider');
+                    return;
+                }
+
+                // ---- 步骤1：收集材料 ----
+                if (!steps.materialsCollected) {
+                    // 检查所有材料是否齐全
+                    var hasAll = state.ch3.items.dragonScaleAsh &&
+                        state.ch3.items.recipePaper &&
+                        state.ch3.items.clayShard &&
+                        state.ch3.npc.xuanqing.hasHeardFullStory;
+
+                    if (!hasAll) {
+                        setStory(`
+                <span class="title-line">🌀 驾驭龙气 · 材料不足</span>
+                <span class="divider">—— —— ——</span>
+                你站在丹炉前，但手中的材料还不够。
+                <span class="divider">· · ·</span>
+                ${state.ch3.items.dragonScaleAsh ? '✅ 龙鳞余烬' : '❌ 龙鳞余烬（玄清的血）'}
+                ${state.ch3.items.recipePaper ? '✅ 配方纸' : '❌ 配方纸（藏经阁）'}
+                ${state.ch3.items.clayShard ? '✅ 旧陶片' : '❌ 旧陶片（后院井边）'}
+                ${state.ch3.npc.xuanqing.hasHeardFullStory ? '✅ 玄清完整自述' : '❌ 玄清完整自述（大殿第4轮对话）'}
+                <span class="divider">· · ·</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;">💡 继续探索以收集剩余材料。</span>
+            `);
+                        renderOptions([{
+                            label: '🔙 返回',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                renderCh3AllExplored();
+                            }
+                        }]);
+                        return;
+                    }
+
+                    // 材料齐全，开始炼制
+                    steps.materialsCollected = true;
+                    showStory(`
+            <span class="title-line">🌀 驾驭龙气 · 材料已齐</span>
+            <span class="divider">—— —— ——</span>
+            你站在丹炉前，所有材料都在你手中。
+            龙鳞余烬、配方纸、旧陶片——还有玄清的血。
+            你点燃丹炉，火焰升起，带着暗金色的光泽。
+            <span class="divider">· · ·</span>
+            <span style="color:#d4b87a;">💡 现在你需要选择「投入的代价」。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你需要牺牲一件东西来换取薄片的成形。</span>
+        `);
+                    renderCh3SacrificeChoice();
+                    return;
+                }
+
+                // ---- 步骤2：选择牺牲（由 renderCh3SacrificeChoice 处理） ----
+                renderCh3SacrificeChoice();
+            }
+
+            // ================================================================
+            //  牺牲选择（驭龙线）
+            // ================================================================
+
+            function renderCh3SacrificeChoice() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🌀 驾驭龙气 · 选择牺牲</span>
+        <span class="divider">—— —— ——</span>
+        丹炉的火焰在跳动，暗金色的光映在你的脸上。
+        你需要投入一件「永远不会拿回来的东西」。
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你可以选择：</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 不同的牺牲将走向不同的结局。</span>
+    `);
+
+                renderOptions([
+                    {
+                        label: '🧠 牺牲自己的记忆',
+                        hint: '你愿意忘记一切来换取薄片',
+                        tag: '💀 遗忘者',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLines.dragonRider.completed = true;
+                            state.ch3.gameCompleted = true;
+                            triggerEnding('BE_Forgotten');
+                        }
+                    },
+                    {
+                        label: '✋ 牺牲清远的手',
+                        hint: '清远愿意为你失去一只手',
+                        tag: '💀 断笔',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            if (state.ch3.npc.qingyuan.trustLevel < 2) {
+                                showStory(`
+                        <span class="divider">· · ·</span>
+                        <span style="color:#aa4a4a;">⚠️ 清远不够信任你，他不愿意牺牲。</span>
+                        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你需要清远信任≥2。</span>
+                    `);
+                                renderCh3DragonRiderLine();
+                                return;
+                            }
+                            state.ch3.actionLines.dragonRider.completed = true;
+                            state.ch3.gameCompleted = true;
+                            triggerEnding('BE_BrokenPen');
+                        }
+                    },
+                    {
+                        label: '💀 牺牲玄清',
+                        hint: '玄清的寿命来换取薄片',
+                        tag: '💀 换命',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLines.dragonRider.completed = true;
+                            state.ch3.gameCompleted = true;
+                            triggerEnding('BE_LifeSwap');
+                        }
+                    },
+                    {
+                        label: '🔥 放弃炼制',
+                        hint: '你熄灭了丹炉的火',
+                        tag: '💛 空炉',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLines.dragonRider.completed = true;
+                            state.ch3.gameCompleted = true;
+                            triggerEnding('NE_EmptyFurnace');
+                        }
+                    }
+                ]);
+            }
+            // ================================================================
+            //  第三章结局渲染
+            // ================================================================
+
+            function renderCh3Ending(actionLine) {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                // ---- 检查是否已经触发结局 ----
+                if (state.ch3.endingTriggered) {
+                    // 已经触发了结局，直接显示
+                    return;
+                }
+
+                // ---- 根据行动线和选择触发对应结局 ----
+                // 注意：实际的结局触发已经在各个行动线中通过 triggerEnding 调用了
+                // 这个函数作为备用，用于显示结局内容
+
+                // 如果游戏还没结束但进入了ending状态，强制触发
+                if (!state.gameOver) {
+                    state.gameOver = true;
+                }
+
+                // 显示结局 - 使用现有的 renderEndingContent
+                // 但我们需要检查是否已经触发了结局类型
+                if (state._endingType) {
+                    renderEndingContent(state._endingType);
+                } else {
+                    // 默认结局
+                    setStory(`
+            <span class="title-line">🏁 结局</span>
+            <span class="divider">—— —— ——</span>
+            你的故事在这里结束了。
+            你选择了 ${actionLine || '一条路'}。
+            <span class="divider">· · ·</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">你一共收集了 ${state.rules.length} 条规则，龙化值 ${clamp(state.dragonization, 0, 100)}%。</span>
+        `);
+                    renderOptions([{
+                        label: '🔄 重新开始游戏',
+                        action: function () { startNewGame(); }
+                    }]);
+                }
+            }
+
+            // ================================================================
+            //  第三章最终抉择（钟声5响时强制触发）
+            // ================================================================
+
+            function renderCh3FinalChoice() {
+                if (state.gameOver || state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🔔 最终抉择</span>
+        <span class="divider">—— —— ——</span>
+        钟声已经响了五下。你感到脚下的地面在震动。
+        道观里的一切都在摇晃——神像、书架、丹炉、枯井。
+        <span class="divider">· · ·</span>
+        <span style="color:#d45a5a;font-weight:700;">⚠️ 已经没有时间了。</span>
+        <span style="color:#d4b87a;">你必须做出选择。</span>
+        <span class="divider">· · ·</span>
+        ${state.ch3.actionLines.assassination.unlocked ? '🗡️ 你可以刺杀玄清。' : ''}
+        ${state.ch3.actionLines.dragonSlayer.unlocked ? '🐉 你可以屠灭龙神。' : ''}
+        ${state.ch3.actionLines.dragonRider.unlocked ? '🌀 你可以驾驭龙气。' : ''}
+        ${!state.ch3.actionLines.assassination.unlocked && !state.ch3.actionLines.dragonSlayer.unlocked && !state.ch3.actionLines.dragonRider.unlocked ? `
+            <span style="color:#aa4a4a;">⚠️ 你没有解锁任何行动线。</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">💡 你将面临「被吞没」的命运。</span>
+        ` : ''}
+    `);
+
+                var opts = [];
+
+                if (state.ch3.actionLines.assassination.unlocked) {
+                    opts.push({
+                        label: '🗡️ 刺杀玄清',
+                        hint: '你握紧旧刀',
+                        tag: '⭐ 可执行',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'assassination';
+                            state.ch3.phase = 'action_line';
+                            renderCh3AssassinationLine();
+                        }
+                    });
+                }
+
+                if (state.ch3.actionLines.dragonSlayer.unlocked) {
+                    opts.push({
+                        label: '🐉 屠灭龙神',
+                        hint: '你走向北岭裂口',
+                        tag: '⭐ 可执行',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'dragonSlayer';
+                            state.ch3.phase = 'action_line';
+                            renderCh3DragonSlayerLine();
+                        }
+                    });
+                }
+
+                if (state.ch3.actionLines.dragonRider.unlocked) {
+                    opts.push({
+                        label: '🌀 驾驭龙气',
+                        hint: '你站在丹炉前',
+                        tag: '⭐ 可执行',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch3.actionLineChosen = 'dragonRider';
+                            state.ch3.phase = 'action_line';
+                            renderCh3DragonRiderLine();
+                        }
+                    });
+                }
+
+                // 如果没有任何行动线可用
+                if (opts.length === 0) {
+                    opts.push({
+                        label: '🌫️ 站在原地，等待命运',
+                        hint: '你闭上了眼睛',
+                        tag: '💀 BE8',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            triggerEnding('BE8_被吞没');
+                        }
+                    });
+                }
+
+                renderOptions(opts);
+                updateUI();
+            }
+            // ================================================================
             //  结局系统（配色差异化）
             // ================================================================
 
-            // ================================================================
-            //  结局系统（完整版）
-            // ================================================================
-
-            // ================================================================
-            //  结局渲染（纯显示，不修改 gameOver）
-            // ================================================================
-            // ================================================================
-            //  结局渲染（纯显示，不修改 gameOver）
-            // ================================================================
-            // ================================================================
-            //  结局渲染（纯显示，不修改 gameOver）
-            // ================================================================
             function renderEndingContent(type, readOnly) {
                 if (state._waitingConfirm) {
                     state._waitingConfirm = false;
@@ -12448,6 +15648,220 @@
                 var endingClass = '';
 
                 switch (type) {
+                    // ---- 第三章 · 刺杀线 ----
+                    case 'BE_BloodSacrifice':
+                        title = '💀 结局 · 血祭';
+                        endingClass = 'ending-be2';
+                        desc = `
+        <span style="color:#aa2a2a;">🗡️ 你握着那把旧刀，走向他。</span>
+        <br><br>
+        你记得刀柄是冷的。你记得他背对着你，没有回头。<br>
+        你记得自己跨过那道门槛的时候，腿是软的，手指是紧的，指节发白。<br>
+        你走近了。你看见他的肩膀微微动了一下——像是知道你要做什么。<br>
+        你停了一下。就那么一下。<br>
+        然后你把刀送进去了。<br><br>
+        刀锋穿过道袍的时候几乎没有声音。他闷哼了一声，身体往前倾了一下——然后停住了。没有倒下。他慢慢地、慢慢地转过头来，看着你。他的眼睛里有光在熄灭，但那张脸上没有愤怒。没有恐惧。什么都没有。<br>
+        他只是看着你，嘴唇动了一下，像是想说什么。然后他闭上了眼睛。<br>
+        你松开刀柄的时候，手指是湿的。你低头看——是红色的。热的。从刀柄上慢慢淌下来，一滴一滴落在地上，落在青石板上，落在你的鞋面上。<br>
+        你站在那里，看了他很久。你想起暗碑上的字，想起那些刻痕，想起那个孩子看你的眼神。你想起自己是怎么走到这一步的——每一步都是你自己选的，每一步都走得那么用力。可现在你站在这里，看着自己的手，却觉得那双手已经不是你的了。<br>
+        你听见门外有脚步声。阿芹没有进来。她只是站在门口，看着你，然后低下了头。<br>
+        你转身离开了大殿。风吹过来，带着铁锈和血的气味。<br>
+        你不确定自己做对了没有。但你做完了。<br>
+        <span style="color:#8a2a2a;font-weight:700;">—— 血祭 · 你亲手结束了他 ——</span>
+    `;
+                        break;
+
+                    case 'BE_Accomplice':
+                        title = '💀 结局 · 共犯';
+                        endingClass = 'ending-be2';
+                        desc = `
+        <span style="color:#aa2a2a;">🔪 你站在门口，看阿芹走进去。</span>
+        <br><br>
+        你听到刀刃穿过衣料的声音了。很轻，像撕开一匹布。然后是重物落地的声响，闷闷的，像是砸在什么软的东西上。<br>
+        你站在门外面，没有看。你只是站在那里，听着里面安静下来。<br>
+        阿芹走出来的时候，她的手上也是湿的。她没有看你，只是说了一句：“结束了。”<br>
+        你点了点头。你没有问她感觉怎么样。<br>
+        你想起自己握着那把刀的时候——你本来可以自己动手的。你本来可以走进去，做那件事。但你没有。你把刀给了她。<br>
+        你觉得自己干净一点了吗？<br>
+        你没有。你站在门框那边，手是干净的，但你知道自己和她一样，手上都是湿的。<br>
+        你走进去看了一眼。玄清躺在地上，眼睛睁着，看着天花板。那张脸上没有表情。你看着那张脸，想起他说过的话，想起他的眼睛。然后你转身走了出去。<br>
+        你走出道观的时候，风很大。你低头看自己的手——干净的，什么都没有。但你知道，你已经不是走进去时候的那个人了。<br>
+        你是共犯。你心里清楚。<br>
+        <span style="color:#8a2a2a;font-weight:700;">—— 共犯 · 你站在门口 ——</span>
+    `;
+                        break;
+
+                    case 'NE_SpareLife':
+                        title = '📖 结局 · 留命';
+                        endingClass = 'ending-normal';
+                        desc = `
+        <span style="color:#4a7a4a;">🖐️ 你停手了。</span>
+        <br><br>
+        你握着刀站在他身后。你抬了手，又放下了。你听见自己的呼吸声在空旷的大殿里回荡，又重又慢，像潮水一样。<br>
+        你看着他的后背——那道宽的道袍，那副不再挺直的脊梁。你想起他刚才说的话。他说他快死了。他说他需要纯阳体。他说他知道自己在做什么。<br>
+        你可以杀了他。刀就在你手里。你的手指在刀柄上收紧了一下，又松开了。<br>
+        你退了一步。然后是第二步。第三步。<br>
+        你看着他——他没有回头。他没有问为什么。<br>
+        你把刀放在门槛上，转身走了出去。你听见风从院子里吹进来，吹过那道门槛，吹过那把刀。<br>
+        你活着。他也活着。你不知道哪件事更让你觉得沉重。<br>
+        你走出锁龙观的时候，天是灰的。你看着自己的手——干净的。什么都没有。你觉得自己做了一件正确的事，但你不知道那是不是你应该做的。<br>
+        <span style="color:#4a7a4a;font-weight:700;">—— 留命 · 你停手了 ——</span>
+    `;
+                        break;
+
+                    // ---- 第三章 · 屠龙线 ----
+                    case 'BE_DragonSealer':
+                        title = '💀 结局 · 镇龙者';
+                        endingClass = 'ending-dragon';
+                        desc = `
+        <span style="color:#cc3a2a;">🐉 你走向裂口，坐了下去。</span>
+        <br><br>
+        你记得那风是往上吹的——从裂缝深处涌上来的，带着地底深处的温度和气味。你记得自己坐在裂口边缘的时候，腿是悬空的，下面是深不见底的暗色。<br>
+        你攥着那枚龙鳞碎片，硌在掌心里，像是攥着一块烧红的炭。你深吸一口气，然后坐了下去。<br>
+        裂口贴着你，像是活的一样。你能感觉到它在动——不是地震，是一种更慢的、像是呼吸一样的东西。你坐在上面，感觉自己正在成为它的一部分，正在融入那种缓慢的、沉重的节奏里。<br>
+        你听到远处有人喊你的名字。你分不清那是谁了。清远？阿芹？还是谁？声音越来越远，像隔着一层厚厚的水。<br>
+        你闭上眼睛。<br>
+        地底的风停了。震动停了。一切都安静下来了。<br>
+        你睁开眼睛的时候，看不到天了。你被包裹在一层暗青色的光里，脚下是实心的，身边是温暖的。你已经不再是你自己了。你已经变成了一道封印，一座门，一座山的一部分。<br>
+        你知道自己不会再出去了。但你也知道——龙气不会再出来了。<br>
+        <span style="color:#cc3a2a;font-weight:700;">—— 镇龙者 · 你把自己变成了封印 ——</span>
+    `;
+                        break;
+
+                    case 'HE_Farewell':
+                        title = '💛 结局 · 送别';
+                        endingClass = 'ending-he';
+                        desc = `
+        <span style="color:#5a3a1a;">💚 你看着清远走向裂口。</span>
+        <br><br>
+        他停了一下。就在裂口的边缘，风把他的衣摆吹起来，像一只正在张开的翅膀。他没有回头。你本来以为他会回头的。<br>
+        你喊了他的名字。他没有停下来。<br>
+        他只是在那道裂口前面站了一会儿——很短的一会儿，短到你几乎以为自己看错了。然后他坐了下去。<br>
+        地底的光从裂缝里溢上来，暗青色的，把他的轮廓镀了一层边。你看见他的肩膀慢慢沉下去，像是被什么托住了，又像是被什么接走了。<br>
+        风停了。<br>
+        你站在那里，站在那片安静里，站了很久。你想起他说过的话——“我跟你走。”他确实是跟你走了。只是去的方向，和你想象的不太一样。<br>
+        你转身离开了北岭。你走得很慢，像是每一步都踩在什么很重的东西上。<br>
+        你活下来了。但他没有。<br>
+        你带着他的选择继续往下走。你知道他不会回来了。你也知道，你是唯一记得他最后样子的人。<br>
+        <span style="color:#5a3a1a;font-weight:700;">—— 送别 · 你看着他走进去 ——</span>
+    `;
+                        break;
+
+                    case 'BE_Price':
+                        title = '💀 结局 · 代价';
+                        endingClass = 'ending-corrupted';
+                        desc = `
+        <span style="color:#ccaa3a;">🔥 你指着裂口，对玄清说：“你造的孽，你来填。”</span>
+        <br><br>
+        他看了你很久。你读不懂那个眼神——没有愤怒，没有恐惧，甚至没有意外。他只是看着你，像是早就知道你会这么说。<br>
+        然后他笑了一下。那个笑很轻，像是风里散开的烟。他说：“你说得对。是我造的孽。”<br>
+        他站起来，走向裂口。<br>
+        你看着他走过你身边的时候，他的袖口擦过你的衣摆。你想伸手拉住他——你的手指动了。但没有抬起来。<br>
+        他坐在裂口上了。他坐得很稳，像是坐在一张已经坐了很多年的椅子上。地底的光漫上来，包裹了他，暗青色的，把他衬得像一尊雕塑。<br>
+        你看着他在那层光里慢慢凝固。那张脸上最后的表情，是平静的。<br>
+        你觉得心里有什么东西松了。又有什么东西紧了。<br>
+        你转身离开了。风在你身后合拢，把裂口和里面的人都封住了。<br>
+        你替他活了。你替他走完了剩下的路。<br>
+        那算赢了吗？<br>
+        <span style="color:#bb9a4a;font-weight:700;">—— 代价 · 你让他坐了那个位置 ——</span>
+    `;
+                        break;
+
+                    case 'NE_Ajar':
+                        title = '📖 结局 · 虚掩';
+                        endingClass = 'ending-normal';
+                        desc = `
+        <span style="color:#4a7a4a;">🚪 门没有关紧。</span>
+        <br><br>
+        你把符纸贴在裂口边缘的时候，手抖了一下。那张纸歪了——只贴了一半，另一半虚虚地搭在石头上，像一片没有粘牢的膏药。你看着它，想着要不要重新贴一下。<br>
+        你犹豫了。就是那一下。<br>
+        然后你收回了手。<br>
+        裂口还在动。那种呼吸一样、缓慢的、沉重的起伏还在继续。你感觉到它在你脚下，像一头睡着的巨兽，睡得很轻。<br>
+        你告诉自己：就这样吧。<br>
+        你走了。你走了很远，远到看不到那座山了，远到风声都变轻了。<br>
+        但你一直知道——那扇门没有关紧。<br>
+        你知道有一天它会再开。你不知道是谁会在那边。是你？还是别人？还是什么你无法想象的东西？<br>
+        但你想起那半张符纸，想起自己收回手的那一瞬间——那不是一个决定，那是一种本能。<br>
+        你不想关上它。你只是假装自己已经关上了。<br>
+        <span style="color:#4a7a4a;font-weight:700;">—— 虚掩 · 你知道门没关紧 ——</span>
+    `;
+                        break;
+
+                    // ---- 第三章 · 驭龙线 ----
+                    case 'BE_Forgotten':
+                        title = '💀 结局 · 遗忘者';
+                        endingClass = 'ending-be4';
+                        desc = `
+        <span style="color:#7a7a7a;">🧠 你牺牲了自己的记忆。</span>
+        <br><br>
+        丹炉的火是暗金色的。你记得那一瞬间——你把手伸进去的时候，没有疼。只是觉得什么东西从你身体里被抽走了，轻轻的，像是潮水退去。<br>
+        炉膛里亮了一下，又暗了。薄片躺在灰烬里，安静的，像一枚熄灭的炭。<br>
+        你把它拿起来的时候，手上是干净的。<br>
+        你走出丹房，穿过藏经阁，穿过大殿，穿过前院。你站在大门外面，看着眼前的山和路——你看得见它们，但你认不出来。<br>
+        你不记得自己是谁了。你不知道自己来这里做什么。你不知道自己为什么要走，也不知道自己该往哪里去。<br>
+        你手里握着那枚薄片，温热的，像还带着炉火的余温。你看着它，觉得它很熟悉——但你不记得在哪见过它了。<br>
+        你沿着路往下走。你不知道这条路通向哪里。你只是走着，一直走着。<br>
+        你成功了。你忘了自己是谁。<br>
+        <span style="color:#5a5a5a;font-weight:700;">—— 遗忘者 · 你成功了，但你不记得了 ——</span>
+    `;
+                        break;
+
+                    case 'BE_BrokenPen':
+                        title = '💀 结局 · 断笔';
+                        endingClass = 'ending-be4';
+                        desc = `
+        <span style="color:#7a7a7a;">✋ 清远再也不能写字了。</span>
+        <br><br>
+        他伸出手的那一刻，你看到他的眼神是平静的。他早就知道——从他点头的那一刻起，他就知道代价是什么。<br>
+        丹炉的火舔舐了他的手。他没有叫出来。他咬着牙，脸是白的，但眼睛一直看着你，像是在告诉你：别停。<br>
+        你没停。<br>
+        薄片成形的时候，是金色的。你把它从炉膛里取出来，握在手里，温热的，像一块还带着体温的石头。你转头看向清远——他正把自己的手从炉口收回来。<br>
+        那只手已经看不出形状了。他把它藏在袖子里，脸上挤出一个笑。“没事。”他说。他的声音是抖的。<br>
+        你看着他把那只手缩进袖口深处，藏得严严实实。你知道他再也不能写字了——那本日记、那些记录、那些他记得的事，都不会再有人写下来了。<br>
+        你握着那枚薄片，觉得很重。他笑着。但你看到他藏在袖子里的手指在发抖。<br>
+        他没有说你欠他什么。但你心里清楚。<br>
+        <span style="color:#5a5a5a;font-weight:700;">—— 断笔 · 清远再也不能写字了 ——</span>
+    `;
+                        break;
+
+                    case 'BE_LifeSwap':
+                        title = '💀 结局 · 换命';
+                        endingClass = 'ending-be2';
+                        desc = `
+        <span style="color:#aa2a2a;">💀 他用命换来了薄片。</span>
+        <br><br>
+        你站在丹炉前，看着玄清。他没有说话，只是解开了衣襟，把胸口露出来。<br>
+        他看了你一眼——最后一眼。那个眼神里什么都没有，像一口干涸的井。<br>
+        你动手了。<br>
+        你记得那一下落在胸口上的声音：闷闷的，像敲在一块厚木头上。他倒下去的时候很慢，像是被什么托住了，然后滑落到地上，没有发出声响。<br>
+        丹炉里的火猛地亮了一下，暗金色的，像被什么点燃了。你看见薄片在炉灰里成形，慢慢地、稳稳地，像是从虚无里长出来的。<br>
+        你把它拿出来的时候，它还是热的。你握着它，觉得它像一块骨头——是一具身体里最后剩下的重量。<br>
+        你低头看了看他。他躺在地上，眼睛闭着，脸是平的。你看不出痛苦。你也看不出释然。<br>
+        你走出丹房的时候，天已经黑了。你握着他的命，像是握着一块还温热的炭。<br>
+        你成功了。你用他的命换来的。<br>
+        <span style="color:#8a2a2a;font-weight:700;">—— 换命 · 他用命换来了薄片 ——</span>
+    `;
+                        break;
+
+                    case 'NE_EmptyFurnace':
+                        title = '📖 结局 · 空炉';
+                        endingClass = 'ending-normal';
+                        desc = `
+        <span style="color:#4a7a4a;">🔥 你熄灭了丹炉的火。</span>
+        <br><br>
+        你站在丹炉前，手里握着那些材料，看着炉膛里的火在跳动。暗金色的，像一只正在呼吸的活物。<br>
+        你站了很久。<br>
+        你想起那些代价——记忆、手、命。你想起每一个选择背后都连着一根线，线的另一端拴着什么重要的东西。你想象着如果把那些东西投入火里，它们会烧成什么样子。<br>
+        你闭上眼。然后你把材料放下了。<br>
+        你走过去，用一根铁钎把炉膛里的火拨散了。火光暗了一下，然后慢慢熄灭，留下一层灰白的余烬。<br>
+        你站在那炉灰前面，看着最后一丝红光消失在灰烬深处。<br>
+        你什么都没有炼成。<br>
+        但你也没有失去任何东西。<br>
+        你走出丹房的时候，院子里很安静。你站了一会儿，没有回头。你觉得自己做了一个选择——不是勇敢的选择，也不是懦弱的选择。你只是没有选。<br>
+        你握着空空的双手，离开了锁龙观。<br>
+        <span style="color:#4a7a4a;font-weight:700;">—— 空炉 · 你什么都没有炼成 ——</span>
+    `;
+                        break;
                     case 'TE1_薪火相传':
                         title = '🔥 完美结局 · 薪火相传';
                         endingClass = 'ending-he';
@@ -12702,34 +16116,46 @@
                         title = '💀 结局 · 自投罗网';
                         endingClass = 'ending-be2';
                         desc = `
-                <span style="color:#aa2a2a;">🏃 你慌不择路地逃向村西。</span>
-                <br>你跑到村西的时候肺已经烧起来了。
-                <br>那些低矮的土屋在月光下泛着灰白色，像一排晾了很久的骨头。你在巷子里拐了两个弯，终于看到一扇窗缝里透出光来。你冲上去敲门，用力地敲，一下接一下，敲到指节发麻。
-                <br>门开了一条缝。
-                <br>一个女人的脸从门缝里露出半边。她看了你一眼，目光从你的脸移到你的肩，又移到你的手。她的鼻梁上有一道淡淡的疤，像是很久以前被什么划伤的。
-                <br>你说：“有人在追我。”
-                <br>她盯着你看了很久。
-                <br>然后她说：“你走错了。”
-                <br>你说没有，你说你是从村东过来的，你说你只是想找个地方待一晚，天亮就走。你的声音压得很低，语速很快，那些词挤在一起，听起来像在自言自语。她没有回答。她的目光从你的脸慢慢移下来，停在了你的手上。你低头才看见——你手指缝里夹着东西。不是泥土。是几缕极细的灰白色丝絮，像棉，像霉，你跑过林子的时候沾上的，到现在还没有抖掉。
-                <br>她的眼神变了。
-                <br>门没有关，但她往后退了一步。那一步不大，但足够让你清楚地知道，你不会被放进去了。她站在门槛内侧，光从她身后的屋里漫出来，你隐约看见屋子深处还有一个人影，一动不动的，像在看着你。
-                <br>她说：“你不能待在这里。”
-                <br>你说你可以解释——你想说你没有恶意，你只是误入了不该去的地方。但你还没说完，巷子另一头传来了脚步声。很轻，但你听见了。你也听见屋里面那个人影动了一下，像被什么惊醒了一样。
-                <br>门缝在收窄。
-                <br>你伸手抵住门板，你的声音变了调：“求你了。”
-                <br>她停了一下。她的手还扶着门板，但她没有把门合拢。她看着你，又看了一眼巷子尽头的方向。然后她的嘴唇动了动，声音很轻，像在对自己说：“你身上有气味。”她的手指在门板边缘收紧。她又看了一眼你手上那些灰白色的细丝，然后收回了目光：“你走吧。”
-                <br>门合上了。
-                <br>你站在那扇门前面，听见里面什么声音都没有了，像那扇门合拢之后就把整座房子一起带走了，只留下你在门外。
-                <br>脚步声越来越近了。你没有回头，你只是背对着那声音，站在那扇门前面。你知道前面没有路了——门已经关上了，里面的人不会再打开它。可你也没有别的地方可以去。你就是站在这条巷子里，站在关着的门和正在靠近的脚步声之间，像一道裂缝把你卡住了，既不准你往这边走，也不准你往那边退。
-                <br>你低头看着自己的手。你看见那些灰白色的细丝已经干透了，像一层薄薄的壳覆在你的皮肤上。你不知道它们是什么时候沾上的，不知道它们是不是真的只是从林子里带出来的。你想把它们拍掉，但手指碰到它们的时候，它们在变脆、在碎裂，像干泥巴一样剥落，露出底下的皮肤，泛着淡淡的青灰色，像冻过的手。
-                <br>你仰起头看着天空。月亮被云遮住了大半，剩下一角边缘，像一片快要融化的冰。你不知道自己还能去哪儿，不知道这扇门里面的人是谁，不知道巷子尽头走来的又是什么。你只是站在这条巷子里，像一枚被遗落在两堵墙之间的硬币，没有面值，没人会弯腰来捡你。
-                <br>脚步声停了。
-                <br>那个人站在了巷口。他没有再走近，也没有说话。你感觉他在看着你，像在看一件已经落在某处、不需要再追的东西。你站在月光和墙壁之间，站在沉默和脚步之间، your指缝很凉，你的脚底很冷。
-                <br>你不是被抓住的。你只是一直站在原地，然后那里变成了别人走过的地方。你只是想找一条路出去，却站成了路上的一枚路标，连你自己也读不懂方向了。巷子空荡荡的，风吹过你肩膀的时候，你觉得自己轻了一些，像有什么正在慢慢从你身体里往后退。退到你够不着的地方。
-                <br>你抬头看那扇门，再也没有动过。
-                <span style="color:#8a2a2a;font-weight:700;">你在觉醒者和道观之间，被碾成了碎片。</span>
-                <span style="color:#aa4a4a;font-weight:700;">—— 夹缝之中，无处可逃 ——</span>
-            `;
+<span style="color:#aa2a2a;">🌾 你走向阴影里那个人。</span>
+<br><br>
+你看到他头上的青巾了。和阿芹说的一模一样。<br>
+你看到他站在那里的姿势了，像一棵被钉在墙边的枯木，已经很长时间没有动过。<br>
+你走过去的时候，他的嘴角在动。你以为是笑。你后来才知道，那不是笑，是嘴里面有什么东西在爬。<br>
+他开口了。他的声音很轻，像是怕惊动什么：“阿芹的人？”<br>
+你点头。<br>
+他往前走了一步。就一步。你闻到他身上的气味——干燥的、带着陈年灰尘的、像是一间很久没有开过窗的屋子。你闻到了那股气味，然后你看见了。<br>
+他头上的青巾塌下去了一块。是湿的。像是里面的东西正在融化，正在往下塌，而青巾正在吸收那些东西，正在变软、变重、正在滑下来。<br>
+你没有来得及后退。<br>
+他抓住了你的手腕。他的手指很长，长到不合常理，长到像是一双手被什么东西拉长过。他的指甲是黑色的，指甲缝里嵌着暗红色的碎屑。你低头看他的手指，你看到他指节上的皮肤是透明的，你能看见皮肤底下的东西——细细的、灰白色的、像菌丝一样的线，正在他的皮肤下面游走。<br>
+你说不出话来。<br>
+他歪了歪头，他的脖子发出了一声很轻的、像是干枯的树枝被折断一样的声音。<br>
+他说：“先生等你好久了。”<br>
+他的声音还是那么轻。但他的嘴唇在动的时候，你看见了他牙齿和牙龈之间的缝隙里，塞满了褐色的粉末。你认出了那种粉末——你在小卖部老妪的指甲缝里见过，在民俗部工作人员的桌角见过，在嫂嫂做饭时洒在灶台上的香料里见过。<br>
+那是菌孢子的粉末。<br>
+你见过它很多次了。<br>
+你只是从来没有想过，它也可以被吃下去。<br>
+你被拖着走的时候，你看到人群在分开。像水一样分开。那些村民低着头，肩膀在抖。你一开始以为他们在害怕。然后你听到了——他们在吸气。他们在深深地、慢慢地吸气。<br>
+他们在闻你。<br>
+你经过一个老妇人身边的时候，她抬起头看了你一眼。那双眼睛是亮的，太亮了，亮得不像活人的眼睛。她的嘴唇微微张开，露出一排黄褐色的牙。她笑了。不是善意的笑。不是恶意的笑。是一种你读不懂的笑，像是一个人看到一盘菜终于端上来了。<br>
+你的胃在翻涌。你想要吐，但你的喉咙是紧的，什么都出不来。<br>
+你经过真正的觉醒者身边的时候，他们低着头。他们也在吸气，但他们吸得很浅。你看到其中一个人的手在发抖，紧紧攥着衣角，指节泛白。你忽然明白了——他们在克制。他们在拼命克制那股想要吸气、想要闻你、想要把你身上的气味吸进肺里的冲动。<br>
+你看到阿芹了。她站在人群外面，远远地看着你。她的嘴唇在动，像是想说什么。但你听不见。你觉得她可能是想说“对不起”，也可能是想说“别怪我”。也可能是想说一个名字——你的名字。<br>
+但你没有机会听清了。<br>
+你被押进大殿的时候，你闻到了一股气味。像是腐烂的花，像是被泡了很久的木头，像是……你小时候在乡下闻到过的那种，放在阴凉处晾晒的菌菇，已经过了季节，已经长出了一层薄薄的灰绿色绒毛。<br>
+你被按着跪下去的时候，你的膝盖撞在石板上，很疼。但你没有叫出来。你的喉咙还是紧的，像有什么东西堵在那里，像有什么东西正在从你的食道里往上爬，细细的，触手一样的，正在试探着探出来。<br>
+你低头看自己的手。你的手背上不知道什么时候多了一道细细的灰线，从手腕一直延伸到指尖，像是一条正在慢慢渗进皮肤里的灰色血管。<br>
+大殿里很黑。你看不见玄清的脸。你只听见他的声音从黑暗深处传来，平缓的，温和的，像是一个正在等病人上门的医生：<br>
+<span class="rule-text" style="color:#aa2a2a;">「你来了。你比我想象中要慢一些。不过没关系——」</span><br>
+他停顿了一下。然后你听到了一声很轻的、像是从喉咙深处挤出来的笑：<br>
+<span class="rule-text" style="color:#aa2a2a;">「——你来了就好。」</span><br>
+你最后看到的是你的手背。那道灰线已经变成了深色，正在向下蔓延。你不知道那是什么。你不知道自己还能撑多久。<br>
+你只知道——你确实来了。你确实是自愿走进来的。你确实在一开始就选对了方向，你确实在做正确的事，你确实在做阿芹希望你做的事。你只是没有分清楚哪条路是正确的路，哪条路是通向正确的错误的路。<br>
+你分不清了。你已经分不清很多东西了。<br>
+你的视线开始模糊。你听见诵经声从四面八方涌上来，像水，像沙，像无数条细小的虫子在沿着你的耳道往里钻。你听见那个声音说——<br>
+<span style="color:#7a2a2a;font-weight:700;">「你确实在做正确的事。你只是做错了人。」</span><br>
+<br>
+<span style="color:#5a1a1a;font-weight:700;">—— 你走进了一扇自己打开的门 ——</span>
+`;
                         break;
 
                     case 'BE7_同化':
@@ -12841,7 +16267,21 @@
                         }
                     });
                 }
+                // ---- 在 renderEndingContent 中，找到 options 数组构建的位置 ----
+                // 在现有 options.push 之后，添加以下代码：
 
+                // ---- 第三章专属：重新开始第三章 ----
+                if (CHAPTER3_ENDINGS.indexOf(type) !== -1) {
+                    options.push({
+                        label: '🔄 重新开始第三章',
+                        hint: '保留香火和规则，重新探索锁龙观',
+                        ending: true,
+                        action: function () {
+                            if (state._waitingConfirm) return;
+                            resetChapter3();
+                        }
+                    });
+                }
                 if (isCh2Ending) {
                     options.push({
                         label: '🔄 重新开始第二章',
@@ -12913,6 +16353,12 @@
                 // ⭐ 立即标记游戏结束，防止任何后续流程覆盖结局界面
                 state.gameOver = true;
                 saveUnlockedEnding(type);
+                // ---- 如果是第三章结局，更新 ch3 状态 ----
+                if (CHAPTER3_ENDINGS.indexOf(type) !== -1) {
+                    state.ch3.endingTriggered = true;
+                    state.ch3.gameCompleted = true;
+                    state.ch3.phase = 'ending';
+                }
 
                 if (state.gameOver) {
                     renderEndingContent(type);
@@ -12967,12 +16413,203 @@
                     }
                 }]);
             }
+            // ================================================================
+            //  重置第三章（保留第二章数据）
+            // ================================================================
 
+            function resetChapter3() {
+                if (state._waitingConfirm) return;
+
+                // ---- 重置游戏结束状态 ----
+                state.gameOver = false;
+                state._dragonEndingQueued = false;
+                state._waitingConfirm = false;
+                state._confirmResolve = null;
+
+                // ---- 重置 ch3 为初始状态（保留第二章数据） ----
+                // 保留清远信任（从第二章继承）
+                var qingyuanTrust = state.ch3.npc ? state.ch3.npc.qingyuan.trustLevel : (state.ch2.qingyuanTrust || 0);
+                // 保留香火
+                var incense = state.ch2.incenseRemaining || 0;
+
+                state.ch3 = {
+                    // ----- 探索状态 -----
+                    exploredAreas: {
+                        frontYard: false,
+                        mainHall: false,
+                        library: false,
+                        alchemyRoom: false,
+                        backYard: false,
+                    },
+                    areaVisitCount: {
+                        frontYard: 0,
+                        mainHall: 0,
+                        library: 0,
+                        alchemyRoom: 0,
+                        backYard: 0,
+                    },
+
+                    // ----- 钟声系统 -----
+                    bellTolls: 0,
+                    bellWarned: false,
+                    _childSoundTriggered: false,
+                    _oldTaoistUrgeTriggered: false,
+                    _xuanqingStandTriggered: false,
+                    _bell5Triggered: false,
+
+                    // ----- 心理压力 -----
+                    pressure: 0,
+
+                    // ----- 线索拼图 -----
+                    fragments: {
+                        piece1: false,
+                        piece2: false,
+                        piece3: false,
+                        piece4: false,
+                        piece5: false,
+                        piece6: false,
+                    },
+
+                    // ----- 道具收集 -----
+                    items: {
+                        oldDagger: false,
+                        mapFragment: false,
+                        recipePaper: false,
+                        furnaceAsh: false,
+                        clayShard: false,
+                        dragonScaleAsh: false,
+                    },
+
+                    // ----- NPC状态 -----
+                    npc: {
+                        xuanqing: {
+                            dialogRound: 0,
+                            hasHeardFullStory: false,
+                        },
+                        qingyuan: {
+                            hasMet: false,
+                            trustLevel: qingyuanTrust,  // 从第二章继承
+                        },
+                        oldTaoist: {
+                            talkedCount: 0,
+                            hasGivenGuide: false,
+                        },
+                    },
+
+                    // ----- 香火使用记录 -----
+                    incenseUsed: {
+                        frontYard: false,
+                        mainHall: false,
+                        backYard: false,
+                        library: false,
+                        alchemyRoom: false,
+                        gateSignal: false,
+                    },
+
+                    // ----- 其他状态 -----
+                    _hasSeenChild: false,
+                    _sitter: null,
+                    _rescueAttempted: false,
+
+                    // ----- 行动线状态 -----
+                    actionLines: {
+                        assassination: {
+                            unlocked: false,
+                            steps: { letterSent: false, doorOpened: false, confronted: false },
+                            completed: false,
+                        },
+                        dragonSlayer: {
+                            unlocked: false,
+                            steps: { choseSitter: false, reachedRift: false, sealed: false },
+                            completed: false,
+                        },
+                        dragonRider: {
+                            unlocked: false,
+                            steps: { materialsCollected: false, choseSacrifice: false, forged: false },
+                            completed: false,
+                        },
+                    },
+
+                    // ----- 阶段 -----
+                    phase: 'exploration',
+                    actionLineChosen: null,
+                    endingTriggered: false,
+                    gameCompleted: false,
+                };
+
+                // ---- 恢复第二章数据（确保不被重置） ----
+                state.flags.chapter2 = true;
+                // 香火数量保持不变（已在上面保存）
+                state.ch2.incenseRemaining = incense;
+
+                // ---- 显示重置完成信息 ----
+                updateUI();
+
+                setStory(`
+        <span class="title-line">🔄 重新开始第三章</span>
+        <span class="divider">—— —— ——</span>
+        你站在锁龙观的大门前，风从门缝里吹出来，带着一股陈旧的木香。
+        <span class="divider">· · ·</span>
+        <span style="color:#6ab06a;">✅ 第三章已重置。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🕯️ 当前香火：${state.ch2.incenseRemaining}/3根</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💚 清远信任：${state.ch3.npc.qingyuan.trustLevel}/3</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">📜 已收集规则：${state.rules.length}条</span>
+        <span class="divider">· · ·</span>
+        <span style="color:#d4b87a;">你深吸一口气，再次推开了道观的大门。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 这一次，你会走向哪条路？</span>
+    `);
+
+                // ---- 进入第三章探索 ----
+                renderOptions([{
+                    label: '🚶 进入锁龙观',
+                    hint: '重新开始探索',
+                    tag: '→ 继续',
+                    action: function () {
+                        if (state.gameOver || state._waitingConfirm) return;
+                        renderCh3Exploration();
+                    }
+                }]);
+
+                // ---- 保存进度 ----
+                saveGame();
+            }
             // ================================================================
             //  重置函数
             // ================================================================
 
             function resetChapter2() {
+                // ---- 重置 ch3 ----
+                state.ch3 = {
+                    exploredAreas: { frontYard: false, mainHall: false, library: false, alchemyRoom: false, backYard: false },
+                    areaVisitCount: { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 },
+                    bellTolls: 0,
+                    bellWarned: false,
+                    _childSoundTriggered: false,
+                    _oldTaoistUrgeTriggered: false,
+                    _xuanqingStandTriggered: false,
+                    _bell5Triggered: false,
+                    pressure: 0,
+                    fragments: { piece1: false, piece2: false, piece3: false, piece4: false, piece5: false, piece6: false },
+                    items: { oldDagger: false, mapFragment: false, recipePaper: false, furnaceAsh: false, clayShard: false, dragonScaleAsh: false },
+                    npc: {
+                        xuanqing: { dialogRound: 0, hasHeardFullStory: false },
+                        qingyuan: { hasMet: false, trustLevel: 0 },
+                        oldTaoist: { talkedCount: 0, hasGivenGuide: false },
+                    },
+                    incenseUsed: { frontYard: false, mainHall: false, backYard: false, library: false, alchemyRoom: false, gateSignal: false },
+                    _hasSeenChild: false,
+                    _sitter: null,
+                    _rescueAttempted: false,
+                    actionLines: {
+                        assassination: { unlocked: false, steps: { letterSent: false, doorOpened: false, confronted: false }, completed: false },
+                        dragonSlayer: { unlocked: false, steps: { choseSitter: false, reachedRift: false, sealed: false }, completed: false },
+                        dragonRider: { unlocked: false, steps: { materialsCollected: false, choseSacrifice: false, forged: false }, completed: false },
+                    },
+                    phase: 'exploration',
+                    actionLineChosen: null,
+                    endingTriggered: false,
+                    gameCompleted: false,
+                };
                 if (state.gameOver) state.gameOver = false;
                 _eventCounter = 0;
                 _flutistTalkCount = 0;
@@ -13106,6 +16743,38 @@
             }
 
             function resetToChapter1() {
+                // ---- 重置 ch3 ----
+                state.ch3 = {
+                    exploredAreas: { frontYard: false, mainHall: false, library: false, alchemyRoom: false, backYard: false },
+                    areaVisitCount: { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 },
+                    bellTolls: 0,
+                    bellWarned: false,
+                    _childSoundTriggered: false,
+                    _oldTaoistUrgeTriggered: false,
+                    _xuanqingStandTriggered: false,
+                    _bell5Triggered: false,
+                    pressure: 0,
+                    fragments: { piece1: false, piece2: false, piece3: false, piece4: false, piece5: false, piece6: false },
+                    items: { oldDagger: false, mapFragment: false, recipePaper: false, furnaceAsh: false, clayShard: false, dragonScaleAsh: false },
+                    npc: {
+                        xuanqing: { dialogRound: 0, hasHeardFullStory: false },
+                        qingyuan: { hasMet: false, trustLevel: 0 },
+                        oldTaoist: { talkedCount: 0, hasGivenGuide: false },
+                    },
+                    incenseUsed: { frontYard: false, mainHall: false, backYard: false, library: false, alchemyRoom: false, gateSignal: false },
+                    _hasSeenChild: false,
+                    _sitter: null,
+                    _rescueAttempted: false,
+                    actionLines: {
+                        assassination: { unlocked: false, steps: { letterSent: false, doorOpened: false, confronted: false }, completed: false },
+                        dragonSlayer: { unlocked: false, steps: { choseSitter: false, reachedRift: false, sealed: false }, completed: false },
+                        dragonRider: { unlocked: false, steps: { materialsCollected: false, choseSacrifice: false, forged: false }, completed: false },
+                    },
+                    phase: 'exploration',
+                    actionLineChosen: null,
+                    endingTriggered: false,
+                    gameCompleted: false,
+                };
                 if (state.gameOver) state.gameOver = false;
                 state._dragonWarned60 = false;
                 // 重置天数、体力等
@@ -13328,6 +16997,38 @@
             }
 
             function resetGame() {
+                // ---- 重置 ch3 ----
+                state.ch3 = {
+                    exploredAreas: { frontYard: false, mainHall: false, library: false, alchemyRoom: false, backYard: false },
+                    areaVisitCount: { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 },
+                    bellTolls: 0,
+                    bellWarned: false,
+                    _childSoundTriggered: false,
+                    _oldTaoistUrgeTriggered: false,
+                    _xuanqingStandTriggered: false,
+                    _bell5Triggered: false,
+                    pressure: 0,
+                    fragments: { piece1: false, piece2: false, piece3: false, piece4: false, piece5: false, piece6: false },
+                    items: { oldDagger: false, mapFragment: false, recipePaper: false, furnaceAsh: false, clayShard: false, dragonScaleAsh: false },
+                    npc: {
+                        xuanqing: { dialogRound: 0, hasHeardFullStory: false },
+                        qingyuan: { hasMet: false, trustLevel: 0 },
+                        oldTaoist: { talkedCount: 0, hasGivenGuide: false },
+                    },
+                    incenseUsed: { frontYard: false, mainHall: false, backYard: false, library: false, alchemyRoom: false, gateSignal: false },
+                    _hasSeenChild: false,
+                    _sitter: null,
+                    _rescueAttempted: false,
+                    actionLines: {
+                        assassination: { unlocked: false, steps: { letterSent: false, doorOpened: false, confronted: false }, completed: false },
+                        dragonSlayer: { unlocked: false, steps: { choseSitter: false, reachedRift: false, sealed: false }, completed: false },
+                        dragonRider: { unlocked: false, steps: { materialsCollected: false, choseSacrifice: false, forged: false }, completed: false },
+                    },
+                    phase: 'exploration',
+                    actionLineChosen: null,
+                    endingTriggered: false,
+                    gameCompleted: false,
+                };
                 state._dragonWarned60 = false;
                 _eventCounter = 0;
                 _flutistTalkCount = 0;
