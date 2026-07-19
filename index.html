@@ -10847,7 +10847,103 @@
                     }]);
                     return;
                 }
+                // 在伪装检查之后，if (!hasMet) 之前插入：
 
+                // ---- ⭐ 新增：补救路径（如果玩家之前回避了清远） ----
+                var hasAvoided = !hasMet && state.ch2.dramaPhase >= 4;
+
+                if (hasAvoided && state.ch2.energy >= 2) {
+                    // 清远还在石阶上等你
+                    setStory(`
+        <span class="title-line">🧙 祭坛后面的石阶</span>
+        <span class="divider">—— —— ——</span>
+        你穿过人群，鬼使神差地走到了祭坛后面的石阶前。
+        清远还坐在那里。他像是早就知道你会来一样，没有抬头，只是说了一句：
+        <span class="rule-text" style="color:#d4b87a;">「你回来了。比我想象中要久一些，但好歹回来了。」</span>
+        他在你旁边留了一个位置。
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你还有机会弥补之前的错过。坐下来吧。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🔋 需要2点精力。</span>
+    `);
+                    renderOptions([
+                        {
+                            label: '🔙 坐下来，跟清远道歉',
+                            hint: '消耗2精力，信任+1',
+                            tag: '💚 补救',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                if (state.ch2.energy < 2) {
+                                    showStory('⚠️ 你太疲惫了，连坐下去的力气都没有。');
+                                    return;
+                                }
+                                spendEnergy(2);
+                                state.ch2._qingyuanMet = true;
+                                state.ch2.qingyuanTrust = Math.min((state.ch2.qingyuanTrust || 0) + 1, 3);
+                                showStory(`
+                    <span class="divider">· · ·</span>
+                    你在他旁边坐下。沉默了一会儿，你说：
+                    <span class="rule-text" style="color:#d4b87a;">「上次……我不该那样走开的。」</span>
+                    清远没有看你，但他的声音里有一丝笑意：
+                    <span class="rule-text" style="color:#d4b87a;">「我知道你会回来。你看起来不像那种会走到底不回头的人。」</span>
+                    <span style="color:#6a8aaa;">💚 清远信任 +1（当前：${state.ch2.qingyuanTrust}）</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem;">🔋 精力-2</span>
+                `);
+                                updateUI();
+                                saveGame();
+                                renderQingyuanDeepTalk();
+                            }
+                        },
+                        {
+                            label: '🚶 转身走开，不回头',
+                            hint: '你已经错过了，就这样吧',
+                            tag: '彻底错过',
+                            action: function () {
+                                if (state.gameOver || state._waitingConfirm) return;
+                                showStory(`
+                    <span class="divider">· · ·</span>
+                    你犹豫了一下，最终还是转身离开了。
+                    清远的声音从身后传来，很轻：
+                    <span class="rule-text" style="color:#d4b87a;">「……那好吧。」</span>
+                    你没有回头。
+                    <span style="color:var(--text-muted);font-size:0.85rem;">你彻底错过了与清远对话的机会。</span>
+                `);
+                                state.ch2.dramaPhase = 4;
+                                updateUI();
+                                saveGame();
+                                renderOptions([{
+                                    label: '⏩ 继续前进',
+                                    action: function () {
+                                        if (state.gameOver || state._waitingConfirm) return;
+                                        renderMiddleEvents();
+                                    }
+                                }]);
+                            }
+                        }
+                    ]);
+                    return;
+                }
+
+                // ---- 如果精力不足，仍然提供继续选项 ----
+                if (hasAvoided && state.ch2.energy < 2) {
+                    setStory(`
+        <span class="title-line">🧙 祭坛后面的石阶</span>
+        <span class="divider">—— —— ——</span>
+        你远远地看到了清远。他还坐在那里。
+        但你太疲惫了，连走过去的力气都没有。
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你需要2点精力才能走过去跟他说话。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🔋 当前精力：${state.ch2.energy}</span>
+    `);
+                    renderOptions([{
+                        label: '⏩ 继续前进',
+                        hint: '你错过了这次机会',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            state.ch2.dramaPhase = 4;
+                            renderMiddleEvents();
+                        }
+                    }]);
+                    return;
+                }
                 // ---- 首次遇到清远 ----
                 if (!hasMet) {
                     state.ch2._qingyuanMet = true;
@@ -14277,7 +14373,6 @@
                     state.ch3.exploredAreas.alchemyRoom &&
                     state.ch3.exploredAreas.backYard;
 
-                // ---- 如果所有区域都已探索，触发行动线解锁 ----
                 if (allExplored && state.ch3.phase === 'exploration') {
                     renderCh3AllExplored();
                     return;
@@ -14290,12 +14385,9 @@
                     bellDisplay += i < bellTolls ? '🔔' : '◯';
                 }
 
-                // ---- 压力状态 ----
                 var pressure = state.ch3.pressure || 0;
                 var pressureText = ['😌 平静', '😰 不安', '😨 紧张', '😤 决心'][pressure] || '😌 平静';
                 var pressureColor = ['var(--text-muted)', '#d4b87a', '#d45a5a', '#d4b87a'][pressure] || 'var(--text-muted)';
-
-                // ---- 香火状态 ----
                 var incense = state.ch2.incenseRemaining || 0;
 
                 // ---- 场景文本 ----
@@ -14314,6 +14406,34 @@
         <span style="color:var(--text-muted);font-size:0.85rem;">💡 选择一个区域前往探索。</span>
     `);
 
+                // ---- ⭐ 新增：获取区域碎片进度 ----
+                function getAreaProgress(areaId) {
+                    var fragments = state.ch3.fragments || {};
+                    var map = {
+                        frontYard: { ids: ['piece1'], label: '前院' },
+                        mainHall: { ids: ['piece2'], label: '大殿' },
+                        library: { ids: ['piece3'], label: '藏经阁' },
+                        alchemyRoom: { ids: ['piece4'], label: '丹房' },
+                        backYard: { ids: ['piece5', 'piece6'], label: '后院' },
+                    };
+                    var data = map[areaId];
+                    if (!data) return { collected: 0, total: 0, text: '❓' };
+                    var collected = 0;
+                    for (var i = 0; i < data.ids.length; i++) {
+                        if (fragments[data.ids[i]]) collected++;
+                    }
+                    var total = data.ids.length;
+                    var text = '';
+                    if (collected === total && total > 0) {
+                        text = '✅ 已集齐';
+                    } else if (collected > 0) {
+                        text = '🧩 ' + collected + '/' + total;
+                    } else {
+                        text = '⬜ 未发现';
+                    }
+                    return { collected: collected, total: total, text: text };
+                }
+
                 // ---- 构建选项 ----
                 var opts = [];
 
@@ -14327,10 +14447,27 @@
 
                 areas.forEach(function (area) {
                     var isExplored = area.status || false;
+                    var progress = getAreaProgress(area.id);
+
+                    // 构建 hint：显示碎片进度
+                    var hintText = isExplored ? progress.text : area.hint;
+
+                    // 构建 tag：显示探索状态 + 碎片状态
+                    var tagText = '';
+                    if (!isExplored) {
+                        tagText = '🔒 未探索';
+                    } else if (progress.collected === progress.total && progress.total > 0) {
+                        tagText = '✅ 已完成';
+                    } else if (progress.collected > 0) {
+                        tagText = '🔍 ' + progress.collected + '/' + progress.total;
+                    } else {
+                        tagText = '📭 已探索';
+                    }
+
                     opts.push({
                         label: area.label + (isExplored ? ' ✅' : ''),
-                        hint: isExplored ? '已探索' : area.hint,
-                        tag: isExplored ? '已读' : '未探索',
+                        hint: hintText,
+                        tag: tagText,
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             renderCh3Area(area.id);
@@ -14338,9 +14475,7 @@
                     });
                 });
 
-
-
-                // 原来的“查看行动线状态”按钮 —— 替换为模糊直觉
+                // ---- 查看直觉 ----
                 opts.push({
                     label: '💭 感受直觉',
                     hint: '你似乎捕捉到了一些线索……',
@@ -14350,7 +14485,8 @@
                         renderCh3Intuition();
                     }
                 });
-                // 在 renderCh3Exploration 的 opts 中找到并替换
+
+                // ---- 查看地图 ----
                 opts.push({
                     label: '🗺️ 查看道观布局图',
                     hint: '点击区域直接探索',
@@ -14360,7 +14496,8 @@
                         renderCh3Map();
                     }
                 });
-                // ---- 退出探索（回到第二章门前） ----
+
+                // ---- 退出探索 ----
                 opts.push({
                     label: '🔙 回到道观门前',
                     hint: '离开锁龙观',
@@ -14493,26 +14630,45 @@
                 }
 
                 // 第5响：强制推进
+                // 在 checkBellEvents 中，找到第5响的处理
+
                 if (tolls === 5 && !state.ch3._bell5Triggered) {
                     state.ch3._bell5Triggered = true;
                     state.ch3.pressure = Math.min((state.ch3.pressure || 0) + 1, 3);
+
+                    // ⭐ 改动：不直接强制进入，给玩家选择
                     showStory(`
-            <span class="divider">· · ·</span>
-            <span style="color:#d45a5a;font-weight:700;">🔔 第五声钟响了。</span>
-            <span style="color:#d45a5a;">钟声停了。有什么东西正在苏醒。</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">你感到脚下的地面在震动……</span>
-        `); saveGame();
-                    // 如果还没有触发任何行动线，强制进入最终抉择
-                    var hasActionLine = state.ch3.actionLines.assassination.completed ||
-                        state.ch3.actionLines.dragonSlayer.completed ||
-                        state.ch3.actionLines.dragonRider.completed;
-                    if (!hasActionLine && state.ch3.phase === 'exploration') {
-                        setTimeout(function () {
-                            if (!state.gameOver && !state._waitingConfirm) {
+        <span class="divider">· · ·</span>
+        <span style="color:#d45a5a;font-weight:700;">🔔 第五声钟响了。</span>
+        <span style="color:#d45a5a;">这是你最后一次机会。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">🧩 已收集碎片：${countFragments()}/6</span>
+        ${countFragments() < 6 ? `<span style="color:#aa4a4a;">⚠️ 你还差 ${6 - countFragments()} 个碎片。</span>` : ''}
+        <span style="color:var(--text-muted);font-size:0.85rem;">💡 你可以再仔细搜查一个区域（消耗1精力）。</span>
+    `);
+                    renderOptions([
+                        {
+                            label: '🔍 再搜查一次',
+                            hint: '消耗1精力，钟声不再增加',
+                            action: function () {
+                                if (state.ch2.energy < 1) {
+                                    showStory('⚠️ 你太疲惫了，连站都站不稳。');
+                                    renderCh3FinalChoice();
+                                    return;
+                                }
+                                spendEnergy(1);
+                                showStory('你深吸一口气，决定再仔细看看这座道观。');
+                                renderCh3Exploration();
+                            }
+                        },
+                        {
+                            label: '⏳ 进入最终抉择',
+                            hint: '你已经准备好了',
+                            action: function () {
                                 renderCh3FinalChoice();
                             }
-                        }, 1000);
-                    }
+                        }
+                    ]);
+                    return; // 阻止自动推进
                 }
             }
             // ================================================================
