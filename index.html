@@ -9864,10 +9864,10 @@
 
                 // ---- 尾部事件分发 ----
                 switch (subPhase) {
-                    case 0:
+                    case 1:
                         renderE1_TailBusy();
                         break;
-                    case 1:
+                    case 0:
                         renderE2_OldFlutist();
                         break;
                     case 2:
@@ -9952,7 +9952,7 @@
                     opts.push({
                         label: '🥷 趁乱偷拿几根香火',
                         hint: '你的手伸向案板边缘',
-                        tag: '风险：伪装≥3成功，否则暴露',
+                        tag: '风险',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             if (state.ch2.disguise >= 3) {
@@ -10025,7 +10025,7 @@
                     opts.push({
                         label: '🗣️ 跟老汉搭话',
                         hint: '你觉得他话里有话',
-                        tag: '特殊对话',
+                        tag: '对话',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             showStory(`
@@ -10258,7 +10258,7 @@
                 opts.push({
                     label: '🌫️ 走进迷雾探索',
                     hint: '你的心跳得有点快',
-                    tag: '精力-2，伪装-1，找到旧碑',
+                    tag: '寻觅',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         if (state.ch2.energy < 2) {
@@ -10301,7 +10301,7 @@
                 opts.push({
                     label: '👁️ 站在边缘观望',
                     hint: '你看到雾中有人影晃动',
-                    tag: '获得线索，无消耗',
+                    tag: '线索',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         advanceEventCounter();
@@ -10331,7 +10331,7 @@
                 opts.push({
                     label: '🗣️ 问旁边的路人那是哪',
                     hint: '路人看了你一眼，表情变了',
-                    tag: '伪装-1，获得线索',
+                    tag: '线索',
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
                         changeDisguise(-1);
@@ -10624,7 +10624,7 @@
                     opts.push({
                         label: '📿 掏出老妪给的护身符',
                         hint: '护卫皱眉看了很久',
-                        tag: '放行，但后续盘查+1',
+                        tag: '放行',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             advanceRitual(3);
@@ -10758,7 +10758,7 @@
                     opts.push({
                         label: '🚶 走到路边那个人旁边坐下',
                         hint: '你什么也没说，只是坐下了',
-                        tag: '💛 HE2 被救助',
+                        tag: '机缘',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             state.ch2._he2Triggered = true;
@@ -10924,7 +10924,7 @@
                     opts.push({
                         label: '👁️ 盯着一个人的脸看',
                         hint: '你想看看他们眼睛里还有什么',
-                        tag: '反玄清专属，获得情报',
+                        tag: '获得情报',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             advanceEventCounter();
@@ -11288,7 +11288,7 @@
                         {
                             label: '🗣️ 「我不是。」',
                             hint: '你直接否认了',
-                            tag: '诚实 → 信任+1',
+                            tag: '诚实',
                             action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
                                 state.ch2.qingyuanTrust = Math.min((state.ch2.qingyuanTrust || 0) + 1, 3);
@@ -11312,7 +11312,7 @@
                         {
                             label: '🚶 「你认错人了。」',
                             hint: '你转身就走',
-                            tag: '回避 → 错过',
+                            tag: '回避',
                             action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
                                 changeDisguise(-1);
@@ -11338,7 +11338,7 @@
                         {
                             label: '🗣️ 「你又是谁？」',
                             hint: '你反问他',
-                            tag: '好奇 → 深度对话',
+                            tag: '好奇 ',
                             action: function () {
                                 if (state.gameOver || state._waitingConfirm) return;
                                 state.ch2.qingyuanTrust = Math.min((state.ch2.qingyuanTrust || 0) + 1, 3);
@@ -11622,7 +11622,7 @@
                     {
                         label: '🚶 走向墙边那个人',
                         hint: '他的眼神很平静',
-                        tag: '💛 HE1 幸存者',
+                        tag: '机缘',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             // 真正的觉醒者
@@ -11657,7 +11657,7 @@
                     {
                         label: '🚶 走向阴影里那个人',
                         hint: '他站得一动不动，像在等你',
-                        tag: '💀 BE6 自投罗网',
+                        tag: '机缘',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             // 道士伪装的诱饵
@@ -11690,7 +11690,7 @@
                     {
                         label: '🚶 不靠近任何人，继续跟队伍走',
                         hint: '你犹豫了，决定放弃这次机会',
-                        tag: '错过 → 继续推进',
+                        tag: '继续推进',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             showStory(`
@@ -11844,7 +11844,7 @@
                     opts.push({
                         label: '👁️ 回望他，坚定地点头',
                         hint: '你告诉他：我看到了',
-                        tag: '💚 情感链接，解救成功率+15%',
+                        tag: '💚 情感链接',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             state.ch2.hasSeenPureYang = true;
@@ -11913,7 +11913,7 @@
                     opts.push({
                         label: '🤫 对他做"嘘"手势',
                         hint: '你让他保持安静',
-                        tag: '反玄清，解救成功率+25%，解锁联合抵抗',
+                        tag: '解锁联合抵抗',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             state.ch2.hasSeenPureYang = true;
@@ -12082,7 +12082,7 @@
                     opts.push({
                         label: '🙏 默念「龙佑平安」',
                         hint: '你想起第一条规则',
-                        tag: '伪装+1，护玄清专属',
+                        tag: '伪装+1，',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             changeDisguise(1);
@@ -12740,7 +12740,7 @@
                             {
                                 label: '💪 拼死抵抗',
                                 hint: '你不想就这样结束',
-                                tag: '→ BE2',
+                                tag: '→',
                                 action: function () {
                                     if (state.gameOver || state._waitingConfirm) return;
                                     showStory(`
@@ -12755,7 +12755,7 @@
                             {
                                 label: '😞 跪下来，放弃抵抗',
                                 hint: '你太累了，不想再挣扎了',
-                                tag: '→ BE7',
+                                tag: '→',
                                 action: function () {
                                     if (state.gameOver || state._waitingConfirm) return;
                                     showStory(`
@@ -12813,7 +12813,7 @@
                 opts.push({
                     label: '🔙 在门前站了很久，转身',
                     hint: canLeave ? '你总觉得背后有什么在看你' : '⚠️ 精力不足',
-                    tag: canLeave ? '🏁 NE2' : '🔒 锁定',
+                    tag: canLeave ? '🏁 ' : '🔒 锁定',
                     disabled: !canLeave,
                     action: function () {
                         if (state.gameOver || state._waitingConfirm) return;
@@ -12860,7 +12860,7 @@
                     opts.push({
                         label: '😰 站在原地不动，看着烟雾涌来',
                         hint: '你双腿发软，无法移动',
-                        tag: '💀 BE8',
+                        tag: '💀 ',
                         action: function () {
                             if (state.gameOver || state._waitingConfirm) return;
                             state.ch2._be8Triggered = true;
@@ -13915,7 +13915,19 @@
                     ]);
                 }
             }
-
+            function getKeeperPhaseText(phase) {
+                const map = {
+                    'stranger': '陌生人',
+                    'noticing': '注意',
+                    'observing': '观察',
+                    'guiding': '引导',
+                    'examining': '审视',
+                    'open': '开放',
+                    'delivering': '交付',
+                    'gone': '已去'
+                };
+                return map[phase] || '陌生人';
+            }
             // ================================================================
             //  第四章 · 薪火之章
             // ================================================================
@@ -13992,54 +14004,55 @@
                         renderChapter4Prologue();
                 }
             }
+            // ================================================================
+            //  第四章 · 薪火之章（重写版 v3）
+            // ================================================================
+
             function renderChapter4Prologue() {
                 if (state._waitingConfirm) return;
 
-                const cross = getCrossSave();
-                const phaseText = getKeeperPhaseText(cross.keeperPhase);
-
                 setStory(`
         <span class="title-line">🌑 第四章 · 薪火之章</span>
-        <span class="divider">—— 序幕 · 龙腹 ——</span>
+        <span class="divider">—— 序幕 · 槐树下 ——</span>
 
-        你从道观前院的北墙上，发现了一道之前从未注意到的门。
-        门的边缘长满了青苔，门缝里透出暗金色的光。
-        你伸手推了一下——门开了。
+        你从道观前院的北墙上发现了一道门。你推开了它——但门后不是地底，不是龙腹。
+
+        是一条向上的石阶。你走上去，光线越来越亮，风越来越暖。你走出来的时候，发现自己坐在村口那棵老槐树下面。你低头看自己的手——干净的，没有伤痕，没有龙化的痕迹。你仿佛回到了第一天。
+
+        守卷人坐在你旁边，没有看你。他像往常一样看着远处的村子。
+
+        <span class="rule-text" style="color:#d4b87a;">「你来了。」</span>
+
+        他顿了顿。你等着他说下去。
+
+        <span class="rule-text" style="color:#d4b87a;">「你已经走完了三条路——你追过社戏的队伍，你进过道观的大殿，你在那些碎片里摸黑走了很久。现在你回来了。回到这棵树下。」</span>
+
+        他转头看了你一眼。
+
+        <span class="rule-text" style="color:#d4b87a;">「你还记得你第一天到这里的时候看到了什么吗？」</span>
+
+        你没有回答。他继续说：
+
+        <span class="rule-text" style="color:#d4b87a;">「你看到了一块木牌。斑驳的，字迹不全的。上面写着一条又一条规则——怎么吃饭，怎么走路，怎么避祸。你照着做了。你活着走出了这座村子。」</span>
+
+        他的声音很轻。
+
+        <span class="rule-text" style="color:#d4b87a;">「但你没有问过——那块木牌是谁钉上去的？在钉上去之前，那个人走了多远的路？他是跟你一样，还是比你先走了一步？」</span>
+
+        风从山那边吹过来，带着菌菇和泥土的气味，和第一天一模一样。
+
+        <span class="rule-text" style="color:#d4b87a;">「你手里握着的东西，不是你的。是你前面的人留下的。他们是最后一捧火，传到了你手里。你甚至没有抬头看是谁递给你的。」</span>
 
         <span class="divider">· · ·</span>
 
-        你走进了一条向下延伸的石阶。石阶很窄，两侧的墙壁上覆盖着细密的、像菌丝一样的东西，在暗光中泛着微弱的青色。
-        你走了很久。久到你不再数台阶了。久到你开始怀疑这条路是不是真的通向什么地方。
-
-        <span class="divider">· · ·</span>
-
-        然后你到了。石阶的尽头是一处巨大的地底空间——你站在那空间的边缘往下看，看到了一个轮廓。
-        那轮廓是蜷曲的。巨大的。像一座沉睡的山。
-
-        你听到身后传来脚步声。你没有回头，你已经知道那是谁了。
-
-        <span class="rule-text" style="color:#d4b87a;">「你终于走到这里了。我等你等了很久——比你想的更久。」</span>
-
-        你转过身。守卷人站在石阶的顶端，逆着光，看不清表情。
-
-        <span class="rule-text" style="color:#d4b87a;">「你不是第一个走到这里的人。但你是第一个……没有带着恐惧走进来的人。」</span>
-
-        他走下来，站在你身边，和你一起看着那个巨大的、蜷曲的轮廓。
-
-        <span class="rule-text" style="color:#d4b87a;">「这就是龙。或者说，这是这座山记住它的方式。你不是要杀死它。你是要理解它。」</span>
-
-        <span class="divider">· · ·</span>
-
-        <span style="color:var(--text-muted);font-size:0.85rem;">你感到脚下的地面在微微震动——那不是地震，是呼吸。是那头巨兽沉睡中的呼吸。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">守卷人的话在你脑中回响——「你不是要杀死它。你是要理解它。」</span>
-
-        <span style="color:var(--text-gold);">你准备好了吗？</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你坐在槐树下，风从山那边吹过来。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">守卷人的话在你耳边响着——「你手里握着的东西，不是你的。」</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 向前走一步',
-                    hint: '你不再犹豫了',
-                    tag: '→ 序幕结束',
+                    label: '🌅 坐在石头上，回想你的第一天',
+                    hint: '你闭上眼睛',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 1;
@@ -14049,51 +14062,43 @@
                 }]);
             }
 
-            function getKeeperPhaseText(phase) {
-                const map = {
-                    'stranger': '陌生人',
-                    'noticing': '注意',
-                    'observing': '观察',
-                    'guiding': '引导',
-                    'examining': '审视',
-                    'open': '开放',
-                    'delivering': '交付',
-                    'gone': '已去'
-                };
-                return map[phase] || '陌生人';
-            }
             function renderChapter4Act1() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
         <span class="title-line">🌳 第四章 · 薪火之章</span>
-        <span class="divider">—— 第一幕 · 槐树下 ——</span>
+        <span class="divider">—— 第一幕 · 进村 ——</span>
 
-        你睁开眼睛的时候，发现自己坐在村口那棵老槐树下面。
-        阳光透过树叶洒在你身上，暖洋洋的。你低头看自己的手——干净的，没有伤痕。
+        你闭上眼睛，画面涌上来了。
 
-        守卷人坐在你旁边。他看起来比刚才年轻了一些，像是褪去了很多层岁月。
+        村口的木牌。那些规则——
 
-        <span class="rule-text" style="color:#d4b87a;">「你睡了一会儿。在你睡着的时候，我讲了一个故事。你没有听到——但你的身体记住了。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「寄宿村民家，早餐玉米粥腌菜……晚餐后‘银杏茶’需饮尽。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「清晨6点前不可出门。踩坏灰线需找嫂嫂带去土地庙敬香。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「不靠近村西聚居区。」</span>
 
-        你看着他。他没有看你，而是看着远处村子的轮廓。
+        守卷人的声音在风里轻轻响着，不高不低，像在读一段你曾经听过的话：
 
-        <span class="rule-text" style="color:#d4b87a;">「我叫陈守一。我在这里等了一百多年。我等你的时候，看着玄清盖起这座道观，看着那些孩子被送进来，看着那些村民一代一代地老去、死去、被遗忘。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「那些规则是有人刻上去的。每一道笔画都用了力——不是写文章的那种力，是‘希望下一个人活着走出去’的那种力。你不知道他是谁。你不知道他后来去了哪里。你只知道他走之前，把木板钉在了村口，把水倒在了陶碗里，把路标插在了岔路口。然后他走了。他大概没有回来过。但他那一碗水，你喝过。你活着走到了现在。」</span>
 
-        他转过头来，看着你。
+        你睁开眼。槐树的叶子在风里响着。
 
-        <span class="rule-text" style="color:#d4b87a;">「我不是人。我是这座山记住自己的方式。当你们所有人都不再记得这座山的时候——我还记得。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你喝完水之后，木牌就被你收起来了。你带着那些规则，走完了整个村庄。你活着站在这里——不是因为你能打，不是因为运气好，是因为有一个人，在你来之前，把他会的东西全刻在了那块木板上。你没看见他的样子。但你活下来了。」</span>
+
+        风停了。槐树安静下来。你低头看着自己的手——干净的，什么都没有。
+
+        <span class="rule-text" style="color:#d4b87a;">「你没有问过自己：你活着走出去之后，那块木牌还在不在？还是说——你就是那块木牌的下一个人？」</span>
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-muted);font-size:0.85rem;">他说话的时候，语气平静得像在描述一座山——因为他就是山本身。</span>
-        <span style="color:var(--text-gold);">你明白了。守卷人不是山神，不是龙神——他是这座山对自己的记忆。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你第一次意识到——那些规则不是写给游客的。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">它们是写给下一个传火的人的。</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 站起来，走向村子',
-                    hint: '你想看看这座村庄最初的样子',
-                    tag: '→ 第一幕结束',
+                    label: '🌅 继续听下去',
+                    hint: '你坐在石头上，没有动',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 2;
@@ -14102,37 +14107,42 @@
                     }
                 }]);
             }
+
             function renderChapter4Act2() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
-        <span class="title-line">🏛️ 第四章 · 薪火之章</span>
-        <span class="divider">—— 第二幕 · 道观大殿 ——</span>
+        <span class="title-line">🏮 第四章 · 薪火之章</span>
+        <span class="divider">—— 第二幕 · 社戏 ——</span>
 
-        你走进道观大殿。这里和你记忆中的一样——青石板、长明灯、神像。
-        但有些东西不一样了。神像的眉眼变了。你走近了看——那是玄清的脸。
-        那是年轻的玄清。还没有被龙气侵蚀的玄清。
+        画面变了。你站在山脚，远处传来锣鼓声。
 
-        <span class="rule-text" style="color:#d4b87a;">「你看到了吗？他曾经是真实的。他不是从一开始就是怪物的。」</span>
+        社戏的队伍。你追了它一路。
+
+        <span class="rule-text" style="color:#d4b87a;">「那支队伍也是火。不是你想的那种火——是传了很久很久的那一团。」</span>
 
         守卷人的声音从你身后传来。
 
-        <span class="rule-text" style="color:#d4b87a;">「他年轻时，是真的想救这座村子。他以为龙气是工具——他以为他可以用它来镇住山里的瘴气。他没有想到的是，工具会反噬使用者。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你看到那些人了。他们在哭，在笑，在吸气，在走路的时候脚后跟不着地。你以为他们是被控制的——被龙气吞噬了灵魂，被道观抽干了意识。你没有想过：那些人自己也想传下去。他们相信了五百年。信到深了，变成了那些表现，变成了社戏。他们不是恶人。他们是把一件错事传了太久的人。」</span>
 
-        你看着神像的脸。那张脸上有一种你从未在玄清脸上见过的表情——那是一种理想主义者的表情。
+        画面里，你看到那支队伍在山路上蜿蜒移动，灯火在暮色中连成一条发光的线。
 
-        <span class="rule-text" style="color:#d4b87a;">「第一个被献祭的，不是那些孩子。是他自己。他把自己的一部分交给了龙气——从那以后，他就再也拿不回来了。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你说他们错了——是的，他们错了。但他们从来没有问过自己‘我能不能停下来’。他们只是继续走，继续传，继续把那根火把交给下一个人。你一路追着那支队伍。你混进去了。你看到了那些扮神仙的人脚后跟不着地——你看到了那个孩子。你以为你是在旁观。你没有想过——你已经站在那支队伍的火光旁边了。」</span>
+
+        锣鼓声变远了。山路上那一条灯火还在移动，像一条正在离开的线。
+
+        <span class="rule-text" style="color:#d4b87a;">「如果他们传错了，你有什么办法把它接过来，重新点燃？」</span>
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-muted);font-size:0.85rem;">你明白了。玄清不是纯粹的恶。他是在一扇门关上之前，把自己推了进去。</span>
-        <span style="color:var(--text-gold);">你看到了他的起点——那和你自己的起点，并没有那么遥远。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你站在山脚，看着那支队伍远去。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你第一次想——如果他们都传错了，那什么才是对的？</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 走出大殿，走向前院',
-                    hint: '你想看看更多',
-                    tag: '→ 第二幕结束',
+                    label: '🌅 继续听下去',
+                    hint: '守卷人站在你身后',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 3;
@@ -14141,40 +14151,44 @@
                     }
                 }]);
             }
+
             function renderChapter4Act3() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
-        <span class="title-line">🌿 第四章 · 薪火之章</span>
-        <span class="divider">—— 第三幕 · 道观前院 ——</span>
+        <span class="title-line">🌾 第四章 · 薪火之章</span>
+        <span class="divider">—— 第三幕 · 村西 ——</span>
 
-        你走到前院。廊下坐着一个人——不是老道士，是阿芹。
-        她比你记忆中年轻。她的额头上没有树芽。她的眼神里有光。
+        画面变了。你站在一条窄巷的入口。两边的墙是灰的，屋顶低矮，阳光照不进来。
 
-        <span class="rule-text" style="color:#d4b87a;">「你来了。我一直想见你。」</span>
+        你看到阿芹站在巷子深处，像一棵长在墙边的树。她没有看你。她看着巷口，像是在等谁。
 
-        她站起来，走到你面前。
+        守卷人的声音像从墙缝里渗出来：
 
-        <span class="rule-text" style="color:#d4b87a;">「我知道你听过我的故事。那个版本里，我是觉醒者，我是逃出来的，我是受害者。那些都是真的——但还有一件事，我没有告诉过任何人。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「阿芹也在传。她传的是：‘别走进去。’」</span>
 
-        她停顿了一下。
+        你看着她的背影。
 
-        <span class="rule-text" style="color:#d4b87a;">「我的母亲……是自愿签字的。她是第一个同意把孩子送进道观的人。她以为那是为我好。她以为龙气可以让我活得更久、更健康。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「她站在这里很多年了。她母亲签完字之后，她就被送进了道观。她是第一批逃出来的人。她逃出来之后没有走远——她站在了这道巷子的尽头。每一个从村东走过来的人，她都会说：‘你走错了。’她说这句话的时候，语气是平的——平的像一碗放凉的水。但你知道那团火在她胸口烧了很久很久了。她不是不想让它灭掉。她是怕灭掉之后，就没有人站在这里了。」</span>
 
-        她的声音变得很轻。
+        你看到阿芹的背影在巷子里动了一下。她没有回头。
 
-        <span class="rule-text" style="color:#d4b87a;">「她后来后悔了。她死之前，一直在说——『我错了。我错了。』」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你来找过她很多次。她每次都给你一个新的信息——暗碑在哪里，玄清是什么人，村东那些嫂嫂的眼睛在看什么。她全告诉你了。她以为你就是那个会接住火的人。但你只是收下了。你没有问她：‘你站在这里的时候，你在看什么？’你没有问：‘你等了多久了？你还打算等多久？’」</span>
+
+        风从巷口吹进来，阿芹的衣角动了一下。
+
+        <span class="rule-text" style="color:#d4b87a;">「她是那团火最薄的一层了。她快撑不住了。但她没有走——她还在等。她在等你问出那个问题。你一直没有问。你只问了你想知道的。你拿走了她给你的所有碎片。你没有问过她：‘你还需要我帮你传什么？』」</span>
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-muted);font-size:0.85rem;">你听到这个故事，心里有什么东西被触动了。你想起自己在邱龙村的日子——那些你以为只是规则的东西，背后是活生生的人的命运。</span>
-        <span style="color:var(--text-gold);">你终于明白了为什么阿芹要站在村西——她不是因为恨。她是因为愧疚。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你站在巷口，看着阿芹的背影。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你终于问了自己一次——你问过她吗？你问过她站在那里多久了吗？</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 继续向前走',
-                    hint: '你还有更远的路要走',
-                    tag: '→ 第三幕结束',
+                    label: '🌅 继续听下去',
+                    hint: '你看着巷子深处',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 4;
@@ -14183,36 +14197,46 @@
                     }
                 }]);
             }
+
             function renderChapter4Act4() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
-        <span class="title-line">🪨 第四章 · 薪火之章</span>
-        <span class="divider">—— 第四幕 · 山脚石头上 ——</span>
+        <span class="title-line">🏛️ 第四章 · 薪火之章</span>
+        <span class="divider">—— 第四幕 · 道观 ——</span>
 
-        你坐在山脚的一块大石头上。这里是你曾经走过的地方——集市、岔路口、那条通往山上的石板路。
-        清远坐在你旁边。他没有戴面具。那张脸比记忆中更瘦，眼窝深陷，像是很久没有睡过觉了。
+        画面变了。你站在锁龙观的大殿里。玄清坐在蒲团上，背对着你。你见过这个画面很多次了。
 
-        <span class="rule-text" style="color:#d4b87a;">「你知道吗？四十七个人——这是被送进道观的人数。四十七个孩子。」</span>
+        守卷人的声音从神像后面传出来，很轻，像是怕惊动什么：
 
-        他沉默了很久。
+        <span class="rule-text" style="color:#d4b87a;">「玄清也传过火。他传的是一封信。」</span>
 
-        <span class="rule-text" style="color:#d4b87a;">「我数过很多次。每次以为数错了，就再数一次。每次数完，还是四十七个。」</span>
+        你愣了一下。
 
-        他转头看着你。
+        <span class="rule-text" style="color:#d4b87a;">「那封信你看到过。在药庐里，在那一堆旧纸下面——‘龙气并非不可控，只是无人敢试。若有人愿意走第三条路，他需要三样东西：药方、北岭的地图、还有一个人愿意信他。’你当时看到了。你读完了。你收起来了。你没有问——他写这封信的时候，是写给谁的？」</span>
 
-        <span class="rule-text" style="color:#d4b87a;">「我不是道士。我是从裂缝里走出来的人。我是那第四十八个——但我没有进去。我从那扇门的另一边，走了出来。」</span>
+        你想起那封信，纸已经泛黄了，边缘卷着，字迹很稳，不像一个快要被龙气侵蚀的人写出来的。
+
+        <span class="rule-text" style="color:#d4b87a;">「他写这封信的时候，手已经不太听使唤了。但他还是一笔一划写完了。他把它压在了药庐最里面的桌角下。他没有寄出去。他不知道谁会看到它。他只是在写。在知道自己快要无法开口的时候，把能说的全写了下来。你看到了。你收起来了。」</span>
+
+        你站在大殿里，看着玄清的背影——那个背对着你坐了几百年的人，始终没有回头。
+
+        <span class="rule-text" style="color:#d4b87a;">「你不知道他写完之后，坐了多久才站起来。但你拿到那封信了。你站在这里，拿着他写下的最后一句话——就像你拿着村口那块木牌上的字，就像你握着阿芹给你的那些碎片。他写的是‘如果有人愿意走第三条路’。你看到了。你还在犹豫。」</span>
+
+        大殿里安静了很久。你听到自己的呼吸声。
+
+        <span class="rule-text" style="color:#d4b87a;">「他是那团火里最老的一层了。他快熄灭了。但他还是把最后一点火芯留在了那张纸上。」</span>
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-muted);font-size:0.85rem;">你看着他。他看起来比任何时候都更像一个活人——而不是那个戴面具的、犹豫不决的年轻道士。</span>
-        <span style="color:var(--text-gold);">你明白了——他之所以站在玄清那边那么久，是因为他想从里面把它改好。他失败了。但他没有放弃。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你站在大殿里，手中仿佛还握着那封信的重量。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">他写的是「如果有人愿意走第三条路」。你现在知道那个人是谁了。</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 站起来，走向山谷深处',
-                    hint: '你知道终点就在前方',
-                    tag: '→ 第四幕结束',
+                    label: '🌅 继续听下去',
+                    hint: '你看着玄清的背影',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 5;
@@ -14221,39 +14245,44 @@
                     }
                 }]);
             }
+
             function renderChapter4Act5() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
-        <span class="title-line">⛰️ 第四章 · 薪火之章</span>
-        <span class="divider">—— 第五幕 · 山核之中 ——</span>
+        <span class="title-line">🔥 第四章 · 薪火之章</span>
+        <span class="divider">—— 第五幕 · 拼合 ——</span>
 
-        你走入了那座山的核心。不是地底洞穴，不是龙腹——是这座山最深处、最古老的地方。
+        你离开大殿，走进前院。风从山路上吹下来。守卷人走在你旁边。
 
-        这里什么都没有。没有光，没有声音，没有形状。
+        <span class="rule-text" style="color:#d4b87a;">「现在你知道几件事了。」</span>
 
-        然后你听到了声音。那不是人声。那是石头在说话。
+        他的声音很稳。他说话的语气像是在排列你已经知道的东西，不是在教你新的。
 
-        <span class="rule-text" style="color:#d4b87a;">「你来了。我知道你会来。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「一条龙来调和瘴气。它把自己化入山体，把火种留在了这片土地里。然后一个道士来了——他以为自己可以做得更好。他凿开龙脉，引出了龙气，把自己变成了第一个被烧到的人。然后那些人来了——那些孩子，那些母亲，那些站在村西的人。他们每一个人都在传。有的人传错了方向，有的人传对了，有的人根本不知道自己在传。但他们都在传。」</span>
 
-        你站在那片什么都没有的空间里，感受着那句话的重量。
+        你站在前院的中间，阳光从檐角斜照下来，落在青石板上，像一条窄窄的光路。
 
-        <span class="rule-text" style="color:#d4b87a;">「我是这座山。我是这条龙。我是玄清试图镇住的东西。我也是阿芹的母亲签字时相信的东西。我是清远从裂缝里走出来时路过的黑暗。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「那块木牌，那支社戏队伍，阿芹站在巷口的背影，玄清压在桌角下的信——还有你。你也是其中的一环。你刚来的时候，你是接火的人。你走了这三条路，你接住了很多碎片。你把它们拼在一起了。你现在知道这座山是什么，知道那些人为什么站在那里，知道那些规则是谁留下的。你拼完了。」</span>
 
-        你听到那声音在沉默。然后它继续说：
+        他停下来，转过头来看着你。
 
-        <span class="rule-text" style="color:#d4b87a;">「我不是你的敌人。我是你的选择。你选择怎么理解我——我就是什么。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「但你没有点燃。」</span>
+
+        风停了。檐角的铜铃没有响。
+
+        <span class="rule-text" style="color:#d4b87a;">「你只是把那些碎片摆在了面前。你还没有把它们烧成火。你的故事不是在这里结束的——你的故事是在你离开这里、把那些碎片递出去的时候，才真正开始的。」</span>
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-muted);font-size:0.85rem;">你站在山核之中，那些你曾经以为是对立的东西——玄清和阿芹、道观和村西、龙化和拯救——在这一刻都变成了同一件事的不同侧面。</span>
-        <span style="color:var(--text-gold);">你不是来终结这座山的。你是来成为它的见证者。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你站在前院，阳光落在你脚边。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">「你只是把那些碎片摆在了面前。你还没有把它们烧成火。」</span>
     `);
 
                 renderOptions([{
-                    label: '🌅 伸出手，触碰那道光',
-                    hint: '你不再害怕了',
-                    tag: '→ 第五幕结束',
+                    label: '🌅 继续向前走',
+                    hint: '你迈出一步',
+                    tag: '→ 继续',
                     action: function () {
                         if (state._waitingConfirm) return;
                         state.chapter4Progress = 6;
@@ -14262,38 +14291,55 @@
                     }
                 }]);
             }
+
             function renderChapter4Epilogue() {
                 if (state._waitingConfirm) return;
 
                 setStory(`
         <span class="title-line">🍃 第四章 · 薪火之章</span>
-        <span class="divider">—— 尾声 · 告别 ——</span>
+        <span class="divider">—— 尾声 · 传火 ——</span>
 
-        你站在道观前院。阳光照在青石板上，暖洋洋的。
-        守卷人站在廊下。他的身形变得模糊，像是在阳光下融化。
+        你走到山路的尽头。不是山顶，不是道观大门——是一条你从来没有走过的岔路。
 
-        <span class="rule-text" style="color:#d4b87a;">「你已经看到了全部。你已经理解了全部。现在——你该回去了。」</span>
+        路的两边长着银杏树，叶子已经黄了，铺了一地。你站在路口，回头看——村子在远处，道观在远处的远处，那条你追过的社戏山路在更远的地方。所有的位置你都能认出来了。
 
-        你看着他。你想说什么，但你知道他不需要你的告别。
+        守卷人站在路边的一棵银杏树下面。他没有再往前走了。
 
-        <span class="rule-text" style="color:#d4b87a;">「你是守山人。这就是你的位置——不是在这座道观里，不是在村西，不是在任何一扇门后面。你是在门和门之间的那个人。你是那条路本身。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你走完了。」</span>
 
-        他的身影越来越淡。
+        你看着他。他的手放在树干上。
 
-        <span class="rule-text" style="color:#d4b87a;">「我记得你。我会一直记得你。即使你不再记得自己——我也不会忘记你走过这条路。」</span>
+        <span class="rule-text" style="color:#d4b87a;">「你走完了第一、二、三章。你把所有碎片都拼好了。你现在站在这里——站在一条岔路前面。你不需要我再帮你指路了。你能走的路，你自己看得见。」</span>
 
-        他的最后一道轮廓消失在了阳光里。廊下只剩下一杯温茶。
+        他停了一下。风从你们之间穿过，带起几片银杏叶，打着旋落在地上。
+
+        <span class="rule-text" style="color:#d4b87a;">「我把我的火传给你了。」</span>
+
+        他看了你一眼——是你见过他的所有次数里，他看你看得最久的一次。
+
+        <span class="rule-text" style="color:#d4b87a;">「接下来——是你自己的事了。」</span>
+
+        他松开手，站直了身体。他看起来和平时一样——像一道不需要被记住的影子。但这一次他没有坐下，没有转身，没有看向别处。他就是在那里，看着你，等着你。
+
+        你看着他的眼睛。你知道他不会再说更多了。
+
+        你低头看了一眼自己的手——干净的，空空的。但你忽然觉得那不是空的。你只是还没学会怎么把那些碎片烧起来。
+
+        你抬起头，看了他最后一眼。
+
+        然后你转身，走向那条岔路。阳光从路的尽头照过来，铺在银杏叶上，暖的，不像山里的光，不像道观里的光。
+
+        你往前走了一步。你没有回头。你听到风从身后吹过来，穿过银杏树，穿过村口，穿过道观，穿过那些你曾经走过的所有路，像一团很轻的、很暖的、正在向你靠近的火。
 
         <span class="divider">· · ·</span>
 
-        <span style="color:var(--text-gold);font-weight:700;">你站在道观前院。阳光照在你身上。你低下头——你看到自己的手上，有一道淡淡的金色痕迹。</span>
-        <span style="color:var(--text-gold);font-weight:700;">那不是龙化。那是山留给你的印记。</span>
-        <span style="color:var(--text-muted);font-size:0.85rem;">你终于明白了——你不是来改变这座山的。你是来成为它的未来。</span>
+        <span style="color:var(--text-gold);font-weight:700;">🔥 你走完了所有的路。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">守卷人把他的火传给了你。现在——你要自己走了。</span>
     `);
 
                 renderOptions([{
-                    label: '🔥 接过薪火',
-                    hint: '你完成了你的旅程',
+                    label: '🔥 往前走，把火接住',
+                    hint: '你伸出手，火焰落在你掌心里',
                     tag: '⭐ 薪火相传',
                     action: function () {
                         if (state._waitingConfirm) return;
@@ -14302,6 +14348,8 @@
                     }
                 }]);
             }
+
+            // 重写 completeChapter4 以适配新的文案
             function completeChapter4() {
                 if (state._waitingConfirm) return;
 
