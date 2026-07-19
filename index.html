@@ -2036,6 +2036,393 @@
             transition: width 0.8s ease;
         }
 
+        /* ================================================================
+   守卷人剪影（主菜单）
+   ================================================================ */
+        #keeper-silhouette {
+            position: absolute;
+            bottom: 100px;
+            right: 60px;
+            z-index: 2;
+            cursor: pointer;
+            transition: transform 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #keeper-silhouette:hover {
+            transform: translateY(-6px) scale(1.04);
+        }
+
+        .keeper-figure {
+            width: 80px;
+            height: 120px;
+            background: radial-gradient(ellipse at 30% 40%, rgba(200, 180, 150, 0.15), rgba(120, 100, 80, 0.05));
+            border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+            position: relative;
+            box-shadow: 0 0 40px rgba(180, 140, 80, 0.08), inset 0 -20px 30px rgba(0, 0, 0, 0.3);
+            animation: keeperBreath 4s ease-in-out infinite;
+            border: 1px solid rgba(139, 122, 74, 0.15);
+        }
+
+        /* 头部（剪影） */
+        .keeper-figure::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 34px;
+            height: 34px;
+            background: radial-gradient(circle at 40% 30%, rgba(200, 180, 150, 0.12), rgba(100, 80, 60, 0.08));
+            border-radius: 50%;
+            border: 1px solid rgba(139, 122, 74, 0.1);
+        }
+
+        /* 身体（道袍轮廓） */
+        .keeper-figure::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 70px;
+            background: radial-gradient(ellipse at 50% 30%, rgba(200, 180, 150, 0.08), transparent 70%);
+            border-radius: 20% 20% 40% 40% / 30% 30% 50% 50%;
+            border: 1px solid rgba(139, 122, 74, 0.06);
+        }
+
+        /* 呼吸动画 */
+        @keyframes keeperBreath {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.9;
+                transform: scale(1.03);
+            }
+        }
+
+        /* 守卷人状态文字 */
+        .keeper-status {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            opacity: 0.5;
+            transition: opacity 0.5s;
+            text-align: center;
+            font-family: var(--font-serif);
+        }
+
+        #keeper-silhouette:hover .keeper-status {
+            opacity: 0.9;
+            color: var(--text-gold);
+        }
+
+        /* 光晕提示（第四章解锁时） */
+        #keeper-silhouette.glow::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(180, 140, 80, 0.15), transparent 70%);
+            animation: keeperGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes keeperGlow {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
+
+            100% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        /* ================================================================
+   守卷人模态框
+   ================================================================ */
+        #keeper-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: modalFadeIn 0.5s ease;
+        }
+
+        #keeper-modal.active {
+            display: flex;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .keeper-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .keeper-modal-box {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 700px;
+            max-height: 80vh;
+            background: linear-gradient(180deg, #1f1812, #0d0a08);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), inset 0 0 60px rgba(180, 140, 80, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .keeper-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 22px;
+            border-bottom: 1px solid rgba(139, 122, 74, 0.15);
+            flex-shrink: 0;
+            background: rgba(10, 6, 4, 0.5);
+        }
+
+        .keeper-modal-title {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            color: var(--text-gold);
+            letter-spacing: 3px;
+        }
+
+        .keeper-modal-title span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-serif);
+        }
+
+        .keeper-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .keeper-modal-close:hover {
+            color: var(--text-gold);
+            background: rgba(139, 122, 74, 0.1);
+        }
+
+        .keeper-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            scroll-behavior: smooth;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+        }
+
+        .keeper-modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .keeper-modal-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .keeper-modal-body::-webkit-scrollbar-thumb {
+            background: var(--border-gold);
+            border-radius: 4px;
+        }
+
+        /* 内嵌画廊（在守卷人对话中） */
+        #keeper-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+            padding: 4px 0;
+        }
+
+        .keeper-gallery-card {
+            background: rgba(26, 20, 16, 0.6);
+            border: 1px solid rgba(139, 122, 74, 0.12);
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .keeper-gallery-card:hover:not(.locked) {
+            border-color: var(--text-gold);
+            background: rgba(60, 50, 40, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .keeper-gallery-card.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(0.8);
+        }
+
+        .keeper-gallery-card .card-icon {
+            font-size: 1.6rem;
+        }
+
+        .keeper-gallery-card .card-title {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        .keeper-gallery-card .card-subtitle {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .keeper-gallery-card .card-lock {
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+
+        .keeper-gallery-card .card-badge {
+            font-size: 0.45rem;
+            background: rgba(139, 122, 74, 0.2);
+            color: var(--text-gold);
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-top: 2px;
+        }
+
+        /* 守卷人专属徽章（完美结局置顶） */
+        .keeper-gallery-card.perfect {
+            border-color: var(--text-gold);
+            box-shadow: 0 0 20px rgba(180, 140, 80, 0.15);
+        }
+
+        .keeper-modal-footer {
+            padding: 12px 22px 16px 22px;
+            border-top: 1px solid rgba(139, 122, 74, 0.08);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .keeper-modal-footer .keeper-option {
+            background: rgba(30, 24, 18, 0.7);
+            border: 1px solid rgba(139, 122, 74, 0.15);
+            border-radius: 6px;
+            padding: 8px 14px;
+            color: var(--text-primary);
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .keeper-modal-footer .keeper-option:hover {
+            background: rgba(60, 50, 40, 0.7);
+            border-color: var(--text-gold);
+            transform: translateX(4px);
+        }
+
+        .keeper-modal-footer .keeper-option .hint {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-left: 6px;
+            opacity: 0.6;
+        }
+
+        .keeper-modal-footer .keeper-option .tag {
+            display: inline-block;
+            font-size: 0.5rem;
+            background: rgba(139, 122, 74, 0.2);
+            border-radius: 3px;
+            padding: 0 6px;
+            margin-left: 4px;
+            color: var(--text-gold);
+        }
+
+        /* 响应式 */
+        @media (max-width: 640px) {
+            #keeper-silhouette {
+                bottom: 70px;
+                right: 20px;
+                transform: scale(0.8);
+            }
+
+            #keeper-silhouette:hover {
+                transform: scale(0.85) translateY(-4px);
+            }
+
+            .keeper-figure {
+                width: 60px;
+                height: 90px;
+            }
+
+            .keeper-modal-box {
+                max-height: 90vh;
+                border-radius: 12px;
+                margin: 10px;
+            }
+
+            .keeper-modal-body {
+                padding: 14px 16px;
+                font-size: 0.85rem;
+            }
+
+            #keeper-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+
         .hidden {
             display: none !important;
         }
@@ -2090,6 +2477,11 @@
             <div class="menu-subtitle" id="loading-status" style="color:#fff; font-style:italic;">
                 —— 请等待龙神虚影加载 0% ——
             </div>
+            <!-- ---- 守卷人剪影（槐树下） ---- -->
+            <div id="keeper-silhouette">
+                <div class="keeper-figure"></div>
+                <div class="keeper-status" id="keeperStatusText">—— 陌生人 ——</div>
+            </div>
             <!-- ---- 按钮区 ---- -->
             <div class="menu-buttons">
                 <button id="btn-new-game" class="menu-btn">
@@ -2102,10 +2494,10 @@
                     <span class="btn-icon">📂</span> 继续游戏
                     <span class="btn-hint">—— 回到旧路 ——</span>
                 </button>
-                <button id="btn-gallery" class="menu-btn">
+                <button id="btn-keeper" class="menu-btn">
                     <span class="btn-glow"></span>
-                    <span class="btn-icon">🏆</span> 结局画廊
-                    <span class="btn-hint" id="galleryHint">—— 已解锁 0 / 13 ——</span>
+                    <span class="btn-icon">🧘</span> 守卷人 · 陈守一
+                    <span class="btn-hint" id="keeperHint">—— 坐在槐树下 ——</span>
                 </button>
                 <button id="btn-clear-cache" class="menu-btn">
                     <span class="btn-glow"></span>
@@ -2124,15 +2516,23 @@
             </div>
 
         </div>
-        <!-- ========== 结局画廊视图 ========== -->
-        <div id="gallery-view">
-            <div class="gallery-header">
-                <span class="title">🏆 结局画廊</span>
-                <span class="count">已解锁 <span id="galleryCount">0</span> / <span id="galleryTotal">13</span></span>
+        <!-- ========== 守卷人模态对话框 ========== -->
+        <div id="keeper-modal">
+            <div class="keeper-modal-overlay"></div>
+            <div class="keeper-modal-box">
+                <div class="keeper-modal-header">
+                    <span class="keeper-modal-title">🧘 陈守一 · <span id="keeperModalPhase">陌生人</span></span>
+                    <button class="keeper-modal-close" id="keeperModalClose">✕</button>
+                </div>
+                <div class="keeper-modal-body" id="keeperModalBody">
+                    <!-- 对话内容将动态渲染 -->
+                </div>
+                <div class="keeper-modal-footer" id="keeperModalOptions">
+                    <!-- 选项按钮将动态渲染 -->
+                </div>
             </div>
-            <div class="gallery-grid" id="galleryGrid"></div>
-            <button id="gallery-back-btn" class="gallery-back-btn">🔙 返回主菜单</button>
         </div>
+
         <!-- ========== 游戏内容 ========== -->
         <div id="game-content" style="display:none;">
             <!-- 原有的 status-bar, main-area, rules-panel, footer-tools 全部放在这里 -->
@@ -2252,6 +2652,28 @@
 
             // ---------- 状态 ----------
             const state = {
+                // ---- 新增：当前周目深度追踪 ----
+                currentRunDepth: {
+                    proTemple: {
+                        rulesCollected: 0,
+                        herbalItemsCollected: 0,
+                        hasPeachAmulet: false,
+                        hasBeenRescued: false,
+                        xuanqingDialogsCompleted: 0,
+                        score: 0,
+                    },
+                    antiTemple: {
+                        aqinDialogsCompleted: 0,
+                        stelesFound: 0,
+                        hasRescuedPureYang: false,
+                        hasTriggeredHE1: false,
+                        hasTriggeredBE2: false,
+                        score: 0,
+                    },
+                },
+                endingsThisRun: [],
+                isInChapter4: false,
+                chapter4Progress: 0,  // 0-7
                 day: 1,
                 stamina: 3,
                 maxStamina: 3,
@@ -2600,7 +3022,76 @@
                 _morningEventProcessed: false,  // 标记早晨事件是否已处理
                 _endingType: null,  // 记录触发的结局类型
             };
+            // ================================================================
+            //  跨周目存档系统 (独立于普通存档)
+            // ================================================================
 
+            const CROSS_SAVE_KEY = 'longling_cross_save';
+
+            // 默认跨周目数据结构
+            function getDefaultCrossSave() {
+                return {
+                    schemaVersion: "1.0.0",
+                    lastUpdated: new Date().toISOString(),
+
+                    // 周目统计
+                    playthroughCount: 0,
+                    completedPlaythroughs: 0,
+
+                    // 结局记录（跨周目累计）
+                    endingsUnlocked: [],
+                    endingCount: 0,
+                    firstPlaythroughEnding: null,
+                    secondPlaythroughEnding: null,
+                    endingUnlockOrder: [],
+
+                    // 双线认知深度（跨周目累计，取各周目最大值）
+                    stanceDepth: {
+                        proTemple: 0,   // 护道士线 0-5
+                        antiTemple: 0,  // 反道士线 0-5
+                    },
+
+                    // 9条认知进度条目（跨周目累计）
+                    progressEntries: {
+                        entry_1_rules: false,   // 📜 游客守则全篇
+                        entry_2_ash: false,     // 🔥 草木灰显影
+                        entry_3_relics: false,  // 🏚️ 药庐的遗物
+                        entry_4_awakened: false,// 🌾 觉醒者全篇
+                        entry_5_steles: false,  // 🪦 暗碑全文
+                        entry_6_pure_yang: false,// 👦 纯阳体解救
+                        entry_7_xuanqing: false,// 💊 玄清自述
+                        entry_8_third_path: false,// 🗡️ 第三条路
+                        entry_9_dual_mirror: false,// 💀 双面之镜
+                    },
+                    progressCount: 0,
+
+                    // 第四章状态
+                    chapter4Unlocked: false,
+                    chapter4Completed: false,
+                    trueEndingUnlocked: false,
+
+                    // 守卷人记忆（行为模式追踪）
+                    keeperMemory: {
+                        firstVisit: null,
+                        totalVisits: 0,
+                        deleteCount: 0,
+                        lastDeleteTime: null,
+                        behavioralTraits: {
+                            prefersWest: 0,
+                            stopsAtStone: 0,
+                            talksToEveryone: 0,
+                            rushesThrough: 0,
+                            readsEverything: 0,
+                        },
+                        keeperPhase: "stranger",  // 见状态机
+                    },
+
+                    // 特殊标记
+                    hasWitnessedTrueEnding: false,
+                    hasSeenAllEndings: false,
+                    isDeleteSaveRun: false,
+                };
+            }
             // ---------- 规则库 ----------
             const RULES_DB = {
                 'base_1': { id: 'base_1', text: '【木板告示】寄宿村民家，早餐玉米粥腌菜；若嫂嫂端上"？？？？？"可少量食用，不可追问种类；晚餐后"银杏茶"需饮尽。' },
@@ -2911,6 +3402,236 @@
                 'BE_LifeSwap',         // 换命
                 'NE_EmptyFurnace',     // 空炉
             ];
+            function updateKeeperMemory(cross, normalState) {
+                if (!cross || !normalState) return;
+                const s = normalState;
+                const memory = cross.keeperMemory;
+
+                if (s.flags && s.flags.awakening && s.flags.awakening.visited) {
+                    memory.behavioralTraits.prefersWest = Math.min(memory.behavioralTraits.prefersWest + 1, 10);
+                }
+                if (s.oldManTalkTriggered) {
+                    memory.behavioralTraits.stopsAtStone = Math.min(memory.behavioralTraits.stopsAtStone + 1, 10);
+                }
+                let talkCount = 0;
+                if (s.flags && s.flags.cardVisitCount) talkCount += s.flags.cardVisitCount;
+                if (s.flags && s.flags.folkloreVisitCount) talkCount += s.flags.folkloreVisitCount;
+                if (s.flags && s.flags.shopVisitCount) talkCount += s.flags.shopVisitCount;
+                if (talkCount >= 5) {
+                    memory.behavioralTraits.talksToEveryone = Math.min(memory.behavioralTraits.talksToEveryone + 1, 10);
+                }
+                if (s.ch2 && s.ch2.energyExhausted) {
+                    memory.behavioralTraits.rushesThrough = Math.min(memory.behavioralTraits.rushesThrough + 1, 10);
+                }
+                if (s.rules && s.rules.length >= 20) {
+                    memory.behavioralTraits.readsEverything = Math.min(memory.behavioralTraits.readsEverything + 1, 10);
+                }
+            }
+            function getKeeperPhase(crossSave) {
+                if (!crossSave) return 'stranger';
+                const { playthroughCount, endingsUnlocked, stanceDepth, progressCount, trueEndingUnlocked } = crossSave;
+                const pro = stanceDepth.proTemple || 0;
+                const anti = stanceDepth.antiTemple || 0;
+
+                if (trueEndingUnlocked) return 'gone';
+                if (progressCount >= 9 && endingsUnlocked.length >= 8) return 'delivering';
+                if (pro >= 4 && anti >= 4) return 'open';
+                if (pro >= 3 && anti >= 3) return 'examining';
+                if (pro >= 2 || anti >= 2) return 'guiding';
+                if (endingsUnlocked.length >= 1) return 'observing';
+                if (playthroughCount >= 2) return 'noticing';
+                return 'stranger';
+            }
+            function updateKeeperMemory(cross, normalState) {
+                if (!cross || !normalState) return;
+                const s = normalState;
+                const memory = cross.keeperMemory;
+
+                // 更新访问次数（在 syncCrossSave 中已经处理 totalVisits）
+                // 这里只记录行为模式
+
+                // 行为模式：是否去过村西（觉醒者）
+                if (s.flags && s.flags.awakening && s.flags.awakening.visited) {
+                    memory.behavioralTraits.prefersWest = Math.min(memory.behavioralTraits.prefersWest + 1, 10);
+                }
+
+                // 行为模式：是否在废弃房屋外停留（触发隐藏老人对话）
+                if (s.oldManTalkTriggered) {
+                    memory.behavioralTraits.stopsAtStone = Math.min(memory.behavioralTraits.stopsAtStone + 1, 10);
+                }
+
+                // 行为模式：是否与多个NPC对话（花切大爷、民俗部、小卖部）
+                let talkCount = 0;
+                if (s.flags && s.flags.cardVisitCount) talkCount += s.flags.cardVisitCount;
+                if (s.flags && s.flags.folkloreVisitCount) talkCount += s.flags.folkloreVisitCount;
+                if (s.flags && s.flags.shopVisitCount) talkCount += s.flags.shopVisitCount;
+                if (talkCount >= 5) {
+                    memory.behavioralTraits.talksToEveryone = Math.min(memory.behavioralTraits.talksToEveryone + 1, 10);
+                }
+
+                // 行为模式：是否匆忙通过（第二章中精力消耗过快）
+                if (s.ch2 && s.ch2.energyExhausted) {
+                    memory.behavioralTraits.rushesThrough = Math.min(memory.behavioralTraits.rushesThrough + 1, 10);
+                }
+
+                // 行为模式：是否阅读了大量规则
+                if (s.rules && s.rules.length >= 20) {
+                    memory.behavioralTraits.readsEverything = Math.min(memory.behavioralTraits.readsEverything + 1, 10);
+                }
+            }
+            function checkChapter4Unlock(crossSave) {
+                if (!crossSave) return false;
+                const { stanceDepth, playthroughCount, endingsUnlocked } = crossSave;
+                const pro = stanceDepth.proTemple || 0;
+                const anti = stanceDepth.antiTemple || 0;
+                // 条件：双线深度均 ≥4，且差距 ≤2，至少2周目，至少8个结局
+                if (pro >= 4 && anti >= 4 && Math.abs(pro - anti) <= 2 && playthroughCount >= 2 && endingsUnlocked.length >= 8) {
+                    return true;
+                }
+                return false;
+            }
+            function calculateCurrentRunDepth(normalState) {
+                if (!normalState) return null;
+                const s = normalState;
+
+                // ---- 护道士线 (proTemple) ----
+                let proScore = 0;
+                const hiddenRules = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
+                const hiddenCount = s.rules ? s.rules.filter(r => hiddenRules.includes(r)).length : 0;
+                if (hiddenCount >= 5) proScore++;
+
+                const itemsTaken = s.medicineHut && s.medicineHut.itemsTaken ? s.medicineHut.itemsTaken.length : 0;
+                if (itemsTaken >= 3) proScore++;
+
+                if (s.flags && s.flags.hasPeachWood) proScore++;
+
+                if (s.ch2 && s.ch2._he2Triggered) proScore++;
+
+                if (s.ch3 && s.ch3.npc && s.ch3.npc.xuanqing && s.ch3.npc.xuanqing.dialogRound >= 4) proScore++;
+
+                // ---- 反道士线 (antiTemple) ----
+                let antiScore = 0;
+                if (s.flags && s.flags.awakening && s.flags.awakening.trustLevel >= 3) antiScore++;
+
+                if (s.flags && s.flags.stele && s.flags.stele.piecesFound >= 6) antiScore++;
+
+                if (s.flags && s.flags.stele && s.flags.stele._rescueSuccess) antiScore++;
+
+                if (s.ch2 && s.ch2._he1Triggered) antiScore++;
+
+                if (s.flags && s.flags._be2Triggered) antiScore++; // 需要确保 BE2 触发时设置此标记
+
+                return {
+                    proTemple: proScore,
+                    antiTemple: antiScore,
+                };
+            }
+            // ================================================================
+            //  存档合并逻辑（同步跨周目存档）
+            // ================================================================
+            function updateProgressEntries(normalState) {
+                if (!normalState) return null;
+                const s = normalState; // 使用局部变量
+                const entries = {};
+
+                // entry_1_rules: 收集游客守则全篇 (base_1 ~ base_11)
+                const baseRules = ['base_1', 'base_2', 'base_3', 'base_4', 'base_5', 'base_6', 'base_7', 'base_8', 'base_9', 'base_10', 'base_11'];
+                const hasAllBase = baseRules.every(id => s.rules && s.rules.includes(id));
+                entries.entry_1_rules = hasAllBase;
+
+                // entry_2_ash: 草木灰显影 (hidden_1 ~ hidden_9 全部解锁)
+                const hiddenRules = ['hidden_1', 'hidden_2', 'hidden_3', 'hidden_4', 'hidden_5', 'hidden_6', 'hidden_7', 'hidden_8', 'hidden_9'];
+                const hasAllHidden = hiddenRules.every(id => s.rules && s.rules.includes(id));
+                entries.entry_2_ash = hasAllHidden;
+
+                // entry_3_relics: 药庐的遗物 (至少取走3件)
+                const itemsTaken = s.medicineHut && s.medicineHut.itemsTaken ? s.medicineHut.itemsTaken.length : 0;
+                entries.entry_3_relics = itemsTaken >= 3;
+
+                // entry_4_awakened: 觉醒者全篇 (信任度达到3)
+                entries.entry_4_awakened = s.flags && s.flags.awakening && s.flags.awakening.trustLevel >= 3;
+
+                // entry_5_steles: 暗碑全文 (发现全部6条)
+                entries.entry_5_steles = s.flags && s.flags.stele && s.flags.stele.piecesFound >= 6;
+
+                // entry_6_pure_yang: 纯阳体解救成功
+                entries.entry_6_pure_yang = s.flags && s.flags.stele && s.flags.stele._rescueSuccess;
+
+                // entry_7_xuanqing: 玄清自述 (dialogRound >= 4)
+                entries.entry_7_xuanqing = s.ch3 && s.ch3.npc && s.ch3.npc.xuanqing && s.ch3.npc.xuanqing.dialogRound >= 4;
+
+                // entry_8_third_path: 第三条路 (药庐中发现letter)
+                const hasLetter = s.medicineHut && s.medicineHut.itemsTaken && s.medicineHut.itemsTaken.includes('letter');
+                entries.entry_8_third_path = hasLetter;
+
+                // entry_9_dual_mirror: 双面之镜 (同时完成护道士和反道士的关键条件)
+                // 条件：proScore >= 3 且 antiScore >= 3
+                const depth = calculateCurrentRunDepth(s);
+                entries.entry_9_dual_mirror = (depth && depth.proTemple >= 3 && depth.antiTemple >= 3);
+
+                return entries;
+            }
+            function syncCrossSave() {
+                // 1. 读取跨周目存档
+                const cross = getCrossSave();
+
+                // 2. 更新周目计数（只在开始新游戏时增加，这里不重复增加）
+                // 周目计数已经在 startNewGame 中增加
+
+                // 3. 更新结局记录（从 state.endingsThisRun 合并到 cross.endingsUnlocked）
+                if (state.endingsThisRun && state.endingsThisRun.length > 0) {
+                    state.endingsThisRun.forEach(endingId => {
+                        if (!cross.endingsUnlocked.includes(endingId)) {
+                            cross.endingsUnlocked.push(endingId);
+                            cross.endingCount = cross.endingsUnlocked.length;
+                            cross.endingUnlockOrder.push(endingId);
+                            // 记录首周目和次周目结局
+                            if (cross.playthroughCount === 1 && !cross.firstPlaythroughEnding) {
+                                cross.firstPlaythroughEnding = endingId;
+                            } else if (cross.playthroughCount === 2 && !cross.secondPlaythroughEnding) {
+                                cross.secondPlaythroughEnding = endingId;
+                            }
+                        }
+                    });
+                    // 清空本周目结局记录，防止重复合并
+                    state.endingsThisRun = [];
+                }
+
+                // 4. 更新双线深度（取最大值）
+                const depth = calculateCurrentRunDepth(state);
+                if (depth) {
+                    cross.stanceDepth.proTemple = Math.max(cross.stanceDepth.proTemple, depth.proTemple);
+                    cross.stanceDepth.antiTemple = Math.max(cross.stanceDepth.antiTemple, depth.antiTemple);
+                }
+
+                // 5. 更新9条认知进度
+                const progress = updateProgressEntries(state);
+                if (progress) {
+                    for (let key in progress) {
+                        if (progress[key]) {
+                            cross.progressEntries[key] = true;
+                        }
+                    }
+                    // 重新计算进度计数
+                    let count = 0;
+                    for (let key in cross.progressEntries) {
+                        if (cross.progressEntries[key]) count++;
+                    }
+                    cross.progressCount = count;
+                }
+
+                // 6. 检查第四章解锁条件
+                cross.chapter4Unlocked = checkChapter4Unlock(cross);
+
+                // 7. 更新守卷人阶段
+                cross.keeperPhase = getKeeperPhase(cross);
+
+                // 8. 更新守卷人记忆（暂时留空，后续实现）
+                updateKeeperMemory(cross, state); // 暂不实现
+
+                // 9. 保存
+                saveCrossSave(cross);
+            }
             // ----- 结局存储工具函数 -----
 
             function getUnlockedEndings() {
@@ -2938,6 +3659,40 @@
 
             function getTotalEndingsCount() {
                 return Object.keys(ENDING_META).length;
+            }
+            // ---------- 跨周目存档工具 ----------
+
+            function getCrossSave() {
+                try {
+                    const data = localStorage.getItem(CROSS_SAVE_KEY);
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        // 确保所有字段存在，如果缺失则用默认值填充
+                        const defaultData = getDefaultCrossSave();
+                        for (let key in defaultData) {
+                            if (!(key in parsed)) {
+                                parsed[key] = defaultData[key];
+                            }
+                        }
+                        // 处理嵌套对象
+                        if (!parsed.stanceDepth) parsed.stanceDepth = defaultData.stanceDepth;
+                        if (!parsed.progressEntries) parsed.progressEntries = defaultData.progressEntries;
+                        if (!parsed.keeperMemory) parsed.keeperMemory = defaultData.keeperMemory;
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.warn('读取跨周目存档失败:', e);
+                }
+                return getDefaultCrossSave();
+            }
+
+            function saveCrossSave(data) {
+                try {
+                    data.lastUpdated = new Date().toISOString();
+                    localStorage.setItem(CROSS_SAVE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    console.warn('保存跨周目存档失败:', e);
+                }
             }
             // ---------- 工具函数 ----------
             function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -3304,6 +4059,10 @@
             function saveGame() {
                 try {
                     const data = {
+                        currentRunDepth: JSON.parse(JSON.stringify(state.currentRunDepth)),
+                        endingsThisRun: state.endingsThisRun || [],
+                        isInChapter4: state.isInChapter4 || false,
+                        chapter4Progress: state.chapter4Progress || 0,
                         day: state.day,
                         stamina: state.stamina,
                         maxStamina: state.maxStamina,
@@ -11194,7 +11953,7 @@
                             renderOptions([{
                                 label: '⏩ 继续前进',
                                 hint: '面对玄清',
-                                tag: '→ TE1_薪火相传',
+                                tag: '→ ',
                                 action: function () {
                                     if (state.gameOver || state._waitingConfirm) return;
                                     state.ch2.phase = 'temple_gate';
@@ -12738,9 +13497,412 @@
             }
 
             // ================================================================
-            //  第三章初始化
+            //  第四章 · 薪火之章
             // ================================================================
 
+            function enterChapter4() {
+                if (state._waitingConfirm) return;
+                if (state.isInChapter4) {
+                    renderChapter4();
+                    return;
+                }
+
+                // 检查是否已解锁第四章
+                const cross = getCrossSave();
+                if (!cross.chapter4Unlocked) {
+                    setStory('你还没有资格进入这里。继续你的旅程吧。');
+                    renderOptions([{
+                        label: '🔙 返回',
+                        action: function () { renderCh3Exploration(); }
+                    }]);
+                    return;
+                }
+
+                // 标记进入第四章
+                state.isInChapter4 = true;
+                state.chapter4Progress = 0;
+                state.flags.chapter2 = false; // 退出第二章模式
+                state.gameOver = false;
+
+                // 保存状态
+                saveGame();
+                syncCrossSave();
+
+                // 渲染第四章
+                renderChapter4();
+            }
+            function renderChapter4() {
+                if (state._waitingConfirm) return;
+                if (state.gameOver) return;
+
+                const progress = state.chapter4Progress || 0;
+
+                // 如果已完成所有七幕，触发结局
+                if (progress >= 7) {
+                    completeChapter4();
+                    return;
+                }
+
+                // 根据进度分发到不同幕
+                switch (progress) {
+                    case 0:
+                        renderChapter4Prologue();
+                        break;
+                    case 1:
+                        renderChapter4Act1();
+                        break;
+                    case 2:
+                        renderChapter4Act2();
+                        break;
+                    case 3:
+                        renderChapter4Act3();
+                        break;
+                    case 4:
+                        renderChapter4Act4();
+                        break;
+                    case 5:
+                        renderChapter4Act5();
+                        break;
+                    case 6:
+                        renderChapter4Epilogue();
+                        break;
+                    default:
+                        // 异常情况，重置到序幕
+                        state.chapter4Progress = 0;
+                        renderChapter4Prologue();
+                }
+            }
+            function renderChapter4Prologue() {
+                if (state._waitingConfirm) return;
+
+                const cross = getCrossSave();
+                const phaseText = getKeeperPhaseText(cross.keeperPhase);
+
+                setStory(`
+        <span class="title-line">🌑 第四章 · 薪火之章</span>
+        <span class="divider">—— 序幕 · 龙腹 ——</span>
+
+        你从道观前院的北墙上，发现了一道之前从未注意到的门。
+        门的边缘长满了青苔，门缝里透出暗金色的光。
+        你伸手推了一下——门开了。
+
+        <span class="divider">· · ·</span>
+
+        你走进了一条向下延伸的石阶。石阶很窄，两侧的墙壁上覆盖着细密的、像菌丝一样的东西，在暗光中泛着微弱的青色。
+        你走了很久。久到你不再数台阶了。久到你开始怀疑这条路是不是真的通向什么地方。
+
+        <span class="divider">· · ·</span>
+
+        然后你到了。石阶的尽头是一处巨大的地底空间——你站在那空间的边缘往下看，看到了一个轮廓。
+        那轮廓是蜷曲的。巨大的。像一座沉睡的山。
+
+        你听到身后传来脚步声。你没有回头，你已经知道那是谁了。
+
+        <span class="rule-text" style="color:#d4b87a;">「你终于走到这里了。我等你等了很久——比你想的更久。」</span>
+
+        你转过身。守卷人站在石阶的顶端，逆着光，看不清表情。
+
+        <span class="rule-text" style="color:#d4b87a;">「你不是第一个走到这里的人。但你是第一个……没有带着恐惧走进来的人。」</span>
+
+        他走下来，站在你身边，和你一起看着那个巨大的、蜷曲的轮廓。
+
+        <span class="rule-text" style="color:#d4b87a;">「这就是龙。或者说，这是这座山记住它的方式。你不是要杀死它。你是要理解它。」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">你感到脚下的地面在微微震动——那不是地震，是呼吸。是那头巨兽沉睡中的呼吸。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">守卷人的话在你脑中回响——「你不是要杀死它。你是要理解它。」</span>
+
+        <span style="color:var(--text-gold);">你准备好了吗？</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 向前走一步',
+                    hint: '你不再犹豫了',
+                    tag: '→ 序幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 1;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+
+            function getKeeperPhaseText(phase) {
+                const map = {
+                    'stranger': '陌生人',
+                    'noticing': '注意',
+                    'observing': '观察',
+                    'guiding': '引导',
+                    'examining': '审视',
+                    'open': '开放',
+                    'delivering': '交付',
+                    'gone': '已去'
+                };
+                return map[phase] || '陌生人';
+            }
+            function renderChapter4Act1() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🌳 第四章 · 薪火之章</span>
+        <span class="divider">—— 第一幕 · 槐树下 ——</span>
+
+        你睁开眼睛的时候，发现自己坐在村口那棵老槐树下面。
+        阳光透过树叶洒在你身上，暖洋洋的。你低头看自己的手——干净的，没有伤痕。
+
+        守卷人坐在你旁边。他看起来比刚才年轻了一些，像是褪去了很多层岁月。
+
+        <span class="rule-text" style="color:#d4b87a;">「你睡了一会儿。在你睡着的时候，我讲了一个故事。你没有听到——但你的身体记住了。」</span>
+
+        你看着他。他没有看你，而是看着远处村子的轮廓。
+
+        <span class="rule-text" style="color:#d4b87a;">「我叫陈守一。我在这里等了一百多年。我等你的时候，看着玄清盖起这座道观，看着那些孩子被送进来，看着那些村民一代一代地老去、死去、被遗忘。」</span>
+
+        他转过头来，看着你。
+
+        <span class="rule-text" style="color:#d4b87a;">「我不是人。我是这座山记住自己的方式。当你们所有人都不再记得这座山的时候——我还记得。」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">他说话的时候，语气平静得像在描述一座山——因为他就是山本身。</span>
+        <span style="color:var(--text-gold);">你明白了。守卷人不是山神，不是龙神——他是这座山对自己的记忆。</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 站起来，走向村子',
+                    hint: '你想看看这座村庄最初的样子',
+                    tag: '→ 第一幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 2;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+            function renderChapter4Act2() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🏛️ 第四章 · 薪火之章</span>
+        <span class="divider">—— 第二幕 · 道观大殿 ——</span>
+
+        你走进道观大殿。这里和你记忆中的一样——青石板、长明灯、神像。
+        但有些东西不一样了。神像的眉眼变了。你走近了看——那是玄清的脸。
+        那是年轻的玄清。还没有被龙气侵蚀的玄清。
+
+        <span class="rule-text" style="color:#d4b87a;">「你看到了吗？他曾经是真实的。他不是从一开始就是怪物的。」</span>
+
+        守卷人的声音从你身后传来。
+
+        <span class="rule-text" style="color:#d4b87a;">「他年轻时，是真的想救这座村子。他以为龙气是工具——他以为他可以用它来镇住山里的瘴气。他没有想到的是，工具会反噬使用者。」</span>
+
+        你看着神像的脸。那张脸上有一种你从未在玄清脸上见过的表情——那是一种理想主义者的表情。
+
+        <span class="rule-text" style="color:#d4b87a;">「第一个被献祭的，不是那些孩子。是他自己。他把自己的一部分交给了龙气——从那以后，他就再也拿不回来了。」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">你明白了。玄清不是纯粹的恶。他是在一扇门关上之前，把自己推了进去。</span>
+        <span style="color:var(--text-gold);">你看到了他的起点——那和你自己的起点，并没有那么遥远。</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 走出大殿，走向前院',
+                    hint: '你想看看更多',
+                    tag: '→ 第二幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 3;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+            function renderChapter4Act3() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🌿 第四章 · 薪火之章</span>
+        <span class="divider">—— 第三幕 · 道观前院 ——</span>
+
+        你走到前院。廊下坐着一个人——不是老道士，是阿芹。
+        她比你记忆中年轻。她的额头上没有树芽。她的眼神里有光。
+
+        <span class="rule-text" style="color:#d4b87a;">「你来了。我一直想见你。」</span>
+
+        她站起来，走到你面前。
+
+        <span class="rule-text" style="color:#d4b87a;">「我知道你听过我的故事。那个版本里，我是觉醒者，我是逃出来的，我是受害者。那些都是真的——但还有一件事，我没有告诉过任何人。」</span>
+
+        她停顿了一下。
+
+        <span class="rule-text" style="color:#d4b87a;">「我的母亲……是自愿签字的。她是第一个同意把孩子送进道观的人。她以为那是为我好。她以为龙气可以让我活得更久、更健康。」</span>
+
+        她的声音变得很轻。
+
+        <span class="rule-text" style="color:#d4b87a;">「她后来后悔了。她死之前，一直在说——『我错了。我错了。』」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">你听到这个故事，心里有什么东西被触动了。你想起自己在邱龙村的日子——那些你以为只是规则的东西，背后是活生生的人的命运。</span>
+        <span style="color:var(--text-gold);">你终于明白了为什么阿芹要站在村西——她不是因为恨。她是因为愧疚。</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 继续向前走',
+                    hint: '你还有更远的路要走',
+                    tag: '→ 第三幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 4;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+            function renderChapter4Act4() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🪨 第四章 · 薪火之章</span>
+        <span class="divider">—— 第四幕 · 山脚石头上 ——</span>
+
+        你坐在山脚的一块大石头上。这里是你曾经走过的地方——集市、岔路口、那条通往山上的石板路。
+        清远坐在你旁边。他没有戴面具。那张脸比记忆中更瘦，眼窝深陷，像是很久没有睡过觉了。
+
+        <span class="rule-text" style="color:#d4b87a;">「你知道吗？四十七个人——这是被送进道观的人数。四十七个孩子。」</span>
+
+        他沉默了很久。
+
+        <span class="rule-text" style="color:#d4b87a;">「我数过很多次。每次以为数错了，就再数一次。每次数完，还是四十七个。」</span>
+
+        他转头看着你。
+
+        <span class="rule-text" style="color:#d4b87a;">「我不是道士。我是从裂缝里走出来的人。我是那第四十八个——但我没有进去。我从那扇门的另一边，走了出来。」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">你看着他。他看起来比任何时候都更像一个活人——而不是那个戴面具的、犹豫不决的年轻道士。</span>
+        <span style="color:var(--text-gold);">你明白了——他之所以站在玄清那边那么久，是因为他想从里面把它改好。他失败了。但他没有放弃。</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 站起来，走向山谷深处',
+                    hint: '你知道终点就在前方',
+                    tag: '→ 第四幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 5;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+            function renderChapter4Act5() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">⛰️ 第四章 · 薪火之章</span>
+        <span class="divider">—— 第五幕 · 山核之中 ——</span>
+
+        你走入了那座山的核心。不是地底洞穴，不是龙腹——是这座山最深处、最古老的地方。
+
+        这里什么都没有。没有光，没有声音，没有形状。
+
+        然后你听到了声音。那不是人声。那是石头在说话。
+
+        <span class="rule-text" style="color:#d4b87a;">「你来了。我知道你会来。」</span>
+
+        你站在那片什么都没有的空间里，感受着那句话的重量。
+
+        <span class="rule-text" style="color:#d4b87a;">「我是这座山。我是这条龙。我是玄清试图镇住的东西。我也是阿芹的母亲签字时相信的东西。我是清远从裂缝里走出来时路过的黑暗。」</span>
+
+        你听到那声音在沉默。然后它继续说：
+
+        <span class="rule-text" style="color:#d4b87a;">「我不是你的敌人。我是你的选择。你选择怎么理解我——我就是什么。」</span>
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-muted);font-size:0.85rem;">你站在山核之中，那些你曾经以为是对立的东西——玄清和阿芹、道观和村西、龙化和拯救——在这一刻都变成了同一件事的不同侧面。</span>
+        <span style="color:var(--text-gold);">你不是来终结这座山的。你是来成为它的见证者。</span>
+    `);
+
+                renderOptions([{
+                    label: '🌅 伸出手，触碰那道光',
+                    hint: '你不再害怕了',
+                    tag: '→ 第五幕结束',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 6;
+                        saveGame();
+                        renderChapter4();
+                    }
+                }]);
+            }
+            function renderChapter4Epilogue() {
+                if (state._waitingConfirm) return;
+
+                setStory(`
+        <span class="title-line">🍃 第四章 · 薪火之章</span>
+        <span class="divider">—— 尾声 · 告别 ——</span>
+
+        你站在道观前院。阳光照在青石板上，暖洋洋的。
+        守卷人站在廊下。他的身形变得模糊，像是在阳光下融化。
+
+        <span class="rule-text" style="color:#d4b87a;">「你已经看到了全部。你已经理解了全部。现在——你该回去了。」</span>
+
+        你看着他。你想说什么，但你知道他不需要你的告别。
+
+        <span class="rule-text" style="color:#d4b87a;">「你是守山人。这就是你的位置——不是在这座道观里，不是在村西，不是在任何一扇门后面。你是在门和门之间的那个人。你是那条路本身。」</span>
+
+        他的身影越来越淡。
+
+        <span class="rule-text" style="color:#d4b87a;">「我记得你。我会一直记得你。即使你不再记得自己——我也不会忘记你走过这条路。」</span>
+
+        他的最后一道轮廓消失在了阳光里。廊下只剩下一杯温茶。
+
+        <span class="divider">· · ·</span>
+
+        <span style="color:var(--text-gold);font-weight:700;">你站在道观前院。阳光照在你身上。你低下头——你看到自己的手上，有一道淡淡的金色痕迹。</span>
+        <span style="color:var(--text-gold);font-weight:700;">那不是龙化。那是山留给你的印记。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你终于明白了——你不是来改变这座山的。你是来成为它的未来。</span>
+    `);
+
+                renderOptions([{
+                    label: '🔥 接过薪火',
+                    hint: '你完成了你的旅程',
+                    tag: '⭐ 薪火相传',
+                    action: function () {
+                        if (state._waitingConfirm) return;
+                        state.chapter4Progress = 7;
+                        completeChapter4();
+                    }
+                }]);
+            }
+            function completeChapter4() {
+                if (state._waitingConfirm) return;
+
+                // 标记第四章完成
+                state.isInChapter4 = false;
+                state.chapter4Progress = 7;
+
+                // 更新跨周目存档
+                const cross = getCrossSave();
+                cross.chapter4Completed = true;
+                cross.trueEndingUnlocked = true;
+                cross.keeperPhase = 'gone';
+                cross.hasWitnessedTrueEnding = true;
+                saveCrossSave(cross);
+
+                // 更新普通存档
+                saveGame();
+
+                // 触发薪火相传结局
+                triggerEnding('TE1_薪火相传');
+            }
             // ================================================================
             //  第三章初始化（含防重入检查）
             // ================================================================
@@ -13490,7 +14652,19 @@
                         renderCh3Exploration();
                     }
                 });
-
+                // ---- 第四章入口（检测跨周目存档是否已解锁） ----
+                const cross = getCrossSave();
+                if (cross.chapter4Unlocked && !cross.chapter4Completed && !state.isInChapter4) {
+                    opts.push({
+                        label: '🔥 北墙上有一道门',
+                        hint: '你之前从未注意到它',
+                        tag: '⭐ 第四章',
+                        action: function () {
+                            if (state.gameOver || state._waitingConfirm) return;
+                            enterChapter4();
+                        }
+                    });
+                }
                 renderOptions(opts);
                 updateUI();
             }
@@ -15866,21 +17040,31 @@
                         title = '🔥 完美结局 · 薪火相传';
                         endingClass = 'ending-he';
                         desc = `
-                <span style="color:#5a3a1a;">🔥 你做到了。</span>
-                你站在道观废墟之上，手中的雷击木碎片还在冒着青烟。
-                玄清——那个披着人皮的怪物——终于倒下了。
-                五百年来的诅咒，在你手中终结。
-                <span class="divider">· · ·</span>
-                阿芹和觉醒者们从村西赶来，她们看着崩塌的道观，眼中含泪。
-                <span class="rule-text" style="color:#5a3a1a;">「我们自由了。」</span>
-                阿芹低声说。
-                你回头望去，邱龙村的浓雾正在散去。阳光第一次照亮了这片被诅咒的土地。
-                <span class="divider">· · ·</span>
-                <span style="color:#5a3a1a;">你知道，这只是开始——龙神未死，它只是暂时沉睡。</span>
-                <span style="color:#5a3a1a;">但至少，你给了这片土地一个希望。</span>
-                <span class="divider">· · ·</span>
-                <span style="color:#5a3a1a;font-weight:700;">—— 薪火相传 · 希望不灭 ——</span>
-            `;
+        <span style="color:#5a3a1a;">🌅 你站在道观废墟之上，晨光正从山的东面漫过来，把你的影子拉得很长。</span>
+        <br><br>
+        你低下头，看着那道金色的纹路——从掌心延伸到指缝，像树根，像河流，像山脊的轮廓。它安静地躺在你的皮肤下面，不疼，不痒，只是存在。你知道那不是龙化的痕迹。那是这座山记住你的方式。<br>
+        <span class="divider">· · ·</span>
+        你闭上眼睛，那些画面像潮水一样涌上来。你想起盘龙岭的传说——很久以前，这片土地瘴气密布，阴气极强，孕育了顽强的菌丝，造就了粘腻的气候，不宜人居。天神为了破除此地的污秽，派了一条龙神下来盘踞山岭，用纯阳之体来调和地势阴阳。龙神的躯体慢慢与山岳融为一体，于是这座山有了名字。你想起当地百姓在河谷开垦，他们在阴阳调和过的河谷里耕作、生活，但他们不敢进入山峦。一旦进去，就会被各种险境困住，失去性命。然后一个道士来了。他声称这一切异象都是天上掉下来的龙神所致，他要降伏龙神，让它为百姓造福。他打败了龙神，在龙首处建了道观来镇压，在龙脉上修了登山步道，每年通过社戏重新镇压龙神的能力。他以龙神的名义收受弟子，用龙气和献祭来换取长生。他压制龙神的行为，让曾经的瘴气再一次占据主导。除了每年被社戏压制的登山步道，树林里面重新充满了危险。龙神在多年的镇压中逐渐感到烦躁，慢慢被瘴气侵蚀，变得混乱。瘴气侵蚀带来的感染中出现了龙化的现象，偶然进入林间的人们被同化，成了龙神的耳目。<br>
+        你想起自己刚来的时候。那时你还不知道这些。你只看到一块斑驳的木牌，上面写着「欢迎来到龙岭观前坑景区 · 请遵守游客守则」，墙上的纸已经卷了边。你以为那只是一份普通的游客守则。你不知道那些规则背后，藏着一整座山的秘密。<br>
+        <span class="divider">· · ·</span>
+        你想起那条被镇压的龙。五百年了。它被压在那座道观下面，被压在那个道士的谎言下面，被压在一场又一场不会停的社戏下面。它越来越烦躁，越来越混乱，被瘴气一点一点地侵蚀，从当初被派下来调和阴阳的龙神，变成了一个被困住的东西，一个被遗忘的东西。但它还记得自己曾经是为什么来的——它还记得自己曾经是来调和的，而不是来被镇压的。你在地底见过它。在那个巨大的地底空间里，你看到了那个蜷曲的轮廓，像一座沉睡的山。守卷人站在你身边，他的声音从石阶顶端落下来：“这就是龙。或者说，这是这座山记住它的方式。你不是要杀死它。你是要理解它。”你站在那里，感受着地底的震动，那不是地震，那是呼吸。那头巨兽的呼吸。你不是来终结它的。你是来理解它为什么被困在这里的。你是来记得它原本样子的。<br>
+        <span class="divider">· · ·</span>
+        你睁开眼睛，阳光正从废墟的缝隙间漏下来。你想起守卷人坐在槐树下的样子——他说：“我不是人。我是这座山记住自己的方式。当你们所有人都不再记得这座山的时候——我还记得。”你当时不明白。现在你明白了。你正站在他站过的地方，你正在成为那个记得的人。你会记得盘龙岭为什么叫盘龙岭，会记得瘴气为什么重新漫上来了，会记得那个道士做了什么——他本可以真的降伏龙神，本可以真的为百姓造福，本可以选择不把谎言编成一座道观。但他没有。他选择了长生，选择了把自己献给龙气，选择了在五百年里坐在那间大殿里背对所有人。他最后转过身来的时候，你看到的不是一张脸，是一口已经被掏空的井。<br>
+        <span class="divider">· · ·</span>
+        你想起大殿里的神像——那张年轻的脸。那是玄清年轻时的样子，还没有被龙气侵蚀，还没有被五百年压弯脊梁。你站在那尊神像面前，心里涌上来的不是愤怒，而是某种说不清的、近乎悲悯的东西。你知道你和他之间的距离并不遥远。你们都是站在一扇门前面的人。你只是比他多走了一步——你走过去了。他没有。他被自己编的谎言困住了，困到再也看不见那扇门原本是开着的。<br>
+        <span class="divider">· · ·</span>
+        你想起阿芹。她在前院的廊下等你，她说：“我知道你听过我的故事。那个版本里，我是觉醒者，我是逃出来的，我是受害者。那些都是真的——但还有一件事，我没有告诉过任何人。我的母亲……是自愿签字的。她是第一个同意把孩子送进道观的人。她以为那是为我好。她以为龙气可以让我活得更久、更健康。”你说不出话来。她继续说：“她后来后悔了。她死之前，一直在说——‘我错了。我错了。’”你想起阿芹说这句话时的表情。她不是站在村西对抗村东。她站在村西，是因为她无法原谅那个被签过字的名字。而那个名字，是她母亲的。<br>
+        <span class="divider">· · ·</span>
+        你想起清远。你坐在山脚那块大石头上，他坐在你旁边，没有戴面具。他说：“你知道吗？四十七个人——这是被送进道观的人数。四十七个孩子。”他沉默了很久。“我数过很多次。每次以为数错了，就再数一次。每次数完，还是四十七个。”他转头看着你。“我不是道士。我是从裂缝里走出来的人。我是那第四十八个——但我没有进去。我从那扇门的另一边，走了出来。”你记得自己当时没有回答。你终于明白——他之所以站在玄清那边那么久，是因为他想从里面把它改好。他失败了。但他没有放弃。他还在数。他还在数那些他无法挽回的人。<br>
+        <span class="divider">· · ·</span>
+        你想起那座山的核心。你走进那片什么都没有的空间——没有光，没有声音，没有形状。然后你听到了声音。那不是人声。那是石头在说话。“我是这座山。我是这条龙。我是玄清试图镇压的东西。我也是阿芹的母亲签字时相信的东西。我是清远从裂缝里走出来时路过的黑暗。”那声音说：“我不是你的敌人。我是你的选择。你选择怎么理解我——我就是什么。”你站在那里，感受着那句话的重量。那些曾经被你认为是对立的东西——龙神和瘴气、道士和村民、道观和村西、龙化和拯救——在这一刻都变成了同一件事的不同侧面。你不是来终结这座山的。你是来成为它的见证者。你是来记得它原本应该是怎样的——记得那条龙是来调和的，记得那个道士本来可以选择不做谎言的编织者，记得那些被献祭的孩子本来可以活着。<br>
+        <span class="divider">· · ·</span>
+        你睁开眼睛。阳光已经铺满了整片废墟。阿芹正在远处扶起一个跌倒的孩子，那孩子站起来的时候，脸上没有恐惧。清远正蹲在断墙边，用手指在泥土上画着什么——也许是在数数，也许不是。你没有走过去打扰他。你只是看着他们，像看着一幅正在慢慢显影的画。<br>
+        你转身走向那棵老槐树。树还在，叶子还在，风还在穿过枝叶。守卷人已经不在了。但石头上还放着那杯茶。你端起来，茶已经凉了。你喝了一口。很淡。但你喝得出来，那杯茶是他留给你的。你坐下，坐在他坐过的地方，把手中的银杏叶书签放进了石缝里。风把它吹动了一下，然后它稳稳地卡在了那里——像一枚书签夹进了山的最深处。<br>
+        你感到那枚书签正在石缝里微微颤动。不像是风，像是某种更深的东西。像是心跳，像是火苗，像是一枚已经被点燃的、正在向下传递的种子。<br>
+        你站起来，往山下走。你走得很慢，像是在丈量每一步的长度。你走到山口的时候，停下来，最后回了一次头。废墟正在被阳光填满，那些青瓦、那些断墙、那些长满菌菇的石阶，正在慢慢变干。你看到远处有孩子的身影跑过——他们踩在湿润的泥土上，脚印很浅，但每一步都是新的。你想起井壁上那四十七道刻痕，想起暗碑上最后一行字——“慎之！慎之！”你忽然笑了。你终于明白，那不是在警告后来者——那是在提醒自己：记住你曾站在这里，记住你曾见过什么。记住那条龙曾经是来做什么的。记住那个道士原本是可以不那样的。然后你转过身，继续往下走。风从你身后吹来，带着泥土、草根和银杏叶的气味。你感觉那枚书签正在石缝里微微颤动，像心跳，像火苗，像一枚已经点燃的、永远不会熄灭的种子。<br>
+        <span style="color:#5a3a1a;font-weight:700;">—— 薪火相传 · 希望不灭 ——</span>
+    `;
                         break;
 
                     case 'HE1_幸存者':
@@ -16247,7 +17431,7 @@
                         ending: true,
                         action: function () {
                             if (state._waitingConfirm) return;
-                            renderEndingGallery();
+                            openKeeperModal();
                         }
                     });
                     renderOptions(options);
@@ -16350,9 +17534,20 @@
             //  触发结局（设置 gameOver 状态 + 调用渲染）
             // ================================================================
             function triggerEnding(type) {
+                // 记录结局标记（用于跨周目深度计算）
+                if (type === 'BE2_大不敬') {
+                    state.flags._be2Triggered = true;
+                }
                 // ⭐ 立即标记游戏结束，防止任何后续流程覆盖结局界面
                 state.gameOver = true;
                 saveUnlockedEnding(type);
+                // 新增：记录到 state.endingsThisRun
+                if (!state.endingsThisRun) state.endingsThisRun = [];
+                if (!state.endingsThisRun.includes(type)) {
+                    state.endingsThisRun.push(type);
+                }
+                // 新增：同步跨周目存档
+                syncCrossSave();
                 // ---- 如果是第三章结局，更新 ch3 状态 ----
                 if (CHAPTER3_ENDINGS.indexOf(type) !== -1) {
                     state.ch3.endingTriggered = true;
@@ -16998,6 +18193,27 @@
 
             function resetGame() {
                 // ---- 重置 ch3 ----
+                state.currentRunDepth = {
+                    proTemple: {
+                        rulesCollected: 0,
+                        herbalItemsCollected: 0,
+                        hasPeachAmulet: false,
+                        hasBeenRescued: false,
+                        xuanqingDialogsCompleted: 0,
+                        score: 0,
+                    },
+                    antiTemple: {
+                        aqinDialogsCompleted: 0,
+                        stelesFound: 0,
+                        hasRescuedPureYang: false,
+                        hasTriggeredHE1: false,
+                        hasTriggeredBE2: false,
+                        score: 0,
+                    },
+                };
+                state.endingsThisRun = [];
+                state.isInChapter4 = false;
+                state.chapter4Progress = 0;
                 state.ch3 = {
                     exploredAreas: { frontYard: false, mainHall: false, library: false, alchemyRoom: false, backYard: false },
                     areaVisitCount: { frontYard: 0, mainHall: 0, library: 0, alchemyRoom: 0, backYard: 0 },
@@ -17304,20 +18520,347 @@
             // ================================================================
             //  主菜单切换函数
             // ================================================================
+            // ---- 打开守卷人模态框 ----
+            function openKeeperModal() {
+                const cross = getCrossSave();
+                // 如果守卷人已离去（gone），特殊处理
+                if (cross.keeperPhase === 'gone') {
+                    setKeeperModalContent('🍵 守卷人已去', '他走了。座位上只剩一杯温茶，茶还是热的。你端起茶杯，茶汤映出你自己的脸——你已经不是来时的那个你了。');
+                    renderKeeperModalOptions([{
+                        label: '🌙 退出',
+                        action: closeKeeperModal
+                    }]);
+                    document.getElementById('keeper-modal').classList.add('active');
+                    return;
+                }
 
+                // 生成对话内容
+                const dialogue = generateKeeperDialogue(cross);
+                setKeeperModalContent(dialogue.title || '🧘 陈守一', dialogue.body);
+
+                // 生成选项
+                const options = [];
+                // 选项1: 看看走过的路（始终显示）
+                options.push({
+                    label: '📜 看看我走过的路',
+                    hint: '回顾已解锁的结局',
+                    action: function () {
+                        toggleKeeperGallery();
+                    }
+                });
+                // 选项2: 指引（第四章解锁时）
+                if (cross.chapter4Unlocked && !cross.chapter4Completed) {
+                    options.push({
+                        label: '🗺️ 我该往哪走？',
+                        hint: '进入第四章',
+                        tag: '🔥 薪火之门',
+                        action: function () {
+                            closeKeeperModal();
+                            // 触发第四章入口（后续实现）
+                            if (typeof enterChapter4 === 'function') {
+                                enterChapter4();
+                            } else {
+                                alert('第四章尚未开放。');
+                            }
+                        }
+                    });
+                }
+                // 选项3: 你记得我吗？（访问次数>1时）
+                if (cross.keeperMemory.totalVisits > 1) {
+                    options.push({
+                        label: '💭 你记得我吗？',
+                        hint: '个性化对话',
+                        action: function () {
+                            showPersonalizedMemory(cross);
+                        }
+                    });
+                }
+                // 选项4: 退出
+                options.push({
+                    label: '🌙 没什么……',
+                    hint: '关闭',
+                    action: closeKeeperModal
+                });
+
+                renderKeeperModalOptions(options);
+
+                // 显示模态框
+                document.getElementById('keeper-modal').classList.add('active');
+
+                // 更新守卷人访问次数
+                cross.keeperMemory.totalVisits = (cross.keeperMemory.totalVisits || 0) + 1;
+                saveCrossSave(cross);
+                updateKeeperUI(); // 更新主菜单状态
+            }
+
+            // ---- 关闭模态框 ----
+            function closeKeeperModal() {
+                document.getElementById('keeper-modal').classList.remove('active');
+                // 隐藏画廊（如果打开）
+                document.getElementById('keeperModalGallery').style.display = 'none';
+                // 恢复主菜单守卷人UI
+                updateKeeperUI();
+            }
+
+            // ---- 设置模态框内容 ----
+            function setKeeperModalContent(title, body) {
+                const titleEl = document.querySelector('.keeper-modal-title');
+                const bodyEl = document.getElementById('keeperModalBody');
+                if (titleEl) titleEl.textContent = title;
+                if (bodyEl) bodyEl.innerHTML = body.replace(/\n/g, '<br>');
+            }
+
+            // ---- 渲染模态框选项 ----
+            function renderKeeperModalOptions(options) {
+                const container = document.getElementById('keeperModalOptions');
+                container.innerHTML = '';
+                if (!options || options.length === 0) {
+                    container.innerHTML = '<div style="color:var(--text-muted);text-align:center;font-size:0.8rem;padding:8px;">—— 没有更多选项 ——</div>';
+                    return;
+                }
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn' + (opt.disabled ? ' disabled' : '');
+                    btn.innerHTML = `${opt.label}${opt.hint ? `<span class="hint">${opt.hint}</span>` : ''}${opt.tag ? `<span class="tag">${opt.tag}</span>` : ''}`;
+                    if (!opt.disabled) {
+                        btn.addEventListener('click', function () {
+                            if (opt.action) opt.action();
+                        });
+                    }
+                    container.appendChild(btn);
+                });
+            }
+
+            // ---- 切换内嵌画廊 ----
+            let keeperGalleryVisible = false;
+
+            function toggleKeeperGallery() {
+                const galleryEl = document.getElementById('keeperModalGallery');
+                keeperGalleryVisible = !keeperGalleryVisible;
+                if (keeperGalleryVisible) {
+                    galleryEl.style.display = 'grid';
+                    renderKeeperGallery();
+                } else {
+                    galleryEl.style.display = 'none';
+                }
+            }
+
+            // ---- 渲染内嵌画廊 ----
+            function renderKeeperGallery() {
+                const galleryEl = document.getElementById('keeperModalGallery');
+                const cross = getCrossSave();
+                const unlocked = cross.endingsUnlocked || [];
+                const allTypes = Object.keys(ENDING_META);
+                let html = '';
+                allTypes.forEach(type => {
+                    const meta = ENDING_META[type];
+                    const isUnlocked = unlocked.includes(type);
+                    html += `
+            <div class="gallery-card ${isUnlocked ? '' : 'locked'}" style="${isUnlocked ? '' : 'opacity:0.4;cursor:not-allowed;'}">
+                <div class="card-icon">${meta.icon}</div>
+                <div class="card-title">${meta.title}</div>
+                <div class="card-desc">${isUnlocked ? meta.shortDesc : '🔒 未解锁'}</div>
+            </div>
+        `;
+                });
+                galleryEl.innerHTML = html;
+            }
+
+            // ---- 个性化记忆对话 ----
+            function showPersonalizedMemory(cross) {
+                const traits = cross.keeperMemory.behavioralTraits;
+                let lines = [];
+                if (traits.prefersWest >= 2) lines.push('你总是先往西走。那里有什么在等你吗？');
+                if (traits.stopsAtStone >= 2) lines.push('你曾在屋外的石头上坐了很久。你听到了什么？');
+                if (traits.talksToEveryone >= 3) lines.push('你问过很多人。你找到你想要的答案了吗？');
+                if (traits.rushesThrough >= 2) lines.push('你总是走得很急。你在躲什么？');
+                if (traits.readsEverything >= 3) lines.push('你读过很多字。有些字已经刻进你的骨头里了。');
+                if (lines.length === 0) lines.push('你还没有走很远的路。但你已经看到了一些东西。');
+
+                const body = lines.join('\n\n');
+                setKeeperModalContent('💭 守卷人 · 记忆', body);
+                // 重置选项（只保留关闭）
+                renderKeeperModalOptions([{
+                    label: '🔙 返回',
+                    action: function () {
+                        // 重新打开模态框（刷新内容）
+                        openKeeperModal();
+                    }
+                }]);
+            }
+
+            // ---- 生成守卷人对话 ----
+            function generateKeeperDialogue(cross) {
+                const phase = cross.keeperPhase || 'stranger';
+                const phaseTextMap = {
+                    'stranger': '陌生人',
+                    'noticing': '注意',
+                    'observing': '观察',
+                    'guiding': '引导',
+                    'examining': '审视',
+                    'open': '开放',
+                    'delivering': '交付',
+                    'gone': '已去'
+                };
+                const phaseLabel = phaseTextMap[phase] || '陌生人';
+
+                const baseDialogueMap = {
+                    'stranger': '你坐在我旁边，没有说话。风从山那边吹过来，带着菌菇和泥土的气味。我看了你一眼，又转回去了。',
+                    'noticing': '你第二次来了。你走路的时候左脚比右脚重一点——你没有注意到。但我注意到了。',
+                    'observing': '你去了那些地方。你看了那些字。你现在站在这里，像是想问我什么。但你自己还没有想好问题是什么。',
+                    'guiding': '你已经知道了一些事情。但你知道的不够多。或者你知道的太多了——你还没有学会怎么把那些碎片拼在一起。',
+                    'examining': '你心里有两种声音，而且它们一样大。你还没有选好听哪一边。这很正常。不正常的是——你已经听了很久了。',
+                    'open': '你准备好了。你只是还需要有人告诉你——你不是一个人走进来的。',
+                    'delivering': '你拿到了该拿的东西。你看见了该看见的东西。现在你只需要去那扇门前面，把它推开。',
+                    'gone': '（茶已经凉了）'
+                };
+
+                let body = baseDialogueMap[phase] || baseDialogueMap['stranger'];
+
+                // 添加结局联动评论（随机取一个已解锁结局）
+                const unlocked = cross.endingsUnlocked || [];
+                if (unlocked.length > 0) {
+                    const randomEnding = unlocked[Math.floor(Math.random() * unlocked.length)];
+                    const meta = ENDING_META[randomEnding];
+                    if (meta) {
+                        body += '\n\n我翻到过你的名字。在那一页上，你做了 ' + meta.title + '。';
+                    }
+                }
+
+                // 如果是删档重玩，添加特殊回应
+                if (cross.keeperMemory.deleteCount > 0 && cross.keeperMemory.totalVisits === 1) {
+                    body += '\n\n你把那些字都擦掉了。但你擦不掉的是——它们已经进到你里面了。';
+                }
+
+                // 如果已解锁全部结局
+                if (unlocked.length >= Object.keys(ENDING_META).length) {
+                    body += '\n\n你已经走完了。我不需要再记了。你已经替我记得够多了。';
+                }
+
+                return {
+                    title: `🧘 陈守一 · ${phaseLabel}`,
+                    body: body
+                };
+            }
+            function updateKeeperUI() {
+                const cross = getCrossSave();
+                const phase = cross.keeperPhase || 'stranger';
+                const statusEl = document.getElementById('keeperStatus');
+                const hintEl = document.getElementById('keeperHint');
+                const silhouette = document.getElementById('keeper-silhouette');
+
+                // 阶段名称映射
+                const phaseMap = {
+                    'stranger': '🧘 陌生人',
+                    'noticing': '👀 注意',
+                    'observing': '🔍 观察',
+                    'guiding': '🗣️ 引导',
+                    'examining': '🧐 审视',
+                    'open': '🤝 开放',
+                    'delivering': '📜 交付',
+                    'gone': '🍵 已去'
+                };
+                const phaseText = phaseMap[phase] || '陌生人';
+                statusEl.textContent = phaseText;
+
+                // 更新提示文字
+                const phaseHintMap = {
+                    'stranger': '—— 坐在槐树下 ——',
+                    'noticing': '—— 抬眼看了你一眼 ——',
+                    'observing': '—— 目光随着你移动 ——',
+                    'guiding': '—— 微微侧身，面向你 ——',
+                    'examining': '—— 站起身来，正视着你 ——',
+                    'open': '—— 走下台阶，向你走来 ——',
+                    'delivering': '—— 站在门边，手中有书卷 ——',
+                    'gone': '—— 座位上只剩一杯温茶 ——'
+                };
+                if (hintEl) {
+                    hintEl.textContent = phaseHintMap[phase] || '—— 坐在槐树下 ——';
+                }
+
+                // 剪影透明度/动态效果
+                if (phase === 'gone') {
+                    silhouette.style.opacity = '0.3';
+                    silhouette.style.cursor = 'default';
+                    // 可添加茶杯图案（略）
+                } else {
+                    silhouette.style.opacity = '0.7';
+                    silhouette.style.cursor = 'pointer';
+                }
+
+                // 如果 trueEndingUnlocked，隐藏或特殊处理
+                if (cross.trueEndingUnlocked) {
+                    silhouette.style.opacity = '0.2';
+                }
+
+                // 保存当前阶段到模态框标题
+                const phaseEl = document.getElementById('keeperModalPhase');
+                if (phaseEl) {
+                    phaseEl.textContent = phaseText;
+                }
+            }
             // ---- 显示主菜单 ----
             function showMainMenu() {
-                document.getElementById('main-menu').style.display = 'flex';
-                document.getElementById('game-content').style.display = 'none';
+                // ---- 安全关闭画廊视图 ----
+                const galleryView = document.getElementById('gallery-view');
+                if (galleryView) {
+                    galleryView.classList.remove('active');
+                }
+
+                // ---- 显示主菜单，隐藏游戏内容 ----
+                const mainMenu = document.getElementById('main-menu');
+                const gameContent = document.getElementById('game-content');
+                if (mainMenu) mainMenu.style.display = 'flex';
+                if (gameContent) gameContent.style.display = 'none';
+
+                // ---- 继续按钮状态 ----
                 const continueBtn = document.getElementById('btn-continue');
-                if (hasSave()) {
-                    continueBtn.style.opacity = '1';
-                    continueBtn.style.pointerEvents = 'auto';
-                    continueBtn.textContent = '📂 继续游戏';
-                } else {
-                    continueBtn.style.opacity = '0.5';
-                    continueBtn.style.pointerEvents = 'none';
-                    continueBtn.textContent = '📂 没有存档';
+                if (continueBtn) {
+                    if (hasSave()) {
+                        continueBtn.style.opacity = '1';
+                        continueBtn.style.pointerEvents = 'auto';
+                        continueBtn.textContent = '📂 继续游戏';
+                    } else {
+                        continueBtn.style.opacity = '0.5';
+                        continueBtn.style.pointerEvents = 'none';
+                        continueBtn.textContent = '📂 没有存档';
+                    }
+                }
+
+                // ---- 更新结局计数（可选） ----
+                const galleryHint = document.getElementById('galleryHint');
+                if (galleryHint) {
+                    const unlocked = getUnlockedEndings();
+                    galleryHint.textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+                }
+
+                // ---- 更新守卷人UI ----
+                updateKeeperUI();
+
+                // ---- 更新底部脚注 ----
+                const cross = getCrossSave();
+                const footerEl = document.querySelector('.menu-footer');
+                if (footerEl) {
+                    const spans = footerEl.querySelectorAll('span');
+                    if (spans.length >= 4) {
+                        if (cross.trueEndingUnlocked) {
+                            spans[1].textContent = '🔥 薪火相传';
+                            spans[3].textContent = '故事已完整';
+                        } else {
+                            spans[1].textContent = 'v2.0';
+                            spans[3].textContent = '第二章重构';
+                        }
+                    }
+                }
+
+                // ---- 第四章光晕提示 ----
+                const keeperSilhouette = document.getElementById('keeper-silhouette');
+                if (keeperSilhouette) {
+                    if (cross.chapter4Unlocked && !cross.chapter4Completed) {
+                        keeperSilhouette.classList.add('keeper-glow-active');
+                    } else {
+                        keeperSilhouette.classList.remove('keeper-glow-active');
+                    }
                 }
             }
 
@@ -17332,6 +18875,14 @@
             function startNewGame() {
                 localStorage.removeItem(SAVE_KEY);
                 resetGame();
+                // 增加周目计数
+                const cross = getCrossSave();
+                cross.playthroughCount = (cross.playthroughCount || 0) + 1;
+                // 记录首次周目的开始时间
+                if (!cross.keeperMemory.firstVisit) {
+                    cross.keeperMemory.firstVisit = new Date().toISOString();
+                }
+                saveCrossSave(cross);
                 showGameContent();
                 goToScene('intro');
                 saveGame();
@@ -17362,7 +18913,12 @@
                 });
 
                 showGameContent();
-
+                // 增加守卷人访问次数
+                const cross = getCrossSave();
+                cross.keeperMemory.totalVisits = (cross.keeperMemory.totalVisits || 0) + 1;
+                saveCrossSave(cross);
+                // 同步跨周目存档
+                syncCrossSave();
                 // 如果游戏已结束，显示结局
                 if (state.gameOver) {
                     if (state._endingType) {
@@ -17425,122 +18981,535 @@
             //  结局画廊 - 渲染与交互
             // ================================================================
 
-            function renderEndingGallery() {
-                // 关闭规则面板
-                if (rulesPanelOpen) {
-                    rulesPanelOpen = false;
-                    document.getElementById('rules-panel').classList.remove('open');
+
+
+
+            // ================================================================
+            //  守卷人交互系统
+            // ================================================================
+
+            // ----- 守卷人对话数据库（阶段基础台词 + 行为修饰 + 结局联动） -----
+            const KEEPER_PHRASES = {
+                stranger: {
+                    title: '守卷人',
+                    greeting: '你站在那里，看了一会儿。他没有抬头。',
+                    dialogue: '槐树的影子落在他身上，像一层旧衣裳。你离他不远，但他没有看你——他只是在等。等风把地上的银杏叶吹走，又等下一片落下来。你不知道他在看什么，也不知道他在等谁。你觉得他可能是在等你开口，可你站了很久，什么也没说。他也没有问。'
+                },
+                noticing: {
+                    title: '守卷人',
+                    greeting: '你看到他抬眼看了你一下。只是很短的一下。',
+                    dialogue: '你走过去的时候，他看了你一眼。就一眼。然后他又把目光移开了，像是在确认什么，又像是在给你一个回答的时间。你没有开口，他也没有追问。那一眼不深，但你记得。'
+                },
+                observing: {
+                    title: '守卷人',
+                    greeting: '他的目光落在你身上，像是已经看了你很久。',
+                    dialogue: '你走近了，他没有让开。他坐在那里，像一块已经生根的石。你意识到他一直在看着你——不是从你走近才开始，是从你走进这座院子的时候就开始的。他只是没有说。'
+                },
+                guiding: {
+                    title: '守卷人',
+                    greeting: '他侧过身来，面向你。像是终于决定说话了。',
+                    dialogue: '他把手放在膝盖上，微微侧过头来。风从你们之间穿过，带起一片落叶。他没有立刻开口，但你感觉到他在等你——等你说出那句你已经想了很久的话。'
+                },
+                examining: {
+                    title: '守卷人',
+                    greeting: '他站起身，正视着你。目光比风更凉。',
+                    dialogue: '你看到他站起来的时候，膝盖没有发出声音。他的动作很轻，像是他坐的地方根本不是石头，而是他自己的身体延伸出来的一部分。他走到你面前，停下来。他比你想象中高一些。他没有说话，只是看着你。那不是在读你，那是在辨认你。'
+                },
+                open: {
+                    title: '守卷人',
+                    greeting: '他走下台阶，向你走来。像门终于打开了一条缝。',
+                    dialogue: '他走下来了。那几步路不长，但你感觉他走了很久。他停在你面前，没有看你，而是看向你身后的路。他说：“你走过了很长的路。比你以为的长。”'
+                },
+                delivering: {
+                    title: '守卷人',
+                    greeting: '他站在门边，像是已经准备好了什么。',
+                    dialogue: '他站在门槛内侧，手里没有拿东西，但你感觉他正握着什么。他的手垂在身侧，手指微微蜷曲，像是刚松开一件很重的东西。他没有看你，只是说：“你走完了一整圈。现在你知道了。”'
+                },
+                gone: {
+                    title: '守卷人',
+                    greeting: '座位上只有一杯温茶。',
+                    dialogue: '你走到槐树下，那里没有人了。石头上放着一杯茶，还温着。你坐下来，端起那杯茶。茶很淡，但很香。你喝了一口，然后看着远处的山脊。你知道你不会再见到他了。但那杯茶是真的。'
+                }
+            };
+
+            // ----- 结局联动评论（已解锁结局时插入） -----
+            const KEEPER_ENDING_COMMENTS = {
+                'TE1_薪火相传': '你记得那场火。你说你不后悔。',
+                'HE1_幸存者': '你活着。你说这就够了。',
+                'HE2_被救助': '你被带走了。你说那是对的。',
+                'NE1_老实人_新': '你住下了。你说这样也行。',
+                'NE2_被标记的归来': '你离开了。但你一直知道门没关。',
+                'BE1_龙化值过高': '你变了。你说那不是你的错。',
+                'BE2_大不敬': '你没有香。你说你不信。',
+                'BE3_惊扰': '你跑了。你说你害怕。',
+                'BE4_半途而废': '你停了。你说你累了。',
+                'BE5_祭品_被迫献祭': '你被献了。你说你没得选。',
+                'BE6_自投罗网': '你走对了路。但你走错了人。',
+                'BE7_同化': '你跪下了。你说你不想再走了。',
+                'BE8_被吞没': '你站住了。你说你不确定。',
+                'BE_BloodSacrifice': '你动手了。你说那是唯一的路。',
+                'BE_Accomplice': '你站在门口。你说你没做。',
+                'NE_SpareLife': '你停手了。你说你不知道。',
+                'BE_DragonSealer': '你坐下了。你说那是你的位置。',
+                'HE_Farewell': '你送别了。你说你没有回头。',
+                'BE_Price': '你交换了。你说那是代价。',
+                'NE_Ajar': '你没关紧。你说你不想关上。',
+                'BE_Forgotten': '你忘了。你说那不重要。',
+                'BE_BrokenPen': '他不能写了。你说你会替他记。',
+                'BE_LifeSwap': '你拿走了。你说那是他给的。',
+                'NE_EmptyFurnace': '你熄了。你说你没有失去。'
+            };
+
+            // ----- 行为模式修饰语 -----
+            function getBehavioralComment(behavioralTraits) {
+                if (!behavioralTraits) return '';
+                const traits = behavioralTraits;
+                let parts = [];
+                if (traits.prefersWest >= 5) parts.push('你总是先往西走。那里有什么在等你吗？');
+                if (traits.stopsAtStone >= 5) parts.push('你会在不该停的地方停下来。你在找什么？');
+                if (traits.talksToEveryone >= 5) parts.push('你跟所有人都说过话。你记住了多少？');
+                if (traits.rushesThrough >= 5) parts.push('你走得太快了。有些地方你还没看清。');
+                if (traits.readsEverything >= 5) parts.push('你读了所有的字。你相信文字。');
+                if (parts.length === 0) return '';
+                return ' ' + parts.join(' ');
+            }
+
+            // ----- 生成守卷人对话 -----
+            function generateKeeperDialogue(crossSave) {
+                if (!crossSave) return { title: '陌生人', dialogue: '你还没有开始你的旅程。', options: [] };
+
+                const phase = crossSave.keeperPhase || 'stranger';
+                const phaseData = KEEPER_PHRASES[phase] || KEEPER_PHRASES.stranger;
+                const unlockedEndings = crossSave.endingsUnlocked || [];
+                const memory = crossSave.keeperMemory || {};
+                const behavioralComment = getBehavioralComment(memory.behavioralTraits || {});
+
+                // 基础对话
+                let dialogue = phaseData.greeting + '\n\n' + phaseData.dialogue;
+
+                // 插入行为修饰
+                if (behavioralComment) {
+                    dialogue += '\n\n' + behavioralComment;
                 }
 
-                const grid = document.getElementById('galleryGrid');
-                const unlocked = getUnlockedEndings();
-                const total = getTotalEndingsCount();
-
-                // 更新计数
-                document.getElementById('galleryCount').textContent = unlocked.length;
-                document.getElementById('galleryTotal').textContent = total;
-                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${total} ——`;
-
-                // 清空网格
-                grid.innerHTML = '';
-
-                // 按顺序渲染所有结局
-                const allTypes = Object.keys(ENDING_META);
-                allTypes.forEach(type => {
-                    const meta = ENDING_META[type];
-                    const isUnlocked = unlocked.includes(type);
-                    const card = document.createElement('div');
-                    card.className = 'gallery-card' + (isUnlocked ? '' : ' locked');
-
-                    if (isUnlocked) {
-                        card.innerHTML = `
-                <div class="card-icon">${meta.icon}</div>
-                <div class="card-title">${meta.title}</div>
-                <div class="card-subtitle">${meta.subtitle}</div>
-                <div class="card-desc">${meta.shortDesc}</div>
-                <div class="card-badge">已解锁</div>
-            `;
-                        card.addEventListener('click', function () {
-                            if (state._waitingConfirm) return;
-                            // 以只读模式显示结局详情
-                            renderEndingContent(type, true);
-                        });
-                    } else {
-                        card.innerHTML = `
-                <div class="card-lock">🔒</div>
-                <div class="card-lock-label">未解锁</div>
-            `;
+                // 插入一个随机已解锁结局的评论（如果有）
+                if (unlockedEndings.length > 0) {
+                    const randomEnding = unlockedEndings[Math.floor(Math.random() * unlockedEndings.length)];
+                    const comment = KEEPER_ENDING_COMMENTS[randomEnding];
+                    if (comment) {
+                        dialogue += '\n\n' + comment;
                     }
+                }
 
-                    grid.appendChild(card);
+                // 如果已解锁所有结局，添加特殊评论
+                if (unlockedEndings.length >= Object.keys(ENDING_META).length) {
+                    dialogue += '\n\n你已经走完了所有的路。我不需要再记了。你已经替我记得够多了。';
+                }
+
+                // 如果删档过，添加特殊回应
+                if (memory.deleteCount > 0) {
+                    dialogue += '\n\n你把那些字都擦掉了。你知道它们还会回来的。';
+                }
+
+                // 构建选项
+                let options = [
+                    {
+                        label: '📜 看看我走过的路',
+                        hint: '你走过的路，我都记得',
+                        action: 'showGallery'
+                    }
+                ];
+
+                // 如果第四章已解锁，添加入口选项
+                if (crossSave.chapter4Unlocked) {
+                    options.push({
+                        label: '🗺️ 我该往哪走？',
+                        hint: '门已经开了',
+                        tag: '⭐ 薪火之门',
+                        action: 'enterChapter4'
+                    });
+                }
+
+                // 如果访问次数 > 1，添加个性化选项
+                if (memory.totalVisits > 1) {
+                    options.push({
+                        label: '💭 你记得我吗？',
+                        hint: '他看了你一眼',
+                        action: 'rememberMe'
+                    });
+                }
+
+                // 关闭选项
+                options.push({
+                    label: '🌙 没什么……',
+                    hint: '你转身离开',
+                    action: 'closeModal'
                 });
 
-                // 显示画廊，隐藏主菜单
-                document.getElementById('main-menu').style.display = 'none';
-                document.getElementById('gallery-view').classList.add('active');
+                return {
+                    title: phaseData.title,
+                    dialogue: dialogue,
+                    options: options,
+                    phase: phase
+                };
+            }
 
-                // 强制解除确认状态，防止按钮被锁定
-                if (state._waitingConfirm) {
-                    state._waitingConfirm = false;
-                    state._confirmResolve = null;
-                    document.getElementById('rule-notification').classList.remove('show');
+            // ----- 守卷人模态框控制 -----
+            let keeperModalOpen = false;
+
+            function openKeeperModal() {
+                if (keeperModalOpen) return;
+                keeperModalOpen = true;
+
+                const modal = document.getElementById('keeper-modal');
+                modal.classList.add('active');
+
+                // 更新守卷人阶段（先同步）
+                const cross = getCrossSave();
+                cross.keeperPhase = getKeeperPhase(cross);
+                saveCrossSave(cross);
+
+                // 生成对话
+                const data = generateKeeperDialogue(cross);
+
+                // 更新标题
+                document.getElementById('keeperModalPhase').textContent = data.title;
+
+                // 更新对话内容
+                const body = document.getElementById('keeperModalBody');
+                body.innerHTML = data.dialogue.replace(/\n/g, '<br>');
+
+                // 更新选项按钮
+                renderKeeperOptions(data.options);
+            }
+
+            function closeKeeperModal() {
+                keeperModalOpen = false;
+                document.getElementById('keeper-modal').classList.remove('active');
+            }
+
+            // ----- 渲染守卷人选项 -----
+            function renderKeeperOptions(options) {
+                const footer = document.getElementById('keeperModalOptions');
+                footer.innerHTML = '';
+                if (!options || options.length === 0) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'keeper-option';
+                    closeBtn.textContent = '🌙 关闭';
+                    closeBtn.addEventListener('click', closeKeeperModal);
+                    footer.appendChild(closeBtn);
+                    return;
+                }
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'keeper-option';
+                    btn.innerHTML = `${opt.label}${opt.hint ? `<span class="hint">${opt.hint}</span>` : ''}${opt.tag ? `<span class="tag">${opt.tag}</span>` : ''}`;
+                    btn.addEventListener('click', function () {
+                        handleKeeperAction(opt.action);
+                    });
+                    footer.appendChild(btn);
+                });
+            }
+
+            // ----- 处理守卷人选项动作 -----
+            function handleKeeperAction(action) {
+                switch (action) {
+                    case 'showGallery':
+                        renderKeeperGallery();
+                        break;
+                    case 'enterChapter4':
+                        // 关闭模态框，触发第四章入口（后续实现）
+                        closeKeeperModal();
+                        // 显示提示，或者直接进入第四章
+                        alert('第四章入口（待实现）');
+                        break;
+                    case 'rememberMe':
+                        // 显示个性化回忆
+                        const cross = getCrossSave();
+                        const memory = cross.keeperMemory;
+                        let text = '他看了看你，像是在翻一本旧书。\n\n';
+                        if (memory.firstVisit) {
+                            text += `你第一次来的时候，是 ${new Date(memory.firstVisit).toLocaleDateString()}。那时候你还不认识路。\n`;
+                        }
+                        if (memory.totalVisits > 1) {
+                            text += `你来了 ${memory.totalVisits} 次。每次来，你都会多知道一点。\n`;
+                        }
+                        if (cross.playthroughCount > 1) {
+                            text += `你走过 ${cross.playthroughCount} 轮。每一次你都会选不一样的路。\n`;
+                        }
+                        text += '\n他安静地看着你，像是在说：你记得的，我都记得。';
+                        document.getElementById('keeperModalBody').innerHTML = text.replace(/\n/g, '<br>');
+                        // 更新选项：返回
+                        renderKeeperOptions([
+                            { label: '🔙 返回', hint: '回到对话', action: 'backToDialogue' }
+                        ]);
+                        break;
+                    case 'backToDialogue':
+                        // 重新生成对话
+                        const crossData = getCrossSave();
+                        const newData = generateKeeperDialogue(crossData);
+                        document.getElementById('keeperModalBody').innerHTML = newData.dialogue.replace(/\n/g, '<br>');
+                        renderKeeperOptions(newData.options);
+                        break;
+                    case 'closeModal':
+                        closeKeeperModal();
+                        break;
+                    default:
+                        closeKeeperModal();
                 }
             }
 
-            function closeGallery() {
-                document.getElementById('gallery-view').classList.remove('active');
-                document.getElementById('main-menu').style.display = 'flex';
-                // 更新主菜单中的计数
-                const unlocked = getUnlockedEndings();
-                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+            // ----- 内嵌结局画廊 -----
+            function renderKeeperGallery() {
+                const body = document.getElementById('keeperModalBody');
+                const cross = getCrossSave();
+                const unlocked = cross.endingsUnlocked || [];
+                const allTypes = Object.keys(ENDING_META);
+
+                let html = '<div style="margin-bottom:12px;color:var(--text-gold);font-size:0.9rem;">📜 你走过的路，我都记得。</div>';
+                html += '<div id="keeper-gallery">';
+
+                // 先将完美结局置顶
+                const perfectType = 'TE1_薪火相传';
+                const perfectMeta = ENDING_META[perfectType];
+                if (perfectMeta) {
+                    const isUnlocked = unlocked.includes(perfectType);
+                    html += `<div class="keeper-gallery-card perfect ${isUnlocked ? '' : 'locked'}" data-type="${perfectType}">`;
+                    if (isUnlocked) {
+                        html += `<div class="card-icon">${perfectMeta.icon}</div>`;
+                        html += `<div class="card-title">${perfectMeta.title}</div>`;
+                        html += `<div class="card-subtitle">${perfectMeta.subtitle}</div>`;
+                        html += `<div class="card-badge">⭐ 完美</div>`;
+                    } else {
+                        html += `<div class="card-lock">🔒</div>`;
+                        html += `<div class="card-lock-label">未解锁</div>`;
+                    }
+                    html += '</div>';
+                }
+
+                // 其他结局
+                allTypes.forEach(type => {
+                    if (type === perfectType) return;
+                    const meta = ENDING_META[type];
+                    if (!meta) return;
+                    const isUnlocked = unlocked.includes(type);
+                    html += `<div class="keeper-gallery-card ${isUnlocked ? '' : 'locked'}" data-type="${type}">`;
+                    if (isUnlocked) {
+                        html += `<div class="card-icon">${meta.icon}</div>`;
+                        html += `<div class="card-title">${meta.title}</div>`;
+                        html += `<div class="card-subtitle">${meta.subtitle}</div>`;
+                        html += `<div class="card-badge">已解锁</div>`;
+                    } else {
+                        html += `<div class="card-lock">🔒</div>`;
+                        html += `<div class="card-lock-label">未解锁</div>`;
+                    }
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                html += `<div style="margin-top:8px;font-size:0.7rem;color:var(--text-muted);text-align:center;">已解锁 ${unlocked.length} / ${allTypes.length} 个结局</div>`;
+
+                body.innerHTML = html;
+
+                // 绑定点击事件（查看结局详情）
+                document.querySelectorAll('#keeper-gallery .keeper-gallery-card:not(.locked)').forEach(card => {
+                    card.addEventListener('click', function () {
+                        const type = this.dataset.type;
+                        if (!type) return;
+                        // 以只读模式显示结局内容（复用 renderEndingContent）
+                        // 但我们需要在模态框内显示，所以将结局文本插入 body
+                        // 临时保存当前内容，以便返回
+                        const currentHTML = body.innerHTML;
+                        // 使用 renderEndingContent 但我们需要捕获生成的文本
+                        // 由于 renderEndingContent 会调用 setStory 和 renderOptions，不适合直接使用
+                        // 我们改为直接显示结局的短描述，并提供返回按钮
+                        const meta = ENDING_META[type];
+                        if (meta) {
+                            body.innerHTML = `
+                    <div style="text-align:center;padding:8px 0;">
+                        <div style="font-size:2rem;">${meta.icon}</div>
+                        <div style="font-size:1.2rem;color:var(--text-gold);">${meta.title}</div>
+                        <div style="font-size:0.9rem;color:var(--text-muted);">${meta.subtitle}</div>
+                        <div style="margin:12px 0;line-height:1.8;font-size:0.9rem;">${meta.shortDesc}</div>
+                        <button class="keeper-option" style="margin:0 auto;display:block;text-align:center;padding:6px 20px;" onclick="renderKeeperGallery()">🔙 返回画廊</button>
+                    </div>
+                `;
+                            // 更新选项：去掉原来的选项，只保留返回（由上面的按钮处理）
+                            renderKeeperOptions([]);
+                        }
+                    });
+                });
+
+                // 更新选项：返回对话
+                renderKeeperOptions([
+                    { label: '🔙 返回对话', hint: '回到树下', action: 'backToDialogue' }
+                ]);
             }
 
-            // ---- 绑定画廊按钮 ----
-            document.getElementById('btn-gallery').addEventListener('click', function (e) {
-                e.stopPropagation();
-                renderEndingGallery();
+            // ----- 绑定主菜单守卷人按钮和剪影 -----
+            document.addEventListener('DOMContentLoaded', function () {
+                // 守卷人按钮
+                const keeperBtn = document.getElementById('btn-keeper');
+                if (keeperBtn) {
+                    keeperBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        openKeeperModal();
+                    });
+                }
+
+                // 守卷人剪影
+                const silhouette = document.getElementById('keeper-silhouette');
+                if (silhouette) {
+                    silhouette.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        openKeeperModal();
+                    });
+                }
+
+                // 模态框关闭按钮
+                const closeBtn = document.getElementById('keeperModalClose');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeKeeperModal);
+                }
+
+                // 点击遮罩关闭
+                const overlay = document.querySelector('.keeper-modal-overlay');
+                if (overlay) {
+                    overlay.addEventListener('click', closeKeeperModal);
+                }
             });
 
-            document.getElementById('gallery-back-btn').addEventListener('click', function () {
-                closeGallery();
-            });
-
-            // ---- 修改 showMainMenu 函数，确保画廊关闭 ----
-            // 找到原有的 showMainMenu 函数，替换为以下版本
-            function showMainMenu() {
-                // 如果画廊是打开的，关闭它
-                if (document.getElementById('gallery-view').classList.contains('active')) {
-                    document.getElementById('gallery-view').classList.remove('active');
+            // ----- 更新主菜单守卷人状态和光晕 -----
+            function updateKeeperUI() {
+                const cross = getCrossSave();
+                const phase = cross.keeperPhase || 'stranger';
+                const phaseData = KEEPER_PHRASES[phase] || KEEPER_PHRASES.stranger;
+                const statusText = document.getElementById('keeperStatusText');
+                if (statusText) {
+                    statusText.textContent = '—— ' + phaseData.title + ' ——';
                 }
-                document.getElementById('main-menu').style.display = 'flex';
-                document.getElementById('game-content').style.display = 'none';
-
-                const continueBtn = document.getElementById('btn-continue');
-                if (hasSave()) {
-                    continueBtn.style.opacity = '1';
-                    continueBtn.style.pointerEvents = 'auto';
-                    continueBtn.textContent = '📂 继续游戏';
-                } else {
-                    continueBtn.style.opacity = '0.5';
-                    continueBtn.style.pointerEvents = 'none';
-                    continueBtn.textContent = '📂 没有存档';
+                // 更新按钮提示
+                const hint = document.getElementById('keeperHint');
+                if (hint) {
+                    hint.textContent = '—— ' + phaseData.title + ' ——';
                 }
-
-                // 更新结局计数
-                const unlocked = getUnlockedEndings();
-                document.getElementById('galleryHint').textContent = `—— 已解锁 ${unlocked.length} / ${getTotalEndingsCount()} ——`;
+                // 第四章解锁光晕
+                const silhouette = document.getElementById('keeper-silhouette');
+                if (silhouette) {
+                    if (cross.chapter4Unlocked && !cross.trueEndingUnlocked) {
+                        silhouette.classList.add('glow');
+                    } else {
+                        silhouette.classList.remove('glow');
+                    }
+                }
             }
+
+            // 在初始化时调用 updateKeeperUI
+            // 在 syncCrossSave 后也应调用
+            // 为了保持简单，我们在主菜单显示时调用
+            // 修改 showMainMenu 函数
+            const originalShowMainMenu = showMainMenu;
+            showMainMenu = function () {
+                originalShowMainMenu();
+                updateKeeperUI();
+            };
+
             // ---------- 初始化 ----------
+            // ---- 预加载主菜单背景图 + 进度显示 ----
+            // ---- 预加载主菜单背景图（模拟平滑进度） ----
+            function loadBackgroundWithProgress() {
+                var statusEl = document.getElementById('loading-status');
+                if (!statusEl) return;
+
+                var img = new Image();
+                var progress = 0;
+                var timer = null;
+                var isCompleted = false;
+
+                // 更新进度显示
+                function updateProgress(value) {
+                    if (isCompleted) return;
+                    progress = Math.min(value, 95);
+                    statusEl.textContent = '—— 请等待龙神虚影加载 ' + progress + '% ——';
+                }
+
+                // 开始模拟进度（从 1% 平滑到 90%）
+                var currentStep = 0;
+                timer = setInterval(function () {
+                    if (isCompleted) return;
+                    // 每次增加 1~4%，速度逐渐放缓
+                    var step = 1 + Math.floor(Math.random() * 3);
+                    var newProgress = Math.min(progress + step, 90);
+                    updateProgress(newProgress);
+                    // 如果到了 90%，减慢速度等待真实加载
+                    if (progress >= 90) {
+                        clearInterval(timer);
+                        timer = setInterval(function () {
+                            if (isCompleted) return;
+                            // 在 90~95 之间缓慢波动
+                            var random = 90 + Math.floor(Math.random() * 5);
+                            updateProgress(random);
+                        }, 300);
+                    }
+                }, 80);
+
+                // ---- 真实图片加载完成 ----
+                img.onload = function () {
+                    isCompleted = true;
+                    clearInterval(timer);
+                    statusEl.textContent = '—— 龙神虚影已显 ——';
+                    // 0.6 秒后切换为正式副标题
+                    setTimeout(function () {
+                        statusEl.textContent = '—— 第一章 · 邱龙村 ——';
+                        statusEl.style.color = 'var(--text-gold)';
+                        statusEl.style.fontStyle = 'normal';
+                        statusEl.style.opacity = '0.8';
+                    }, 600);
+                };
+
+                img.onerror = function () {
+                    clearInterval(timer);
+                    isCompleted = true;
+                    statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
+                    statusEl.style.color = '#d45a5a';
+                };
+
+                // 超时保护（8 秒后强制显示完成）
+                var timeoutId = setTimeout(function () {
+                    if (!isCompleted) {
+                        clearInterval(timer);
+                        isCompleted = true;
+                        statusEl.textContent = '—— 龙神虚影已显 ——';
+                        setTimeout(function () {
+                            statusEl.textContent = '—— 第一章 · 邱龙村 ——';
+                            statusEl.style.color = 'var(--text-gold)';
+                            statusEl.style.fontStyle = 'normal';
+                        }, 400);
+                    }
+                }, 8000);
+
+                // 开始加载图片
+                img.src = 'image/main1.jpg';
+            }
             function init() {
-                // 绑定主菜单按钮
+                // ---- 绑定主菜单按钮 ----
                 document.getElementById('btn-new-game').addEventListener('click', startNewGame);
                 document.getElementById('btn-continue').addEventListener('click', continueGame);
-                document.getElementById('btn-gallery').addEventListener('click', function (e) {
+
+                // ⭐ 移除旧的画廊按钮绑定（如果存在）
+                // 原 document.getElementById('btn-gallery') 的事件已不需要，但为了安全，可以移除：
+                const oldGalleryBtn = document.getElementById('btn-gallery');
+                if (oldGalleryBtn) {
+                    oldGalleryBtn.removeEventListener('click', renderEndingGallery);
+                }
+
+                // ⭐ 绑定守卷人按钮
+                document.getElementById('btn-keeper').addEventListener('click', function (e) {
                     e.stopPropagation();
-                    renderEndingGallery();
+                    openKeeperModal();
                 });
 
-                // ⭐ 新增：清除缓存按钮
+                // ⭐ 绑定清除缓存按钮
                 document.getElementById('btn-clear-cache').addEventListener('click', function (e) {
                     e.stopPropagation();
                     clearAllCache();
@@ -17548,10 +19517,18 @@
 
                 // 绑定返回主菜单按钮
                 const returnBtn = document.getElementById('btn-return-menu');
-                returnBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    returnToMenu();
-                });
+                if (returnBtn) {
+                    returnBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        returnToMenu();
+                    });
+                } else {
+                    console.warn('btn-return-menu not found – 请检查 DOM 是否包含该元素');
+                }
+
+                // ⭐ 绑定守卷人模态框关闭
+                document.getElementById('keeperModalClose').addEventListener('click', closeKeeperModal);
+                document.querySelector('.keeper-modal-overlay').addEventListener('click', closeKeeperModal);
 
                 // 页面关闭时自动保存
                 window.addEventListener('beforeunload', function () {
@@ -17560,88 +19537,14 @@
                     }
                 });
 
-                // 显示主菜单
+                // 初始化跨周目存档
+                const cross = getCrossSave();
+                saveCrossSave(cross);
 
-                // ---- 预加载主菜单背景图 + 进度显示 ----
-                // ---- 预加载主菜单背景图（模拟平滑进度） ----
-                function loadBackgroundWithProgress() {
-                    var statusEl = document.getElementById('loading-status');
-                    if (!statusEl) return;
-
-                    var img = new Image();
-                    var progress = 0;
-                    var timer = null;
-                    var isCompleted = false;
-
-                    // 更新进度显示
-                    function updateProgress(value) {
-                        if (isCompleted) return;
-                        progress = Math.min(value, 95);
-                        statusEl.textContent = '—— 请等待龙神虚影加载 ' + progress + '% ——';
-                    }
-
-                    // 开始模拟进度（从 1% 平滑到 90%）
-                    var currentStep = 0;
-                    timer = setInterval(function () {
-                        if (isCompleted) return;
-                        // 每次增加 1~4%，速度逐渐放缓
-                        var step = 1 + Math.floor(Math.random() * 3);
-                        var newProgress = Math.min(progress + step, 90);
-                        updateProgress(newProgress);
-                        // 如果到了 90%，减慢速度等待真实加载
-                        if (progress >= 90) {
-                            clearInterval(timer);
-                            timer = setInterval(function () {
-                                if (isCompleted) return;
-                                // 在 90~95 之间缓慢波动
-                                var random = 90 + Math.floor(Math.random() * 5);
-                                updateProgress(random);
-                            }, 300);
-                        }
-                    }, 80);
-
-                    // ---- 真实图片加载完成 ----
-                    img.onload = function () {
-                        isCompleted = true;
-                        clearInterval(timer);
-                        statusEl.textContent = '—— 龙神虚影已显 ——';
-                        // 0.6 秒后切换为正式副标题
-                        setTimeout(function () {
-                            statusEl.textContent = '—— 第一章 · 邱龙村 ——';
-                            statusEl.style.color = 'var(--text-gold)';
-                            statusEl.style.fontStyle = 'normal';
-                            statusEl.style.opacity = '0.8';
-                        }, 600);
-                    };
-
-                    img.onerror = function () {
-                        clearInterval(timer);
-                        isCompleted = true;
-                        statusEl.textContent = '—— 龙神虚影加载失败，请刷新 ——';
-                        statusEl.style.color = '#d45a5a';
-                    };
-
-                    // 超时保护（8 秒后强制显示完成）
-                    var timeoutId = setTimeout(function () {
-                        if (!isCompleted) {
-                            clearInterval(timer);
-                            isCompleted = true;
-                            statusEl.textContent = '—— 龙神虚影已显 ——';
-                            setTimeout(function () {
-                                statusEl.textContent = '—— 第一章 · 邱龙村 ——';
-                                statusEl.style.color = 'var(--text-gold)';
-                                statusEl.style.fontStyle = 'normal';
-                            }, 400);
-                        }
-                    }, 8000);
-
-                    // 开始加载图片
-                    img.src = 'image/main1.jpg';
-                }
-
-                // 调用预加载
+                // 预加载主菜单背景图
                 loadBackgroundWithProgress();
-                // ---- 金色粒子跟随鼠标 ---- (可选)
+
+                // 粒子跟随鼠标（可选）
                 let mouseX = 0, mouseY = 0;
                 document.addEventListener('mousemove', function (e) {
                     const rect = document.getElementById('main-menu').getBoundingClientRect();
@@ -17652,6 +19555,9 @@
                         p.style.transform = `translate(${mouseX * speed}px, ${mouseY * speed}px)`;
                     });
                 });
+
+                // 显示主菜单（同时更新守卷人UI）
+                showMainMenu();
             }
             window.onload = init;
         </script>
