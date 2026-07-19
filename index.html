@@ -14656,8 +14656,8 @@
                                 statusText = '✅ 已集齐线索';
                                 fragmentDisplay = '<span style="color:#6ab06a;">🧩</span>';
                             } else if (hasSomeFragments) {
-                                statusText = `🔍 ${fragmentStatus.collected}/${fragmentStatus.total}`;
-                                fragmentDisplay = `<span style="color:#d4b87a;">🧩 ${fragmentStatus.collected}/${fragmentStatus.total}</span>`;
+                                statusText = '🔍 ' + fragmentStatus.collected + '/' + fragmentStatus.total;
+                                fragmentDisplay = '<span style="color:#d4b87a;">🧩 ' + fragmentStatus.collected + '/' + fragmentStatus.total + '</span>';
                             } else {
                                 statusText = '⬜ 已探索，无线索';
                                 fragmentDisplay = '<span style="color:var(--text-muted);opacity:0.3;">⬜</span>';
@@ -14667,13 +14667,8 @@
                             fragmentDisplay = '<span style="color:var(--text-muted);opacity:0.2;">❓</span>';
                         }
 
-                        // 区域是否可点击（已探索或未探索都可点击，但未探索的点击后会进入场景）
-                        var lockedClass = '';
-
                         html += `
-                <div class="map-cell ${statusClass} ${lockedClass}"
-                     data-area="${id}"
-                     style="grid-column: span 1; position:relative;">
+                <div class="map-cell ${statusClass}" data-area="${id}" style="grid-column: span 1; position:relative;">
                     <div class="cell-icon">${area.icon}</div>
                     <div class="cell-label">${area.label}</div>
                     <div class="cell-status">${statusText}</div>
@@ -14702,11 +14697,11 @@
         </div>
     `;
 
-                // 直接设置 HTML，不经过 setStory 的换行转换
-                const el = document.getElementById('storyText');
-                el.innerHTML = html;
-                const area = document.getElementById('story-area');
-                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+                // ---- 直接设置 HTML，不经过 setStory 的换行转换 ----
+                const storyEl = document.getElementById('storyText');
+                storyEl.innerHTML = html;
+                const storyArea = document.getElementById('story-area');
+                setTimeout(() => { storyArea.scrollTop = storyArea.scrollHeight; }, 50);
 
                 // ---- 绑定点击事件 ----
                 setTimeout(function () {
