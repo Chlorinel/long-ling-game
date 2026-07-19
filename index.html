@@ -17899,25 +17899,36 @@
     `, endingClass);
 
                 var options = [];
-
-                // ---- 只读模式：仅显示返回按钮 ----
                 // ---- 只读模式：显示完整结局内容并返回画廊 ----
                 if (readOnly) {
-                    // 关闭画廊视图
-                    var galleryView = document.getElementById('gallery-view');
-                    if (galleryView) {
-                        galleryView.classList.remove('active');
-                    }
-
                     // 确保游戏内容区域可见
                     var gameContent = document.getElementById('game-content');
                     if (gameContent) {
                         gameContent.style.display = 'flex';
                     }
+                    var mainMenu = document.getElementById('main-menu');
+                    if (mainMenu) {
+                        mainMenu.style.display = 'none';
+                    }
 
-                    // ⭐ 结局内容已经通过上面的 setStory 显示了，不需要再重复
-                    // 只需要添加返回按钮
+                    // ⭐ 关键修复：在只读模式下也要调用 setStory 显示结局内容
+                    // 构建标题和描述（复用 switch 中已经设置的 title, desc, endingClass）
+                    var fullContent = `
+        <span class="ending-title">${title}</span>
+        <span class="divider">—— —— ——</span>
+        ${desc}
+        <span class="divider">· · ·</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">你一共度过了 ${state.day} 天，收集了 ${state.rules.length} 条规则。</span>
+        <span style="color:var(--text-muted);font-size:0.85rem;">最终龙化值: ${clamp(state.dragonization, 0, 100)}% · 理智值: ${100 - clamp(state.dragonization, 0, 100)}%</span>
+        ${state.flags.chapter2 ? `<span style="color:var(--text-muted);font-size:0.85rem;">第二章进度: ${state.ch2.km}km · 遇到路人 ${state.ch2.passerbyCount} 次</span>` : ''}
+        ${state.flags.stele && state.flags.stele.found ? `<span style="color:var(--text-gold);font-size:0.85rem;">📜 已发现工匠暗碑，了解全部真相</span>` : ''}
+        ${state.flags.awakening && state.flags.awakening.visited ? `<span style="color:var(--text-gold);font-size:0.85rem;">🌾 已接触觉醒者 · 信任度 ${state.flags.awakening.trustLevel}/5</span>` : ''}
+    `;
 
+                    // 使用 setStory 显示完整结局
+                    setStory(fullContent, endingClass);
+
+                    // 添加返回按钮
                     var options = [];
                     options.push({
                         label: '🔙 返回守卷人画廊',
@@ -17946,7 +17957,7 @@
                                     renderKeeperGallery();
                                 }
                                 keeperGalleryVisible = true;
-                            }, 200);
+                            }, 150);
                         }
                     });
 
@@ -19109,14 +19120,6 @@
                 updateKeeperUI(); // 更新主菜单状态
             }
 
-            // ---- 关闭模态框 ----
-            function closeKeeperModal() {
-                document.getElementById('keeper-modal').classList.remove('active');
-                // 隐藏画廊（如果打开）
-                document.getElementById('keeperModalGallery').style.display = 'none';
-                // 恢复主菜单守卷人UI
-                updateKeeperUI();
-            }
 
             // ---- 设置模态框内容 ----
             function setKeeperModalContent(title, body) {
@@ -19178,15 +19181,15 @@
                 var perfectMeta = ENDING_META[perfectType];
                 if (perfectMeta) {
                     var isUnlocked = unlocked.includes(perfectType);
-                    html += `<div class="keeper-gallery-card perfect ${isUnlocked ? '' : 'locked'}" data-type="${perfectType}" style="background:rgba(26,20,16,0.6);border:1px solid ${isUnlocked ? 'var(--text-gold)' : 'rgba(139,122,74,0.12)'};border-radius:8px;padding:12px 10px;text-align:center;cursor:${isUnlocked ? 'pointer' : 'not-allowed'};transition:all 0.3s ease;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;${!isUnlocked ? 'opacity:0.3;filter:grayscale(0.8);' : 'box-shadow:0 0 20px rgba(180,140,80,0.15);'}">`;
+                    html += '<div class="keeper-gallery-card perfect ' + (isUnlocked ? '' : 'locked') + '" data-type="' + perfectType + '" style="background:rgba(26,20,16,0.6);border:1px solid ' + (isUnlocked ? 'var(--text-gold)' : 'rgba(139,122,74,0.12)') + ';border-radius:8px;padding:12px 10px;text-align:center;cursor:' + (isUnlocked ? 'pointer' : 'not-allowed') + ';transition:all 0.3s ease;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;' + (!isUnlocked ? 'opacity:0.3;filter:grayscale(0.8);' : 'box-shadow:0 0 20px rgba(180,140,80,0.15);') + '">';
                     if (isUnlocked) {
-                        html += `<div style="font-size:1.8rem;">${perfectMeta.icon}</div>`;
-                        html += `<div style="font-size:0.9rem;color:var(--text-primary);font-weight:700;letter-spacing:1px;">${perfectMeta.title}</div>`;
-                        html += `<div style="font-size:0.6rem;color:var(--text-muted);">${perfectMeta.subtitle}</div>`;
-                        html += `<div style="font-size:0.45rem;background:rgba(139,122,74,0.2);color:var(--text-gold);padding:1px 8px;border-radius:8px;margin-top:3px;">⭐ 完美</div>`;
+                        html += '<div style="font-size:1.8rem;">' + perfectMeta.icon + '</div>';
+                        html += '<div style="font-size:0.9rem;color:var(--text-primary);font-weight:700;letter-spacing:1px;">' + perfectMeta.title + '</div>';
+                        html += '<div style="font-size:0.6rem;color:var(--text-muted);">' + perfectMeta.subtitle + '</div>';
+                        html += '<div style="font-size:0.45rem;background:rgba(139,122,74,0.2);color:var(--text-gold);padding:1px 8px;border-radius:8px;margin-top:3px;">⭐ 完美</div>';
                     } else {
-                        html += `<div style="font-size:1.8rem;opacity:0.5;">🔒</div>`;
-                        html += `<div style="font-size:0.65rem;color:var(--text-muted);letter-spacing:3px;">未解锁</div>`;
+                        html += '<div style="font-size:1.8rem;opacity:0.5;">🔒</div>';
+                        html += '<div style="font-size:0.65rem;color:var(--text-muted);letter-spacing:3px;">未解锁</div>';
                     }
                     html += '</div>';
                 }
@@ -19197,21 +19200,21 @@
                     var meta = ENDING_META[type];
                     if (!meta) return;
                     var isUnlocked = unlocked.includes(type);
-                    html += `<div class="keeper-gallery-card ${isUnlocked ? '' : 'locked'}" data-type="${type}" style="background:rgba(26,20,16,0.6);border:1px solid ${isUnlocked ? 'rgba(139,122,74,0.2)' : 'rgba(139,122,74,0.08)'};border-radius:8px;padding:12px 10px;text-align:center;cursor:${isUnlocked ? 'pointer' : 'not-allowed'};transition:all 0.3s ease;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;${!isUnlocked ? 'opacity:0.3;filter:grayscale(0.8);' : ''}">`;
+                    html += '<div class="keeper-gallery-card ' + (isUnlocked ? '' : 'locked') + '" data-type="' + type + '" style="background:rgba(26,20,16,0.6);border:1px solid ' + (isUnlocked ? 'rgba(139,122,74,0.2)' : 'rgba(139,122,74,0.08)') + ';border-radius:8px;padding:12px 10px;text-align:center;cursor:' + (isUnlocked ? 'pointer' : 'not-allowed') + ';transition:all 0.3s ease;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;' + (!isUnlocked ? 'opacity:0.3;filter:grayscale(0.8);' : '') + '">';
                     if (isUnlocked) {
-                        html += `<div style="font-size:1.6rem;">${meta.icon}</div>`;
-                        html += `<div style="font-size:0.85rem;color:var(--text-primary);font-weight:700;letter-spacing:1px;">${meta.title}</div>`;
-                        html += `<div style="font-size:0.55rem;color:var(--text-muted);">${meta.subtitle}</div>`;
-                        html += `<div style="font-size:0.4rem;background:rgba(139,122,74,0.15);color:var(--text-gold);padding:1px 6px;border-radius:8px;margin-top:2px;">已解锁</div>`;
+                        html += '<div style="font-size:1.6rem;">' + meta.icon + '</div>';
+                        html += '<div style="font-size:0.85rem;color:var(--text-primary);font-weight:700;letter-spacing:1px;">' + meta.title + '</div>';
+                        html += '<div style="font-size:0.55rem;color:var(--text-muted);">' + meta.subtitle + '</div>';
+                        html += '<div style="font-size:0.4rem;background:rgba(139,122,74,0.15);color:var(--text-gold);padding:1px 6px;border-radius:8px;margin-top:2px;">已解锁</div>';
                     } else {
-                        html += `<div style="font-size:1.6rem;opacity:0.5;">🔒</div>`;
-                        html += `<div style="font-size:0.6rem;color:var(--text-muted);letter-spacing:3px;">未解锁</div>`;
+                        html += '<div style="font-size:1.6rem;opacity:0.5;">🔒</div>';
+                        html += '<div style="font-size:0.6rem;color:var(--text-muted);letter-spacing:3px;">未解锁</div>';
                     }
                     html += '</div>';
                 });
 
                 html += '</div>';
-                html += `<div style="margin-top:10px;font-size:0.7rem;color:var(--text-muted);text-align:center;">已解锁 ${unlocked.length} / ${allTypes.length} 个结局</div>`;
+                html += '<div style="margin-top:10px;font-size:0.7rem;color:var(--text-muted);text-align:center;">已解锁 ' + unlocked.length + ' / ' + allTypes.length + ' 个结局</div>';
 
                 // ---- 2. 渲染画廊 ----
                 if (galleryEl) {
@@ -19222,26 +19225,20 @@
                     body.innerHTML = html;
                 }
 
-                // ---- 3. ⭐ 卡片点击事件（显示完整结局） ----
+                // ---- 3. ⭐ 核心修复：卡片点击后显示完整结局 ----
                 document.querySelectorAll('#keeper-gallery .keeper-gallery-card:not(.locked)').forEach(function (card) {
                     card.addEventListener('click', function () {
                         var type = this.dataset.type;
                         if (!type) return;
 
                         // 关闭守卷人模态框
-                        closeKeeperModal();
+                        closeKeeperModal(false);
 
-                        // 确保游戏内容显示
-                        var gameContent = document.getElementById('game-content');
-                        if (gameContent) {
-                            gameContent.style.display = 'flex';
-                        }
-                        var mainMenu = document.getElementById('main-menu');
-                        if (mainMenu) {
-                            mainMenu.style.display = 'none';
-                        }
+                        // 确保游戏内容可见，主菜单隐藏
+                        document.getElementById('game-content').style.display = 'flex';
+                        document.getElementById('main-menu').style.display = 'none';
 
-                        // ⭐ 关键：清除所有锁定状态，确保内容完整显示
+                        // ⭐ 清除所有规则确认锁定，防止干扰
                         if (state._waitingConfirm) {
                             state._waitingConfirm = false;
                             state._confirmResolve = null;
@@ -19255,7 +19252,7 @@
                             });
                         }
 
-                        // 调用 renderEndingContent 的只读模式显示完整结局
+                        // ⭐ 调用 renderEndingContent 的只读模式，显示完整结局
                         renderEndingContent(type, true);
                     });
                 });
@@ -19797,9 +19794,25 @@
                 renderKeeperOptions(data.options);
             }
 
-            function closeKeeperModal() {
+            function closeKeeperModal(restoreMenu) {
+                // 默认需要恢复菜单，除非明确传入 false
+                const shouldRestore = restoreMenu !== false;
+
                 keeperModalOpen = false;
-                document.getElementById('keeper-modal').classList.remove('active');
+
+                const modal = document.getElementById('keeper-modal');
+                if (modal) modal.classList.remove('active');
+
+                const gallery = document.getElementById('keeperModalGallery');
+                if (gallery) gallery.style.display = 'none';
+
+                // 只有明确需要恢复菜单，且游戏内容处于隐藏状态时，才恢复主菜单
+                if (shouldRestore) {
+                    const gameContent = document.getElementById('game-content');
+                    if (gameContent && gameContent.style.display === 'none') {
+                        showMainMenu();
+                    }
+                }
             }
 
             // ----- 渲染守卷人选项 -----
@@ -19873,92 +19886,6 @@
                 }
             }
 
-            // ----- 内嵌结局画廊 -----
-            function renderKeeperGallery() {
-                const body = document.getElementById('keeperModalBody');
-                const cross = getCrossSave();
-                const unlocked = cross.endingsUnlocked || [];
-                const allTypes = Object.keys(ENDING_META);
-
-                let html = '<div style="margin-bottom:12px;color:var(--text-gold);font-size:0.9rem;">📜 你走过的路，我都记得。</div>';
-                html += '<div id="keeper-gallery">';
-
-                // 先将完美结局置顶
-                const perfectType = 'TE1_薪火相传';
-                const perfectMeta = ENDING_META[perfectType];
-                if (perfectMeta) {
-                    const isUnlocked = unlocked.includes(perfectType);
-                    html += `<div class="keeper-gallery-card perfect ${isUnlocked ? '' : 'locked'}" data-type="${perfectType}">`;
-                    if (isUnlocked) {
-                        html += `<div class="card-icon">${perfectMeta.icon}</div>`;
-                        html += `<div class="card-title">${perfectMeta.title}</div>`;
-                        html += `<div class="card-subtitle">${perfectMeta.subtitle}</div>`;
-                        html += `<div class="card-badge">⭐ 完美</div>`;
-                    } else {
-                        html += `<div class="card-lock">🔒</div>`;
-                        html += `<div class="card-lock-label">未解锁</div>`;
-                    }
-                    html += '</div>';
-                }
-
-                // 其他结局
-                allTypes.forEach(type => {
-                    if (type === perfectType) return;
-                    const meta = ENDING_META[type];
-                    if (!meta) return;
-                    const isUnlocked = unlocked.includes(type);
-                    html += `<div class="keeper-gallery-card ${isUnlocked ? '' : 'locked'}" data-type="${type}">`;
-                    if (isUnlocked) {
-                        html += `<div class="card-icon">${meta.icon}</div>`;
-                        html += `<div class="card-title">${meta.title}</div>`;
-                        html += `<div class="card-subtitle">${meta.subtitle}</div>`;
-                        html += `<div class="card-badge">已解锁</div>`;
-                    } else {
-                        html += `<div class="card-lock">🔒</div>`;
-                        html += `<div class="card-lock-label">未解锁</div>`;
-                    }
-                    html += '</div>';
-                });
-
-                html += '</div>';
-                html += `<div style="margin-top:8px;font-size:0.7rem;color:var(--text-muted);text-align:center;">已解锁 ${unlocked.length} / ${allTypes.length} 个结局</div>`;
-
-                body.innerHTML = html;
-
-                // 绑定点击事件（查看结局详情）
-                document.querySelectorAll('#keeper-gallery .keeper-gallery-card:not(.locked)').forEach(card => {
-                    card.addEventListener('click', function () {
-                        const type = this.dataset.type;
-                        if (!type) return;
-                        // 以只读模式显示结局内容（复用 renderEndingContent）
-                        // 但我们需要在模态框内显示，所以将结局文本插入 body
-                        // 临时保存当前内容，以便返回
-                        const currentHTML = body.innerHTML;
-                        // 使用 renderEndingContent 但我们需要捕获生成的文本
-                        // 由于 renderEndingContent 会调用 setStory 和 renderOptions，不适合直接使用
-                        // 我们改为直接显示结局的短描述，并提供返回按钮
-                        const meta = ENDING_META[type];
-                        if (meta) {
-                            body.innerHTML = `
-                    <div style="text-align:center;padding:8px 0;">
-                        <div style="font-size:2rem;">${meta.icon}</div>
-                        <div style="font-size:1.2rem;color:var(--text-gold);">${meta.title}</div>
-                        <div style="font-size:0.9rem;color:var(--text-muted);">${meta.subtitle}</div>
-                        <div style="margin:12px 0;line-height:1.8;font-size:0.9rem;">${meta.shortDesc}</div>
-                        <button class="keeper-option" style="margin:0 auto;display:block;text-align:center;padding:6px 20px;" onclick="renderKeeperGallery()">🔙 返回画廊</button>
-                    </div>
-                `;
-                            // 更新选项：去掉原来的选项，只保留返回（由上面的按钮处理）
-                            renderKeeperOptions([]);
-                        }
-                    });
-                });
-
-                // 更新选项：返回对话
-                renderKeeperOptions([
-                    { label: '🔙 返回对话', hint: '回到树下', action: 'backToDialogue' }
-                ]);
-            }
 
             // ----- 绑定主菜单守卷人按钮和剪影 -----
             document.addEventListener('DOMContentLoaded', function () {
