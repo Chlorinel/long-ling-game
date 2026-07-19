@@ -2423,6 +2423,48 @@
             }
         }
 
+        /* 守卷人选项按钮完整样式 */
+        .keeper-option {
+            background: rgba(30, 24, 18, 0.8) !important;
+            border: 1px solid rgba(139, 122, 74, 0.3) !important;
+            border-radius: 6px !important;
+            padding: 10px 18px !important;
+            color: var(--text-primary) !important;
+            font-family: var(--font-serif) !important;
+            font-size: 0.9rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            display: inline-block !important;
+            text-align: center !important;
+            width: 100% !important;
+            letter-spacing: 2px !important;
+        }
+
+        .keeper-option:hover {
+            background: rgba(60, 50, 40, 0.8) !important;
+            border-color: var(--text-gold) !important;
+            transform: translateX(4px) !important;
+            box-shadow: 0 0 20px rgba(180, 140, 80, 0.08) !important;
+            color: var(--text-gold) !important;
+        }
+
+        .keeper-option .hint {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-left: 6px;
+            opacity: 0.6;
+        }
+
+        .keeper-option .tag {
+            display: inline-block;
+            font-size: 0.5rem;
+            background: rgba(139, 122, 74, 0.2);
+            border-radius: 3px;
+            padding: 0 6px;
+            margin-left: 4px;
+            color: var(--text-gold);
+        }
+
         .hidden {
             display: none !important;
         }
@@ -17859,20 +17901,55 @@
                 var options = [];
 
                 // ---- 只读模式：仅显示返回按钮 ----
+                // ---- 只读模式：显示完整结局内容并返回画廊 ----
                 if (readOnly) {
-                    // 关闭画廊视图，显示游戏内容区域
-                    document.getElementById('gallery-view').classList.remove('active');
-                    document.getElementById('game-content').style.display = 'flex';
+                    // 关闭画廊视图
+                    var galleryView = document.getElementById('gallery-view');
+                    if (galleryView) {
+                        galleryView.classList.remove('active');
+                    }
 
-                    // 显示结局故事（已在上面通过 setStory 完成）
+                    // 确保游戏内容区域可见
+                    var gameContent = document.getElementById('game-content');
+                    if (gameContent) {
+                        gameContent.style.display = 'flex';
+                    }
+
+                    // ⭐ 结局内容已经通过上面的 setStory 显示了，不需要再重复
+                    // 只需要添加返回按钮
+
+                    var options = [];
                     options.push({
-                        label: '🔙 返回画廊',
+                        label: '🔙 返回守卷人画廊',
+                        hint: '回到结局列表',
                         ending: true,
+                        tag: '📜 返回',
                         action: function () {
                             if (state._waitingConfirm) return;
+
+                            // 隐藏游戏内容
+                            var gc = document.getElementById('game-content');
+                            if (gc) {
+                                gc.style.display = 'none';
+                            }
+
+                            // 重新打开守卷人模态框
                             openKeeperModal();
+
+                            // 延迟后切换到画廊视图
+                            setTimeout(function () {
+                                var galleryEl = document.getElementById('keeperModalGallery');
+                                if (galleryEl) {
+                                    galleryEl.style.display = 'grid';
+                                    renderKeeperGallery();
+                                } else {
+                                    renderKeeperGallery();
+                                }
+                                keeperGalleryVisible = true;
+                            }, 200);
                         }
                     });
+
                     renderOptions(options);
                     updateUI();
                     return;
@@ -19136,18 +19213,16 @@
                 html += '</div>';
                 html += `<div style="margin-top:10px;font-size:0.7rem;color:var(--text-muted);text-align:center;">已解锁 ${unlocked.length} / ${allTypes.length} 个结局</div>`;
 
-                // ---- 2. 渲染画廊到 body（或者独立的 gallery 容器） ----
-                // 如果存在独立的 gallery 容器，使用它；否则渲染到 body
+                // ---- 2. 渲染画廊 ----
                 if (galleryEl) {
                     galleryEl.style.display = 'grid';
                     galleryEl.innerHTML = html;
-                    body.innerHTML = ''; // 清空 body，只显示画廊
+                    body.innerHTML = '';
                 } else {
-                    // 降级方案：渲染到 body
                     body.innerHTML = html;
                 }
 
-                // ---- 3. 绑定卡片点击事件（核心修复） ----
+                // ---- 3. ⭐ 卡片点击事件（显示完整结局） ----
                 document.querySelectorAll('#keeper-gallery .keeper-gallery-card:not(.locked)').forEach(function (card) {
                     card.addEventListener('click', function () {
                         var type = this.dataset.type;
@@ -19156,16 +19231,36 @@
                         // 关闭守卷人模态框
                         closeKeeperModal();
 
-                        // 显示游戏内容区域（用于展示结局）
-                        document.getElementById('game-content').style.display = 'flex';
-                        document.getElementById('main-menu').style.display = 'none';
+                        // 确保游戏内容显示
+                        var gameContent = document.getElementById('game-content');
+                        if (gameContent) {
+                            gameContent.style.display = 'flex';
+                        }
+                        var mainMenu = document.getElementById('main-menu');
+                        if (mainMenu) {
+                            mainMenu.style.display = 'none';
+                        }
+
+                        // ⭐ 关键：清除所有锁定状态，确保内容完整显示
+                        if (state._waitingConfirm) {
+                            state._waitingConfirm = false;
+                            state._confirmResolve = null;
+                            document.getElementById('rule-notification').classList.remove('show');
+                            var container = document.getElementById('options-area');
+                            var confirmBtn = container.querySelector('.confirm-btn');
+                            if (confirmBtn) confirmBtn.remove();
+                            document.querySelectorAll('.option-btn:not(.confirm-btn)').forEach(function (btn) {
+                                btn.style.pointerEvents = '';
+                                btn.style.opacity = '';
+                            });
+                        }
 
                         // 调用 renderEndingContent 的只读模式显示完整结局
                         renderEndingContent(type, true);
                     });
                 });
 
-                // 添加悬停效果（通过 CSS 实现，但为了兼容性也可以在 JS 中处理）
+                // ---- 4. 悬停效果 ----
                 document.querySelectorAll('#keeper-gallery .keeper-gallery-card:not(.locked)').forEach(function (card) {
                     card.addEventListener('mouseenter', function () {
                         this.style.borderColor = 'var(--text-gold)';
@@ -19179,7 +19274,7 @@
                     });
                 });
 
-                // ---- 4. 更新选项：返回对话 ----
+                // ---- 5. 更新选项：返回对话 ----
                 renderKeeperOptions([
                     { label: '🔙 返回对话', hint: '回到树下', action: 'backToDialogue' }
                 ]);
