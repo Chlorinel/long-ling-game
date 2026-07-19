@@ -2505,7 +2505,29 @@
                     <span class="btn-hint">—— 删除所有存档和结局记录 ——</span>
                 </button>
             </div>
-
+            <!-- 在 main-menu 内，按钮区之后添加 -->
+            <!-- 章节选择模态框 -->
+            <div id="chapter-select-modal"
+                style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:15;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;padding:30px;">
+                <div
+                    style="background:linear-gradient(180deg,#1f1812,#0d0a08);border:1px solid var(--border-gold);border-radius:16px;padding:30px 36px;max-width:480px;width:100%;box-shadow:0 0 80px rgba(0,0,0,0.9);">
+                    <div
+                        style="text-align:center;font-family:var(--font-title);font-size:1.4rem;color:var(--text-gold);letter-spacing:6px;margin-bottom:6px;">
+                        📜 选择章节
+                    </div>
+                    <div
+                        style="text-align:center;font-size:0.7rem;color:var(--text-muted);letter-spacing:3px;margin-bottom:18px;">
+                        —— 从已解锁的章节开始冒险 ——
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;" id="chapter-options">
+                        <!-- 由 JS 动态生成 -->
+                    </div>
+                    <button id="chapter-select-close"
+                        style="margin-top:14px;background:rgba(26,20,16,0.8);border:1px solid rgba(139,122,74,0.2);border-radius:6px;padding:8px;color:var(--text-muted);font-family:var(--font-serif);font-size:0.75rem;cursor:pointer;width:100%;letter-spacing:3px;transition:all 0.3s;">
+                        🌙 取消
+                    </button>
+                </div>
+            </div>
             <!-- ---- 底部脚注 ---- -->
             <div class="menu-footer">
                 <span class="dragon-icon">🐉</span>
@@ -3023,6 +3045,166 @@
                 _endingType: null,  // 记录触发的结局类型
             };
             // ================================================================
+            //  章节选择系统
+            // ================================================================
+
+            function openChapterSelect() {
+                const modal = document.getElementById('chapter-select-modal');
+                const container = document.getElementById('chapter-options');
+                const cross = getCrossSave();
+                const unlocked = cross.unlockedChapters || { chapter1: true, chapter2: false, chapter3: false, chapter4: false };
+
+                // 构建章节按钮
+                const chapters = [
+                    { id: 'chapter1', label: '📜 第一章 · 邱龙村', desc: '从村口木牌开始，收集规则', icon: '🏚️', unlocked: true },
+                    { id: 'chapter2', label: '📜 第二章 · 社戏途中', desc: '从山脚集市开始，追赶游神队伍', icon: '🏮', unlocked: unlocked.chapter2 || false },
+                    { id: 'chapter3', label: '📜 第三章 · 锁龙观', desc: '从道观大门开始，探索真相', icon: '⛩️', unlocked: unlocked.chapter3 || false },
+                ];
+
+                let html = '';
+                chapters.forEach(ch => {
+                    const isUnlocked = ch.unlocked;
+                    const statusText = isUnlocked ? '✅ 已解锁' : '🔒 未解锁';
+                    const statusColor = isUnlocked ? 'var(--text-gold)' : 'var(--text-muted)';
+
+                    html += `
+            <button class="chapter-option-btn" data-chapter="${ch.id}" 
+                    style="background:rgba(26,20,16,0.7);border:1px solid ${isUnlocked ? 'rgba(139,122,74,0.3)' : 'rgba(139,122,74,0.1)'};
+                           border-radius:8px;padding:14px 20px;color:${isUnlocked ? 'var(--text-primary)' : 'var(--text-muted)'};
+                           font-family:var(--font-serif);font-size:0.95rem;text-align:left;
+                           cursor:${isUnlocked ? 'pointer' : 'not-allowed'};
+                           opacity:${isUnlocked ? '1' : '0.5'};
+                           transition:all 0.3s ease;position:relative;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:1.4rem;">${ch.icon}</span>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;letter-spacing:2px;">${ch.label}</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);letter-spacing:1px;">${ch.desc}</div>
+                    </div>
+                    <span style="font-size:0.6rem;color:${statusColor};letter-spacing:2px;">${statusText}</span>
+                </div>
+                ${!isUnlocked ? `<div style="position:absolute;top:0;left:0;right:0;bottom:0;border-radius:8px;background:rgba(0,0,0,0.2);"></div>` : ''}
+            </button>
+        `;
+                });
+                container.innerHTML = html;
+
+                // 绑定点击事件
+                container.querySelectorAll('.chapter-option-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const chapter = this.dataset.chapter;
+                        const isUnlocked = this.style.cursor !== 'not-allowed';
+                        if (!isUnlocked) return;
+                        closeChapterSelect();
+                        startFromChapter(chapter);
+                    });
+                });
+
+                // 显示模态框
+                modal.style.display = 'flex';
+            }
+
+            function closeChapterSelect() {
+                document.getElementById('chapter-select-modal').style.display = 'none';
+            }
+
+            function startFromChapter(chapter) {
+                switch (chapter) {
+                    case 'chapter1':
+                        // 完全重置，从头开始
+                        resetGame();
+                        showGameContent();
+                        goToScene('intro');
+                        saveGame();
+                        break;
+
+                    case 'chapter2':
+                        // 基于第一章完成存档，进入第二章
+                        const ch1Data = loadChapterComplete('ch1_complete');
+                        if (!ch1Data) {
+                            alert('没有找到第一章的存档，请先完成第一章。');
+                            return;
+                        }
+                        // 恢复第一章完成时的状态
+                        restoreFromChapterData(ch1Data);
+                        // 直接进入第二章
+                        showGameContent();
+                        enterChapter2();
+                        break;
+
+                    case 'chapter3':
+                        // 基于第二章完成存档，进入第三章
+                        const ch2Data = loadChapterComplete('ch2_complete');
+                        if (!ch2Data) {
+                            alert('没有找到第二章的存档，请先完成第二章。');
+                            return;
+                        }
+                        // 恢复第二章完成时的状态
+                        restoreFromChapterData(ch2Data);
+                        // 直接进入第三章
+                        showGameContent();
+                        initChapter3();
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            function restoreFromChapterData(data) {
+                if (!data) return;
+
+                // 恢复核心数据
+                state.day = data.day || 1;
+                state.stamina = data.stamina || 3;
+                state.maxStamina = data.maxStamina || 3;
+                state.dragonization = data.dragonization || 0;
+                state.rules = data.rules || [];
+                state.weekCount = data.weekCount || 0;
+                state.gameOver = false;
+                state._dragonEndingQueued = false;
+                state._waitingConfirm = false;
+                state._confirmResolve = null;
+
+                // 恢复 flags
+                if (data.flags) {
+                    state.flags = JSON.parse(JSON.stringify(data.flags));
+                    // 确保 ch2 标志正确
+                    state.flags.chapter2 = true;
+                }
+
+                // 恢复 medicineHut
+                if (data.medicineHut) {
+                    state.medicineHut = JSON.parse(JSON.stringify(data.medicineHut));
+                }
+
+                // 恢复其他标记
+                if (data.villageWestDone !== undefined) state.villageWestDone = data.villageWestDone;
+                if (data.medicineHutDone !== undefined) state.medicineHutDone = data.medicineHutDone;
+                if (data.oldManTalkTriggered !== undefined) state.oldManTalkTriggered = data.oldManTalkTriggered;
+                if (data.hasShadowSecret !== undefined) state.hasShadowSecret = data.hasShadowSecret;
+                if (data.hasTaoistInfo !== undefined) state.hasTaoistInfo = data.hasTaoistInfo;
+                if (data.hasDragonFollowerInfo !== undefined) state.hasDragonFollowerInfo = data.hasDragonFollowerInfo;
+
+                // 恢复 ch2
+                if (data.ch2) {
+                    state.ch2 = JSON.parse(JSON.stringify(data.ch2));
+                    // 确保某些关键字段存在
+                    if (!state.ch2.energy) state.ch2.energy = 10;
+                    if (!state.ch2.maxEnergy) state.ch2.maxEnergy = 10;
+                    if (!state.ch2.position) state.ch2.position = 'tail';
+                    if (!state.ch2.visitedHighestPosition) state.ch2.visitedHighestPosition = 'tail';
+                }
+
+                // 标记已进入第二章
+                state.flags.chapter2 = true;
+                state._lastChapter = 'chapter2';
+
+                // 更新UI
+                updateUI();
+                saveGame();
+            }
+            // ================================================================
             //  跨周目存档系统 (独立于普通存档)
             // ================================================================
 
@@ -3085,12 +3267,89 @@
                         },
                         keeperPhase: "stranger",  // 见状态机
                     },
-
+                    // ⭐⭐⭐ 新增：章节解锁状态 ⭐⭐⭐
+                    unlockedChapters: {
+                        chapter1: true,   // 第一章默认解锁
+                        chapter2: false,  // 是否已完成第一章（可进入第二章）
+                        chapter3: false,  // 是否已完成第二章（可进入第三章）
+                        chapter4: false,  // 是否已解锁第四章
+                    },
                     // 特殊标记
                     hasWitnessedTrueEnding: false,
                     hasSeenAllEndings: false,
                     isDeleteSaveRun: false,
                 };
+            }
+            // ================================================================
+            //  章节存档工具
+            // ================================================================
+
+            const CHAPTER_SAVE_KEYS = {
+                ch1_complete: 'longling_ch1_complete',
+                ch2_complete: 'longling_ch2_complete',
+            };
+
+            function saveChapterComplete(chapter) {
+                try {
+                    // 保存当前游戏状态的副本（排除动态临时数据）
+                    const data = {
+                        // 核心数据
+                        day: state.day,
+                        stamina: state.stamina,
+                        maxStamina: state.maxStamina,
+                        dragonization: state.dragonization,
+                        rules: state.rules.slice(),  // 复制数组
+                        weekCount: state.weekCount,
+                        flags: JSON.parse(JSON.stringify(state.flags)),
+                        medicineHut: JSON.parse(JSON.stringify(state.medicineHut)),
+                        villageWestDone: state.villageWestDone,
+                        medicineHutDone: state.medicineHutDone,
+                        oldManTalkTriggered: state.oldManTalkTriggered,
+                        hasShadowSecret: state.hasShadowSecret,
+                        hasTaoistInfo: state.hasTaoistInfo,
+                        hasDragonFollowerInfo: state.hasDragonFollowerInfo,
+                        ch2: JSON.parse(JSON.stringify(state.ch2)),
+                        // 时间戳
+                        savedAt: new Date().toISOString(),
+                    };
+
+                    if (chapter === 'ch1_complete') {
+                        localStorage.setItem(CHAPTER_SAVE_KEYS.ch1_complete, JSON.stringify(data));
+                    } else if (chapter === 'ch2_complete') {
+                        localStorage.setItem(CHAPTER_SAVE_KEYS.ch2_complete, JSON.stringify(data));
+                    }
+
+                    // 更新跨周目存档中的解锁状态
+                    const cross = getCrossSave();
+                    if (chapter === 'ch1_complete') {
+                        cross.unlockedChapters.chapter2 = true;
+                    } else if (chapter === 'ch2_complete') {
+                        cross.unlockedChapters.chapter3 = true;
+                    }
+                    saveCrossSave(cross);
+
+                    return true;
+                } catch (e) {
+                    console.warn('保存章节存档失败:', e);
+                    return false;
+                }
+            }
+
+            function loadChapterComplete(chapter) {
+                try {
+                    const key = chapter === 'ch1_complete' ? CHAPTER_SAVE_KEYS.ch1_complete : CHAPTER_SAVE_KEYS.ch2_complete;
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return null;
+                    return JSON.parse(raw);
+                } catch (e) {
+                    console.warn('读取章节存档失败:', e);
+                    return null;
+                }
+            }
+
+            function hasChapterComplete(chapter) {
+                const key = chapter === 'ch1_complete' ? CHAPTER_SAVE_KEYS.ch1_complete : CHAPTER_SAVE_KEYS.ch2_complete;
+                return !!localStorage.getItem(key);
             }
             // ---------- 规则库 ----------
             const RULES_DB = {
@@ -3574,7 +3833,15 @@
             function syncCrossSave() {
                 // 1. 读取跨周目存档
                 const cross = getCrossSave();
-
+                // ⭐ 确保 unlockedChapters 存在（兜底）
+                if (!cross.unlockedChapters) {
+                    cross.unlockedChapters = {
+                        chapter1: true,
+                        chapter2: false,
+                        chapter3: false,
+                        chapter4: false,
+                    };
+                }
                 // 2. 更新周目计数（只在开始新游戏时增加，这里不重复增加）
                 // 周目计数已经在 startNewGame 中增加
 
@@ -3628,7 +3895,21 @@
 
                 // 8. 更新守卷人记忆（暂时留空，后续实现）
                 updateKeeperMemory(cross, state); // 暂不实现
+                // ⭐ 新增：检测并更新章节解锁状态
+                // 检查是否有第一章完成存档
+                if (hasChapterComplete('ch1_complete')) {
+                    cross.unlockedChapters.chapter2 = true;
+                }
+                // 检查是否有第二章完成存档
+                if (hasChapterComplete('ch2_complete')) {
+                    cross.unlockedChapters.chapter3 = true;
+                }
 
+                // 检查第四章解锁条件
+                cross.chapter4Unlocked = checkChapter4Unlock(cross);
+                if (cross.chapter4Unlocked) {
+                    cross.unlockedChapters.chapter4 = true;
+                }
                 // 9. 保存
                 saveCrossSave(cross);
             }
@@ -8554,7 +8835,8 @@
                     renderChapter2();
                     return;
                 }
-
+                // ⭐ 新增：保存第一章完成状态（用于从第一章开始的快速跳转）
+                saveChapterComplete('ch1_complete');
                 // ================================================================
                 //  第一步：读取第一章完成状态
                 // ================================================================
@@ -14020,7 +14302,8 @@
                         return;
                     }
                 }
-
+                // ⭐ 新增：保存第二章完成状态（用于从第二章开始的快速跳转）
+                saveChapterComplete('ch2_complete');
                 // ---- 检查进入第三章的条件 ----
                 var hasIncense = state.ch2.incenseRemaining > 0;
                 var disguise = state.ch2.disguise || 0;
@@ -19648,71 +19931,136 @@
                 img.src = 'image/main1.jpg';
             }
             function init() {
-                // ---- 绑定主菜单按钮 ----
-                document.getElementById('btn-new-game').addEventListener('click', startNewGame);
-                document.getElementById('btn-continue').addEventListener('click', continueGame);
+                // ---- 获取所有需要用到的 DOM 元素 ----
+                const btnNewGame = document.getElementById('btn-new-game');
+                const btnContinue = document.getElementById('btn-continue');
+                const btnKeeper = document.getElementById('btn-keeper');
+                const btnClearCache = document.getElementById('btn-clear-cache');
+                const btnReturnMenu = document.getElementById('btn-return-menu');
+                const keeperModalClose = document.getElementById('keeperModalClose');
+                const keeperModalOverlay = document.querySelector('.keeper-modal-overlay');
+                const chapterSelectClose = document.getElementById('chapter-select-close');
+                const chapterSelectModal = document.getElementById('chapter-select-modal');
 
-                // ⭐ 移除旧的画廊按钮绑定（如果存在）
-                // 原 document.getElementById('btn-gallery') 的事件已不需要，但为了安全，可以移除：
-                const oldGalleryBtn = document.getElementById('btn-gallery');
-                if (oldGalleryBtn) {
-                    oldGalleryBtn.removeEventListener('click', renderEndingGallery);
+                // ---- 1. 开始游戏按钮（支持章节选择） ----
+                if (btnNewGame) {
+                    btnNewGame.addEventListener('click', function (e) {
+                        e.stopPropagation();
+
+                        // 获取跨周目存档，检查已解锁的章节
+                        const cross = getCrossSave();
+                        const unlocked = cross.unlockedChapters || {
+                            chapter1: true,
+                            chapter2: false,
+                            chapter3: false,
+                            chapter4: false,
+                        };
+
+                        // 如果只有第一章解锁，直接开始，不弹窗
+                        if (!unlocked.chapter2 && !unlocked.chapter3) {
+                            startFromChapter('chapter1');
+                            return;
+                        }
+
+                        // 否则弹出章节选择
+                        openChapterSelect();
+                    });
                 }
 
-                // ⭐ 绑定守卷人按钮
-                document.getElementById('btn-keeper').addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    openKeeperModal();
-                });
+                // ---- 2. 继续游戏按钮 ----
+                if (btnContinue) {
+                    btnContinue.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        continueGame();
+                    });
+                }
 
-                // ⭐ 绑定清除缓存按钮
-                document.getElementById('btn-clear-cache').addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    clearAllCache();
-                });
+                // ---- 3. 守卷人按钮 ----
+                if (btnKeeper) {
+                    btnKeeper.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        openKeeperModal();
+                    });
+                }
 
-                // 绑定返回主菜单按钮
-                const returnBtn = document.getElementById('btn-return-menu');
-                if (returnBtn) {
-                    returnBtn.addEventListener('click', function (e) {
+                // ---- 4. 清除缓存按钮 ----
+                if (btnClearCache) {
+                    btnClearCache.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        clearAllCache();
+                    });
+                }
+
+                // ---- 5. 返回主菜单按钮 ----
+                if (btnReturnMenu) {
+                    btnReturnMenu.addEventListener('click', function (e) {
                         e.stopPropagation();
                         returnToMenu();
                     });
-                } else {
-                    console.warn('btn-return-menu not found – 请检查 DOM 是否包含该元素');
                 }
 
-                // ⭐ 绑定守卷人模态框关闭
-                document.getElementById('keeperModalClose').addEventListener('click', closeKeeperModal);
-                document.querySelector('.keeper-modal-overlay').addEventListener('click', closeKeeperModal);
+                // ---- 6. 守卷人模态框关闭 ----
+                if (keeperModalClose) {
+                    keeperModalClose.addEventListener('click', closeKeeperModal);
+                }
+                if (keeperModalOverlay) {
+                    keeperModalOverlay.addEventListener('click', closeKeeperModal);
+                }
 
-                // 页面关闭时自动保存
+                // ---- 7. 章节选择模态框关闭 ----
+                if (chapterSelectClose) {
+                    chapterSelectClose.addEventListener('click', closeChapterSelect);
+                }
+                if (chapterSelectModal) {
+                    chapterSelectModal.addEventListener('click', function (e) {
+                        if (e.target === this) {
+                            closeChapterSelect();
+                        }
+                    });
+                }
+
+                // ---- 8. 页面关闭时自动保存 ----
                 window.addEventListener('beforeunload', function () {
                     if (document.getElementById('game-content').style.display !== 'none') {
                         saveGame();
                     }
                 });
 
-                // 初始化跨周目存档
+                // ---- 9. 初始化跨周目存档 ----
                 const cross = getCrossSave();
-                saveCrossSave(cross);
+                // 确保 unlockedChapters 字段存在
+                if (!cross.unlockedChapters) {
+                    cross.unlockedChapters = {
+                        chapter1: true,
+                        chapter2: false,
+                        chapter3: false,
+                        chapter4: false,
+                    };
+                    saveCrossSave(cross);
+                }
 
-                // 预加载主菜单背景图
+                // ---- 10. 预加载主菜单背景图 ----
                 loadBackgroundWithProgress();
 
-                // 粒子跟随鼠标（可选）
+                // ---- 11. 粒子跟随鼠标（氛围效果） ----
                 let mouseX = 0, mouseY = 0;
                 document.addEventListener('mousemove', function (e) {
                     const rect = document.getElementById('main-menu').getBoundingClientRect();
                     mouseX = (e.clientX - rect.left) / rect.width - 0.5;
                     mouseY = (e.clientY - rect.top) / rect.height - 0.5;
-                    document.querySelectorAll('.menu-particle').forEach((p, i) => {
-                        const speed = 10 + i * 2;
-                        p.style.transform = `translate(${mouseX * speed}px, ${mouseY * speed}px)`;
+                    document.querySelectorAll('.menu-particle').forEach(function (p, i) {
+                        var speed = 10 + i * 2;
+                        p.style.transform = 'translate(' + (mouseX * speed) + 'px, ' + (mouseY * speed) + 'px)';
                     });
                 });
 
-                // 显示主菜单（同时更新守卷人UI）
+                // ---- 12. 移除旧画廊按钮（如果存在） ----
+                var oldGalleryBtn = document.getElementById('btn-gallery');
+                if (oldGalleryBtn) {
+                    oldGalleryBtn.removeEventListener('click', renderEndingGallery);
+                }
+
+                // ---- 13. 显示主菜单（同时更新守卷人UI） ----
                 showMainMenu();
             }
             window.onload = init;
