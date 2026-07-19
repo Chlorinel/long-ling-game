@@ -14379,7 +14379,9 @@
 
             function initChapter3() {
                 if (state._waitingConfirm) return;
-
+                // ---- 保存香火快照（用于重新开始第三章） ----
+                state._ch3EntryIncense = state.ch2.incenseRemaining || 0;
+                state._ch3EntryDisguise = state.ch2.disguise || 0;
                 // ---- ⭐ 关键修复：如果 ch3 已经初始化且有进度，直接恢复 ----
                 if (state.ch3 && state.ch3.phase) {
                     // 检查是否有任何探索进度
@@ -18179,8 +18181,8 @@
                 // ---- 重置 ch3 为初始状态（保留第二章数据） ----
                 // 保留清远信任（从第二章继承）
                 var qingyuanTrust = state.ch3.npc ? state.ch3.npc.qingyuan.trustLevel : (state.ch2.qingyuanTrust || 0);
-                // 保留香火
-                var incense = state.ch2.incenseRemaining || 0;
+                // ---- ⭐ 使用保存的快照值，而不是当前可能被消耗后的值 ----
+                var incense = state._ch3EntryIncense !== undefined ? state._ch3EntryIncense : (state.ch2.incenseRemaining || 0);
 
                 state.ch3 = {
                     // ----- 探索状态 -----
