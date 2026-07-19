@@ -3235,6 +3235,8 @@
                     if (!state.ch2.energy) state.ch2.energy = 10;
                     if (!state.ch2.maxEnergy) state.ch2.maxEnergy = 10;
                     if (!state.ch2.position) state.ch2.position = 'tail';
+                    // 新增：重置集市访问次数，因为开始新章节时应该从0开始
+                    state.ch2.marketVisitCount = 0;
                     if (!state.ch2.visitedHighestPosition) state.ch2.visitedHighestPosition = 'tail';
                 }
 
@@ -14698,7 +14700,11 @@
         </div>
     `;
 
-                setStory(html);
+                // 直接设置 HTML，不经过 setStory 的换行转换
+                const el = document.getElementById('storyText');
+                el.innerHTML = html;
+                const area = document.getElementById('story-area');
+                setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
 
                 // ---- 绑定点击事件 ----
                 setTimeout(function () {
@@ -16626,7 +16632,17 @@
                 }
                 return count;
             }
-
+            // ================================================================
+            //  统计已探索区域数量
+            // ================================================================
+            function getExploredCount() {
+                var explored = state.ch3.exploredAreas || {};
+                var count = 0;
+                for (var key in explored) {
+                    if (explored[key]) count++;
+                }
+                return count;
+            }
             // ================================================================
             //  第三章 · 模糊直觉（替代行动线状态面板）
             // ================================================================
